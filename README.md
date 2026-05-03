@@ -13,7 +13,7 @@
 ### Recommended Releases
 Versions we determine are stable enough can always be found on our CurseForge page. The top file on [this list](http://minecraft.curseforge.com/projects/techreborn/files?sort=releasetype) should always be the latest recommended release of Tech Reborn.
 
-[![](http://cf.way2muchnoise.eu/versions/233564_latest.svg)](https://minecraft.curseforge.com/projects/techreborn)
+[![](http://cf.way2muchnoise.eu/versions/233564_latest.svg)](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge)
 
 # Issues and Suggestions
 
@@ -32,7 +32,7 @@ Techreborn is available in a range of different languages, if you want to help o
 ![screenshot](https://i.imgur.com/ZKC5raQ.png)
 ![screenshot](https://i.imgur.com/RBCAWgO.png)
 
-[![reborncore](https://i.imgur.com/NcOEWOh.png)](https://minecraft.curseforge.com/projects/reborncore/)
+[![reborncore](https://i.imgur.com/NcOEWOh.png)](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge)
 
 # Credits
 
