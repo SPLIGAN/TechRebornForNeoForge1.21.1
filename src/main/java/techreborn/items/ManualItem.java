@@ -24,29 +24,29 @@
 
 package techreborn.items;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import reborncore.common.network.NetworkManager;
 import techreborn.packets.clientbound.OpenManualPayload;
 
 public class ManualItem extends Item {
 
 	public ManualItem() {
-		super(new Item.Settings().maxCount(1));
+		super(new Item.Properties().stacksTo(1));
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
-		if (player instanceof ServerPlayerEntity serverPlayerEntity) {
+	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+		if (player instanceof ServerPlayer serverPlayerEntity) {
 			NetworkManager.sendToPlayer(new OpenManualPayload(), serverPlayerEntity);
 		}
 
-		return new TypedActionResult<>(ActionResult.SUCCESS, player.getStackInHand(hand));
+		return new InteractionResultHolder<>(InteractionResult.SUCCESS, player.getItemInHand(hand));
 	}
 }

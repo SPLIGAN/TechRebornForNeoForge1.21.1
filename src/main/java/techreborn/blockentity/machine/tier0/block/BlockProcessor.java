@@ -24,21 +24,21 @@
 
 package techreborn.blockentity.machine.tier0.block;
 
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
 import reborncore.common.screen.builder.BlockEntityScreenHandlerBuilder;
 
 public interface BlockProcessor {
 
-	ProcessingStatus onTick(World world, BlockPos positionInFront);
+	ProcessingStatus onTick(Level world, BlockPos positionInFront);
 	ProcessingStatus getStatusEnum();
 
 	int getCurrentTickTime();
 	int getTickTime();
 
-	void readNbt(NbtCompound tag);
-	void writeNbt(NbtCompound tag);
+	void loadAdditional(CompoundTag tag);
+	void saveAdditional(CompoundTag tag);
 	BlockEntityScreenHandlerBuilder syncNbt(BlockEntityScreenHandlerBuilder builder);
 
 	default int getProgress() {

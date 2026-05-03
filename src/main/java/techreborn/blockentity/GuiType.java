@@ -24,28 +24,23 @@
 
 package techreborn.blockentity;
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerFactory;
-import net.fabricmc.fabric.api.screenhandler.v1.ExtendedScreenHandlerType;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import reborncore.api.blockentity.IMachineGuiHandler;
 import reborncore.common.network.BlockPosPayload;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.BuiltScreenHandlerProvider;
+import reborncore.common.screen.ScreenHandlerBridge;
 import techreborn.blockentity.generator.PlasmaGeneratorBlockEntity;
 import techreborn.blockentity.generator.SolarPanelBlockEntity;
 import techreborn.blockentity.generator.advanced.DieselGeneratorBlockEntity;
@@ -99,7 +94,7 @@ import techreborn.blockentity.storage.fluid.TankUnitBaseBlockEntity;
 import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
 
 
-public record GuiType<T extends BlockEntity>(Identifier identifier, ScreenHandlerType<BuiltScreenHandler> screenHandlerType) implements IMachineGuiHandler {
+public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuType<BuiltScreenHandler> screenHandlerType) implements IMachineGuiHandler {
 	public static final GuiType<AdjustableSUBlockEntity> AESU = register("aesu");
 	public static final GuiType<IronAlloyFurnaceBlockEntity> ALLOY_FURNACE = register("alloy_furnace");
 	public static final GuiType<AlloySmelterBlockEntity> ALLOY_SMELTER = register("alloy_smelter");
@@ -154,72 +149,63 @@ public record GuiType<T extends BlockEntity>(Identifier identifier, ScreenHandle
 
 
 	private static <T extends BlockEntity> GuiType<T> register(String path) {
-		var id = Identifier.of("techreborn", path);
-		var screenHandlerType = Registry.register(Registries.SCREEN_HANDLER, id, new ExtendedScreenHandlerType<>(getScreenHandlerFactory(id), ScreenHandlerData.PACKET_CODEC));
+		var id = ResourceLocation.fromNamespaceAndPath("techreborn", path);
+		var screenHandlerType = ScreenHandlerBridge.registerExtended(id, ScreenHandlerData.PACKET_CODEC, getScreenHandlerFactory(id));
 		return new GuiType<>(id, screenHandlerType);
 	}
 
-	private static ExtendedScreenHandlerType.ExtendedFactory<BuiltScreenHandler, ScreenHandlerData> getScreenHandlerFactory(Identifier identifier) {
+	@SuppressWarnings("unchecked")
+	private static ScreenHandlerBridge.ScreenHandlerDataFactory<ScreenHandlerData> getScreenHandlerFactory(ResourceLocation identifier) {
 		return (syncId, playerInventory, payload) -> {
 			if (!payload.isWithinDistance(playerInventory.player, 16)) {
 				throw new IllegalStateException("Player cannot use this block entity as its too far away");
 			}
 
-			final BlockEntity blockEntity = playerInventory.player.getWorld().getBlockEntity(payload.pos());
+			final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(payload.pos());
 			BuiltScreenHandler screenHandler = ((BuiltScreenHandlerProvider) blockEntity).createScreenHandler(syncId, playerInventory.player);
 
-			//noinspection unchecked
-			screenHandler.setType((ScreenHandlerType<BuiltScreenHandler>) Registries.SCREEN_HANDLER.get(identifier));
+			screenHandler.setType((MenuType<BuiltScreenHandler>) BuiltInRegistries.MENU.get(identifier));
 			return screenHandler;
 		};
 	}
 
-	public T getBlockEntity(ServerPlayNetworking.Context context, BlockPosPayload posPayload, BlockEntityType<T> blockEntityType) {
-		if (!posPayload.canUse(context.player(), screenHandler -> screenHandler.getType() == screenHandlerType)) {
+	public T getBlockEntity(ServerPlayer player, BlockPosPayload posPayload, BlockEntityType<T> blockEntityType) {
+		if (!posPayload.canUse(player, screenHandler -> screenHandler.getType() == screenHandlerType)) {
 			throw new IllegalStateException("Player cannot use this block entity");
 		}
 
-		return posPayload.getBlockEntity(blockEntityType, context.player());
+		return posPayload.getBlockEntity(blockEntityType, player);
 	}
 
 	@Override
-	public void open(PlayerEntity player, BlockPos pos, World world) {
-		if (!world.isClient) {
-			//This is awful
-			player.openHandledScreen(new ExtendedScreenHandlerFactory<ScreenHandlerData>() {
-				@Override
-				public ScreenHandlerData getScreenOpeningData(ServerPlayerEntity player) {
-					return new ScreenHandlerData(pos);
-				}
-
-				@Override
-				public Text getDisplayName() {
-					return Text.literal("What is this for?");
-				}
-
-				@Override
-				public ScreenHandler createMenu(int syncId, PlayerInventory inv, PlayerEntity player) {
-					final BlockEntity blockEntity = player.getWorld().getBlockEntity(pos);
-					BuiltScreenHandler screenHandler = ((BuiltScreenHandlerProvider) blockEntity).createScreenHandler(syncId, player);
-					screenHandler.setType(screenHandlerType);
-					return screenHandler;
-				}
-			});
+	public void open(Player player, BlockPos pos, Level world) {
+		if (!world.isClientSide) {
+			ScreenHandlerBridge.openExtended(
+					player,
+					new ScreenHandlerData(pos),
+					Component.literal("What is this for?"),
+					(syncId, inv, menuPlayer) -> {
+						final BlockEntity blockEntity = menuPlayer.level().getBlockEntity(pos);
+						BuiltScreenHandler screenHandler = ((BuiltScreenHandlerProvider) blockEntity).createScreenHandler(syncId, menuPlayer);
+						screenHandler.setType(screenHandlerType);
+						return screenHandler;
+					},
+					ScreenHandlerData.PACKET_CODEC);
 		}
 	}
 
 	record ScreenHandlerData(BlockPos pos) implements BlockPosPayload {
-		public static final PacketCodec<RegistryByteBuf, ScreenHandlerData> PACKET_CODEC = PacketCodec.tuple(
-			BlockPos.PACKET_CODEC, ScreenHandlerData::pos,
+		public static final StreamCodec<RegistryFriendlyByteBuf, ScreenHandlerData> PACKET_CODEC = StreamCodec.composite(
+			BlockPos.STREAM_CODEC, ScreenHandlerData::pos,
 			ScreenHandlerData::new
 		);
 	}
 
-	public Identifier getIdentifier() {
+	public ResourceLocation getIdentifier() {
 		return identifier;
 	}
 
-	public ScreenHandlerType<BuiltScreenHandler> getScreenHandlerType() {
+	public MenuType<BuiltScreenHandler> getScreenHandlerType() {
 		return screenHandlerType;
 	}
 }

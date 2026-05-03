@@ -24,8 +24,8 @@
 
 package techreborn.blockentity.cable;
 
-import net.minecraft.util.math.Direction;
-import team.reborn.energy.api.EnergyStorage;
+import net.minecraft.core.Direction;
+import reborncore.common.energy.api.EnergyStorage;
 
 /**
  * {@link EnergyStorage} adjacent to an energy cable, with some additional info.

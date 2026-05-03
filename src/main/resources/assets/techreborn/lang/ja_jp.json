@@ -854,6 +854,10 @@
   "death.attack.fusion.player": "%s は %s を超えようとして急性放射線症になった",
   "_comment21": "エンティティ",
   "entity.nuke": "核爆弾",
+  "entity.minecraft.villager.techreborn.metallurgist": "冶金学者",
+  "entity.minecraft.villager.metallurgist": "冶金学者",
+  "entity.minecraft.villager.techreborn.electrician": "電気技師",
+  "entity.minecraft.villager.electrician": "電気技師",
   "_comment22": "ツールチップ",
   "techreborn.tooltip.transferRate": "転送速度",
   "techreborn.tooltip.tier": "等級",
@@ -1092,10 +1096,5 @@
   "gui.techreborn.chunk.radius": "チャンク半径",
   "gui.techreborn.chunk.hide_loaded_chunks": "読み込むチャンクを非表示にする",
   "gui.techreborn.chunk.show_loaded_chunks": "読み込むチャンクを表示する",
-  "gui.techreborn.launchpad.launch_speed": "発射速度",
-  "_comment28": "村人",
-  "entity.minecraft.villager.techreborn.metallurgist": "冶金学者",
-  "entity.minecraft.villager.metallurgist": "冶金学者",
-  "entity.minecraft.villager.techreborn.electrician": "電気技師",
-  "entity.minecraft.villager.electrician": "電気技師"
+  "gui.techreborn.launchpad.launch_speed": "発射速度"
 }

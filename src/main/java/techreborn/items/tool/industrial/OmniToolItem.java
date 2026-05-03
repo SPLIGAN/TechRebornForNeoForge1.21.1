@@ -24,18 +24,23 @@
 
 package techreborn.items.tool.industrial;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ToolComponent;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.*;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.*;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import reborncore.api.IToolHandler;
-import reborncore.common.powerSystem.RcEnergyItem;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import reborncore.common.util.TorchHelper;
@@ -45,62 +50,62 @@ import techreborn.init.TRItemSettings;
 import techreborn.init.TRToolMaterials;
 
 
-public class OmniToolItem extends MiningToolItem implements RcEnergyItem, IToolHandler {
+public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToolHandler {
 	// 4M FE max charge with 1k charge rate
 	public OmniToolItem() {
 		super(TRToolMaterials.OMNI_TOOL, TRContent.BlockTags.OMNI_TOOL_MINEABLE, TRItemSettings.unbreakable()
-			.attributeModifiers(PickaxeItem.createAttributeModifiers(TRToolMaterials.OMNI_TOOL, 3, 1)
+			.attributes(PickaxeItem.createAttributes(TRToolMaterials.OMNI_TOOL, 3, 1)
 		));
 	}
 
 	// MiningToolItem
 	@Override
-	public boolean isCorrectForDrops(ItemStack stack, BlockState state) {
-		return Items.DIAMOND_AXE.isCorrectForDrops(stack, state) || Items.DIAMOND_SWORD.isCorrectForDrops(stack, state)
-				|| Items.DIAMOND_PICKAXE.isCorrectForDrops(stack, state) || Items.DIAMOND_SHOVEL.isCorrectForDrops(stack, state)
-				|| Items.SHEARS.isCorrectForDrops(stack, state);
+	public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+		return Items.DIAMOND_AXE.isCorrectToolForDrops(stack, state) || Items.DIAMOND_SWORD.isCorrectToolForDrops(stack, state)
+				|| Items.DIAMOND_PICKAXE.isCorrectToolForDrops(stack, state) || Items.DIAMOND_SHOVEL.isCorrectToolForDrops(stack, state)
+				|| Items.SHEARS.isCorrectToolForDrops(stack, state);
 	}
 
 	@Override
-	public float getMiningSpeed(ItemStack stack, BlockState state) {
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
 		if (getStoredEnergy(stack) >= TechRebornConfig.omniToolCost) {
-			return getMaterial().getMiningSpeedMultiplier();
+			return super.getTier().getSpeed();
 		}
-		ToolComponent toolComponent = stack.get(DataComponentTypes.TOOL);
+		Tool toolComponent = stack.get(DataComponents.TOOL);
 		return toolComponent != null ? toolComponent.defaultMiningSpeed() : 1.0F;
 	}
 
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, TechRebornConfig.omniToolCost);
 		return true;
 	}
 
 	@Override
-	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 		if (tryUseEnergy(stack, TechRebornConfig.omniToolHitCost)) {
-			target.damage(target.getWorld().getDamageSources().playerAttack((PlayerEntity) attacker), 8F);
+			target.hurt(target.level().damageSources().playerAttack((Player) attacker), 8F);
 		}
 		return true;
 	}
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack itemStack_1, ItemStack itemStack_2) {
+	public boolean isValidRepairItem(ItemStack itemStack_1, ItemStack itemStack_2) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public ActionResult useOnBlock(ItemUsageContext context) {
-		ActionResult tryUse = Items.DIAMOND_AXE.useOnBlock(context);
-		if (tryUse != ActionResult.PASS) { return tryUse; }
+	public InteractionResult useOn(UseOnContext context) {
+		InteractionResult tryUse = Items.DIAMOND_AXE.useOn(context);
+		if (tryUse != InteractionResult.PASS) { return tryUse; }
 
-		tryUse = Items.SHEARS.useOnBlock(context);
-		if (tryUse != ActionResult.PASS) { return tryUse; }
+		tryUse = Items.SHEARS.useOn(context);
+		if (tryUse != InteractionResult.PASS) { return tryUse; }
 
-		tryUse = Items.DIAMOND_SHOVEL.useOnBlock(context);
-		if (tryUse != ActionResult.PASS) { return tryUse; }
+		tryUse = Items.DIAMOND_SHOVEL.useOn(context);
+		if (tryUse != InteractionResult.PASS) { return tryUse; }
 
 		return TorchHelper.placeTorch(context);
 	}
@@ -111,17 +116,17 @@ public class OmniToolItem extends MiningToolItem implements RcEnergyItem, IToolH
 	}
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -137,14 +142,14 @@ public class OmniToolItem extends MiningToolItem implements RcEnergyItem, IToolH
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return RcEnergyTier.EXTREME;
 	}
 
 	// IToolHandler
 	@Override
-	public boolean handleTool(ItemStack stack, BlockPos pos, World world, PlayerEntity player, Direction side, boolean damage) {
-		if (!player.getWorld().isClient && this.getStoredEnergy(stack) >= 5.0) {
+	public boolean handleTool(ItemStack stack, BlockPos pos, Level world, Player player, Direction side, boolean damage) {
+		if (!player.level().isClientSide && this.getStoredEnergy(stack) >= 5.0) {
 			this.tryUseEnergy(stack, 5);
 			return true;
 		} else {

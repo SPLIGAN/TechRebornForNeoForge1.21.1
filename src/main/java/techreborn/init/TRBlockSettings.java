@@ -24,229 +24,229 @@
 
 package techreborn.init;
 
-import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.MapColor;
-import net.minecraft.sound.BlockSoundGroup;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.MapColor;
 
 public class TRBlockSettings {
-	private static FabricBlockSettings metal() {
-		return FabricBlockSettings.create()
-			.sounds(BlockSoundGroup.METAL)
-			.mapColor(MapColor.IRON_GRAY)
+	private static BlockBehaviour.Properties metal() {
+		return BlockBehaviour.Properties.of()
+			.sound(SoundType.METAL)
+			.mapColor(MapColor.METAL)
 			.strength(2f, 2f);
 	}
 
-	public static FabricBlockSettings machine() {
+	public static BlockBehaviour.Properties machine() {
 		return metal();
 	}
 
-	public static FabricBlockSettings nuke() {
-		return FabricBlockSettings.create()
+	public static BlockBehaviour.Properties nuke() {
+		return BlockBehaviour.Properties.of()
 			.strength(2F, 2F)
-			.mapColor(MapColor.BRIGHT_RED);
+			.mapColor(MapColor.FIRE);
 	}
 
-	public static FabricBlockSettings reinforcedGlass() {
-		return FabricBlockSettings.copyOf(Blocks.GLASS)
+	public static BlockBehaviour.Properties reinforcedGlass() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS)
 			.strength(4f, 60f)
-			.sounds(BlockSoundGroup.STONE);
+			.sound(SoundType.STONE);
 	}
 
-	private static FabricBlockSettings rubber(boolean noCollision, float hardness, float resistance) {
-		var settings = FabricBlockSettings.create()
-			.mapColor(MapColor.SPRUCE_BROWN)
+	private static BlockBehaviour.Properties rubber(boolean noCollision, float hardness, float resistance) {
+		var settings = BlockBehaviour.Properties.of()
+			.mapColor(MapColor.PODZOL)
 			.strength(hardness, resistance)
-			.sounds(BlockSoundGroup.WOOD);
+			.sound(SoundType.WOOD);
 
 		if (noCollision) {
-			settings.noCollision();
+			settings.noCollission();
 		}
 
 		return settings;
 	}
 
-	private static FabricBlockSettings rubber(float hardness, float resistance) {
+	private static BlockBehaviour.Properties rubber(float hardness, float resistance) {
 		return rubber(false, hardness, resistance);
 	}
 
-	public static FabricBlockSettings rubberWood() {
+	public static BlockBehaviour.Properties rubberWood() {
 		return rubber(2f, 2f)
-			.burnable();
+			.ignitedByLava();
 	}
 
-	public static FabricBlockSettings rubberWoodStripped() {
+	public static BlockBehaviour.Properties rubberWoodStripped() {
 		return rubberWood()
 			.strength(2.0F, 15.0F);
 	}
 
-	public static FabricBlockSettings rubberLeaves() {
-		return FabricBlockSettings.copyOf(Blocks.SPRUCE_LEAVES)
-			.mapColor(MapColor.SPRUCE_BROWN);
+	public static BlockBehaviour.Properties rubberLeaves() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LEAVES)
+			.mapColor(MapColor.PODZOL);
 	}
 
-	public static FabricBlockSettings rubberSapling() {
-		return FabricBlockSettings.copyOf(Blocks.SPRUCE_SAPLING)
-			.mapColor(MapColor.SPRUCE_BROWN);
+	public static BlockBehaviour.Properties rubberSapling() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_SAPLING)
+			.mapColor(MapColor.PODZOL);
 	}
 
-	public static FabricBlockSettings rubberLog() {
-		return FabricBlockSettings.copyOf(Blocks.SPRUCE_LOG)
-			.ticksRandomly()
-			.mapColor(MapColor.SPRUCE_BROWN);
+	public static BlockBehaviour.Properties rubberLog() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LOG)
+			.randomTicks()
+			.mapColor(MapColor.PODZOL);
 	}
 
-	public static FabricBlockSettings rubberLogStripped() {
+	public static BlockBehaviour.Properties rubberLogStripped() {
 		return rubberLog().strength(2.0F, 15.0F);
 	}
 
-	public static FabricBlockSettings rubberSlab() {
+	public static BlockBehaviour.Properties rubberSlab() {
 		return rubberLog();
 	}
 
-	public static FabricBlockSettings rubberFence() {
+	public static BlockBehaviour.Properties rubberFence() {
 		return rubberLog();
 	}
 
-	public static FabricBlockSettings rubberFenceGate() {
+	public static BlockBehaviour.Properties rubberFenceGate() {
 		return rubberLog();
 	}
 
-	public static FabricBlockSettings pottedRubberSapling() {
-		return FabricBlockSettings.copyOf(Blocks.POTTED_SPRUCE_SAPLING);
+	public static BlockBehaviour.Properties pottedRubberSapling() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_SPRUCE_SAPLING);
 	}
 
-	public static FabricBlockSettings copperWall() {
-		return FabricBlockSettings.copyOf(Blocks.COPPER_BLOCK)
+	public static BlockBehaviour.Properties copperWall() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.COPPER_BLOCK)
 			.strength(2f, 2f);
 	}
 
-	public static FabricBlockSettings rubberTrapdoor() {
+	public static BlockBehaviour.Properties rubberTrapdoor() {
 		return rubber(3.0F, 3.0F);
 	}
 
-	public static FabricBlockSettings rubberDoor() {
+	public static BlockBehaviour.Properties rubberDoor() {
 		return rubber(3.0F, 3.0F);
 	}
 
-	public static FabricBlockSettings rubberButton() {
+	public static BlockBehaviour.Properties rubberButton() {
 		return rubber(true, 0.5F, 0.5F);
 	}
 
-	public static FabricBlockSettings rubberPressurePlate() {
+	public static BlockBehaviour.Properties rubberPressurePlate() {
 		return rubber(true, 0.5F, 0.5F);
 	}
 
-	public static FabricBlockSettings refinedIronFence() {
+	public static BlockBehaviour.Properties refinedIronFence() {
 		return metal()
 			.strength(2.0F, 3.0F);
 	}
 
-	public static FabricBlockSettings storageBlock(boolean isHot, float hardness, float resistance) {
-		FabricBlockSettings settings = FabricBlockSettings.create()
+	public static BlockBehaviour.Properties storageBlock(boolean isHot, float hardness, float resistance) {
+		BlockBehaviour.Properties settings = BlockBehaviour.Properties.of()
 			.strength(hardness, resistance)
-			.mapColor(MapColor.IRON_GRAY) // TODO 1.20 maybe set the color based off the block?
-			.sounds(BlockSoundGroup.METAL);
+			.mapColor(MapColor.METAL) // TODO 1.20 maybe set the color based off the block?
+			.sound(SoundType.METAL);
 
 		if (isHot) {
-			settings = settings.luminance(15)
-				.nonOpaque();
+			settings = settings.lightLevel(state -> 15)
+				.noOcclusion();
 		}
 
 		return settings;
 	}
 
-	public static FabricBlockSettings ore(boolean deepslate) {
-		return FabricBlockSettings.create()
-			.requiresTool()
-			.sounds(deepslate ? BlockSoundGroup.DEEPSLATE : BlockSoundGroup.STONE)
-			.hardness(deepslate ? 4.5f : 3f)
-			.resistance(3f);
+	public static BlockBehaviour.Properties ore(boolean deepslate) {
+		return BlockBehaviour.Properties.of()
+			.requiresCorrectToolForDrops()
+			.sound(deepslate ? SoundType.DEEPSLATE : SoundType.STONE)
+			.destroyTime(deepslate ? 4.5f : 3f)
+			.explosionResistance(3f);
 	}
 
-	public static FabricBlockSettings machineFrame() {
+	public static BlockBehaviour.Properties machineFrame() {
 		return metal()
 			.strength(1f, 1f);
 	}
 
-	public static FabricBlockSettings machineCasing() {
+	public static BlockBehaviour.Properties machineCasing() {
 		return metal()
 			.strength(2f, 2f)
-			.requiresTool();
+			.requiresCorrectToolForDrops();
 	}
 
-	public static FabricBlockSettings energyStorage() {
+	public static BlockBehaviour.Properties energyStorage() {
 		return metal();
 	}
 
-	public static FabricBlockSettings lsuStorage() {
+	public static BlockBehaviour.Properties lsuStorage() {
 		return metal();
 	}
 
-	public static FabricBlockSettings storageUnit(boolean wooden) {
+	public static BlockBehaviour.Properties storageUnit(boolean wooden) {
 		if (!wooden) {
 			return metal();
 		}
 
-		return FabricBlockSettings.create()
-			.sounds(BlockSoundGroup.WOOD)
-			.mapColor(MapColor.OAK_TAN)
+		return BlockBehaviour.Properties.of()
+			.sound(SoundType.WOOD)
+			.mapColor(MapColor.WOOD)
 			.strength(2f, 2f);
 	}
 
-	public static FabricBlockSettings fusionCoil() {
+	public static BlockBehaviour.Properties fusionCoil() {
 		return metal();
 	}
 
-	public static FabricBlockSettings transformer() {
+	public static BlockBehaviour.Properties transformer() {
 		return metal();
 	}
 
-	public static FabricBlockSettings playerDetector() {
+	public static BlockBehaviour.Properties playerDetector() {
 		return metal();
 	}
 
-	public static FabricBlockSettings fluid() {
-		return FabricBlockSettings.copyOf(Blocks.WATER);
+	public static BlockBehaviour.Properties fluid() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.WATER);
 	}
 
-	public static FabricBlockSettings computerCube() {
+	public static BlockBehaviour.Properties computerCube() {
 		return metal();
 	}
 
-	public static FabricBlockSettings alarm() {
+	public static BlockBehaviour.Properties alarm() {
 		return metal();
 	}
 
-	public static FabricBlockSettings genericMachine() {
+	public static BlockBehaviour.Properties genericMachine() {
 		return metal();
 	}
 
-	public static FabricBlockSettings tankUnit() {
+	public static BlockBehaviour.Properties tankUnit() {
 		return metal();
 	}
 
-	public static FabricBlockSettings fusionControlComputer() {
+	public static BlockBehaviour.Properties fusionControlComputer() {
 		return metal();
 	}
 
-	public static FabricBlockSettings solarPanel() {
+	public static BlockBehaviour.Properties solarPanel() {
 		return metal();
 	}
 
-	public static FabricBlockSettings cable() {
+	public static BlockBehaviour.Properties cable() {
 		return metal().strength(1f, 8f);
 	}
 
-	public static FabricBlockSettings resinBasin() {
-		return FabricBlockSettings.create()
-			.mapColor(MapColor.OAK_TAN)
-			.sounds(BlockSoundGroup.WOOD)
+	public static BlockBehaviour.Properties resinBasin() {
+		return BlockBehaviour.Properties.of()
+			.mapColor(MapColor.WOOD)
+			.sound(SoundType.WOOD)
 			.strength(2F, 2F);
 	}
 
-	public static FabricBlockSettings lightBlock() {
-		return FabricBlockSettings.copyOf(Blocks.REDSTONE_BLOCK)
+	public static BlockBehaviour.Properties lightBlock() {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.REDSTONE_BLOCK)
 			.strength(2f, 2f);
 	}
 }

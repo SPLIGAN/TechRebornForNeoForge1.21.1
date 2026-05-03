@@ -24,106 +24,31 @@
 
 package techreborn.world;
 
-import net.fabricmc.fabric.api.biome.v1.BiomeModificationContext;
-import net.fabricmc.fabric.api.biome.v1.BiomeModifications;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-import net.fabricmc.fabric.api.biome.v1.ModificationPhase;
-import net.minecraft.block.SaplingGenerator;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.BiomeTags;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.biome.BiomeKeys;
-import net.minecraft.world.gen.GenerationStep;
-import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraft.world.gen.feature.PlacedFeature;
-import net.minecraft.world.gen.treedecorator.TreeDecoratorType;
-import techreborn.config.TechRebornConfig;
-import techreborn.init.TRContent;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.grower.TreeGrower;
+import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
+import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorType;
+import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
-
-// /fill ~ ~ ~ ~20 ~20 ~20 air replace #minecraft:base_stone_overworld
 public class WorldGenerator {
-	public static final List<TROreFeatureConfig> ORE_FEATURES = getOreFeatures();
+	public static final ResourceLocation OIL_LAKE_ID = ResourceLocation.fromNamespaceAndPath("techreborn", "oil_lake");
+	public static final ResourceKey<ConfiguredFeature<?, ?> > OIL_LAKE_FEATURE = ResourceKey.create(Registries.CONFIGURED_FEATURE, WorldGenerator.OIL_LAKE_ID);
+	public static final ResourceKey<PlacedFeature> OIL_LAKE_PLACED_FEATURE = ResourceKey.create(Registries.PLACED_FEATURE, WorldGenerator.OIL_LAKE_ID);
 
-	public static final Identifier OIL_LAKE_ID = Identifier.of("techreborn", "oil_lake");
-	public static final RegistryKey<ConfiguredFeature<?, ?>> OIL_LAKE_FEATURE = RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, OIL_LAKE_ID);
-	public static final RegistryKey<PlacedFeature> OIL_LAKE_PLACED_FEATURE = RegistryKey.of(RegistryKeys.PLACED_FEATURE, OIL_LAKE_ID);
+	public static final ResourceLocation RUBBER_TREE_ID = ResourceLocation.fromNamespaceAndPath("techreborn", "rubber_tree");
+	public static final ResourceKey<ConfiguredFeature<?, ?> > RUBBER_TREE_FEATURE = ResourceKey.create(Registries.CONFIGURED_FEATURE, WorldGenerator.RUBBER_TREE_ID);
+	public static final ResourceKey<PlacedFeature> RUBBER_TREE_PLACED_FEATURE = ResourceKey.create(Registries.PLACED_FEATURE, WorldGenerator.RUBBER_TREE_ID);
 
-	public static final Identifier RUBBER_TREE_ID = Identifier.of("techreborn", "rubber_tree");
-	public static final RegistryKey<ConfiguredFeature<?, ?>> RUBBER_TREE_FEATURE = RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, RUBBER_TREE_ID);
-	public static final RegistryKey<PlacedFeature> RUBBER_TREE_PLACED_FEATURE = RegistryKey.of(RegistryKeys.PLACED_FEATURE, RUBBER_TREE_ID);
+	public static final ResourceLocation RUBBER_TREE_PATCH_ID = ResourceLocation.fromNamespaceAndPath("techreborn", "rubber_tree_patch");
+	public static final ResourceKey<ConfiguredFeature<?, ?> > RUBBER_TREE_PATCH_FEATURE = ResourceKey.create(Registries.CONFIGURED_FEATURE, WorldGenerator.RUBBER_TREE_PATCH_ID);
+	public static final ResourceKey<PlacedFeature> RUBBER_TREE_PATCH_PLACED_FEATURE = ResourceKey.create(Registries.PLACED_FEATURE, WorldGenerator.RUBBER_TREE_PATCH_ID);
 
-	public static final Identifier RUBBER_TREE_PATCH_ID = Identifier.of("techreborn", "rubber_tree_patch");
-	public static final RegistryKey<ConfiguredFeature<?, ?>> RUBBER_TREE_PATCH_FEATURE = RegistryKey.of(RegistryKeys.CONFIGURED_FEATURE, RUBBER_TREE_PATCH_ID);
-	public static final RegistryKey<PlacedFeature> RUBBER_TREE_PATCH_PLACED_FEATURE = RegistryKey.of(RegistryKeys.PLACED_FEATURE, RUBBER_TREE_PATCH_ID);
+	public static final TreeDecoratorType<RubberTreeSpikeDecorator> RUBBER_TREE_SPIKE = Registry.register(BuiltInRegistries.TREE_DECORATOR_TYPE, ResourceLocation.fromNamespaceAndPath("techreborn", "rubber_tree_spike"), new TreeDecoratorType<RubberTreeSpikeDecorator>(RubberTreeSpikeDecorator.CODEC));
 
-	public static final TreeDecoratorType<RubberTreeSpikeDecorator> RUBBER_TREE_SPIKE = Registry.register(Registries.TREE_DECORATOR_TYPE, Identifier.of("techreborn", "rubber_tree_spike"), new TreeDecoratorType<>(RubberTreeSpikeDecorator.CODEC));
+	public static final TreeGrower RUBBER_TREE_SAPLING_GENERATOR = new TreeGrower(WorldGenerator.RUBBER_TREE_ID.toString(), java.util.Optional.empty(), java.util.Optional.of(WorldGenerator.RUBBER_TREE_FEATURE), java.util.Optional.empty());
 
-	public static final SaplingGenerator RUBBER_TREE_SAPLING_GENERATOR = new SaplingGenerator(
-		Identifier.of("techreborn", "rubber_tree").toString(),
-		Optional.empty(),
-		Optional.of(RUBBER_TREE_FEATURE),
-		Optional.empty()
-	);
-
-	public static void initWorldGen() {
-		if (!TechRebornConfig.enableOreGeneration && !TechRebornConfig.enableRubberTreeGeneration && !TechRebornConfig.enableOilLakeGeneration) {
-			return;
-		}
-
-		BiomeModifications.create(Identifier.of("techreborn", "features"))
-				.add(ModificationPhase.ADDITIONS, BiomeSelectors.all(), oreModifier())
-				.add(ModificationPhase.ADDITIONS, BiomeSelectors.tag(BiomeTags.IS_FOREST)
-					.or(BiomeSelectors.tag(BiomeTags.IS_TAIGA))
-					.or(BiomeSelectors.includeByKey(BiomeKeys.SWAMP)), rubberTreeModifier())
-				.add(ModificationPhase.ADDITIONS, BiomeSelectors.tag(BiomeTags.IS_OVERWORLD), oilLakeModifier());
-	}
-
-	private static BiConsumer<BiomeSelectionContext, BiomeModificationContext> oreModifier() {
-		return (biomeSelectionContext, biomeModificationContext) -> {
-			if (!TechRebornConfig.enableOreGeneration) {
-				return;
-			}
-
-			for (TROreFeatureConfig feature : ORE_FEATURES) {
-				if (feature.biomeSelector().test(biomeSelectionContext)) {
-					biomeModificationContext.getGenerationSettings().addFeature(GenerationStep.Feature.UNDERGROUND_ORES, feature.placedFeature());
-				}
-			}
-		};
-	}
-
-	private static List<TROreFeatureConfig> getOreFeatures() {
-		return Arrays.stream(TRContent.Ores.values())
-				.filter(ores -> ores.distribution != null)
-				.filter(ores -> ores.distribution.isGenerating())
-				.map(TROreFeatureConfig::of)
-				.toList();
-	}
-
-	private static BiConsumer<BiomeSelectionContext, BiomeModificationContext> rubberTreeModifier() {
-		if (!TechRebornConfig.enableRubberTreeGeneration) {
-			return (biomeSelectionContext, biomeModificationContext) -> {};
-		}
-
-		return (biomeSelectionContext, biomeModificationContext) ->
-				biomeModificationContext.getGenerationSettings().addFeature(GenerationStep.Feature.VEGETAL_DECORATION, RUBBER_TREE_PATCH_PLACED_FEATURE);
-	}
-
-	private static Consumer<BiomeModificationContext> oilLakeModifier(){
-		if (!TechRebornConfig.enableOilLakeGeneration) {
-			return (biomeModificationContext) -> {};
-		}
-
-		return (biomeModificationContext) -> biomeModificationContext.getGenerationSettings().addFeature(GenerationStep.Feature.LAKES, OIL_LAKE_PLACED_FEATURE);
-	}
 }

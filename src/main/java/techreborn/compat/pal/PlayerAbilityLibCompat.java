@@ -24,22 +24,19 @@
 
 package techreborn.compat.pal;
 
-import net.fabricmc.api.ModInitializer;
-import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import techreborn.items.armor.QuantumSuitItem;
+import reborncore.common.util.LoaderBridge;
 
-public class PlayerAbilityLibCompat implements ModInitializer {
+public class PlayerAbilityLibCompat {
 	private static final Logger LOGGER = LoggerFactory.getLogger(PlayerAbilityLibCompat.class);
 
-	@Override
 	public void onInitialize() {
-		if (!FabricLoader.getInstance().isModLoaded("playerabilitylib")) {
+		if (!LoaderBridge.isModLoaded("playerabilitylib")) {
 			return;
 		}
 
-		LOGGER.debug("PlayerAbilityLib detected, enabling compatibility");
-		QuantumSuitItem.HANDLER = new PalQuantumSuitFlightHandler();
+		// PAL flight bridge requires Ladysnake PAL on the compile classpath; NeoForge coords pending — vanilla handler stays active.
+		LOGGER.debug("PlayerAbilityLib loaded but PAL flight compat is not compiled into this NeoForge build yet");
 	}
 }

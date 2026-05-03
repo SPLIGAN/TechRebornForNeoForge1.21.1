@@ -26,48 +26,37 @@ package reborncore.client.gui;
 
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
-import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
-import net.minecraft.resource.Resource;
-import net.minecraft.resource.ResourceManager;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.profiler.Profiler;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.Resource;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
+import net.minecraft.util.profiling.ProfilerFiller;
 
 import java.io.InputStreamReader;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-
-public class ThemeManager implements SimpleResourceReloadListener<Theme> {
+public class ThemeManager extends SimplePreparableReloadListener<Theme> {
 	private static Theme theme = null;
 
 	@Override
-	public Identifier getFabricId() {
-		return Identifier.of("reborncore", "theme_manager");
+	protected Theme prepare(ResourceManager resourceManager, ProfilerFiller profiler) {
+		Optional<Resource> themeResource = resourceManager.getResource(ResourceLocation.fromNamespaceAndPath("reborncore", "theme.json"));
+
+		if (themeResource.isEmpty()) {
+			throw new IllegalStateException("Failed to find reborn core theme.json");
+		}
+
+		try (InputStreamReader reader = new InputStreamReader(themeResource.get().open())) {
+			JsonElement element = JsonParser.parseReader(reader);
+			return Theme.CODEC.parse(JsonOps.INSTANCE, element).getOrThrow(JsonParseException::new);
+		} catch (Exception e) {
+			throw new IllegalStateException("Failed to parse reborn core theme.json", e);
+		}
 	}
 
 	@Override
-	public CompletableFuture<Theme> load(ResourceManager manager, Profiler profiler, Executor executor) {
-		return CompletableFuture.supplyAsync(() -> {
-			Optional<Resource> theme = manager.getResource(Identifier.of("reborncore", "theme.json"));
-
-			if (theme.isEmpty()) {
-				throw new IllegalStateException("Failed to find reborn core theme.json");
-			}
-
-			try (InputStreamReader reader = new InputStreamReader(theme.get().getInputStream())) {
-				JsonElement element = JsonParser.parseReader(reader);
-				return Theme.CODEC.parse(JsonOps.INSTANCE, element).getOrThrow(JsonParseException::new);
-			} catch (Exception e) {
-				throw new IllegalStateException("Failed to parse reborn core theme.json", e);
-			}
-		}, executor);
-	}
-
-	@Override
-	public CompletableFuture<Void> apply(Theme theme, ResourceManager manager, Profiler profiler, Executor executor) {
-		// Set the theme instance on the main thread.
-		return CompletableFuture.runAsync(() -> ThemeManager.theme = theme, executor);
+	protected void apply(Theme prepared, ResourceManager resourceManager, ProfilerFiller profiler) {
+		ThemeManager.theme = prepared;
 	}
 
 	public static Theme getTheme() {

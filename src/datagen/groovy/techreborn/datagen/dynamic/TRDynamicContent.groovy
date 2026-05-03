@@ -57,6 +57,7 @@ import techreborn.init.TRContent
 import techreborn.init.TRDamageTypes
 import techreborn.world.RubberTreeSpikeDecorator
 import techreborn.world.TROreFeatureConfig
+import techreborn.world.TROreFeatureQueries
 import techreborn.world.TargetDimension
 import techreborn.world.WorldGenerator
 
@@ -69,7 +70,7 @@ class TRDynamicContent {
 	static void configuredFeatures(Registerable<ConfiguredFeature> registry) {
 		def placedFeatureLookup = registry.getRegistryLookup(RegistryKeys.PLACED_FEATURE)
 
-		WorldGenerator.ORE_FEATURES.forEach {
+		TROreFeatureQueries.allWithDistribution().forEach {
 			registry.register(it.configuredFeature(), createOreConfiguredFeature(it))
 		}
 
@@ -81,7 +82,7 @@ class TRDynamicContent {
 	static void placedFeatures(Registerable<PlacedFeature> registry) {
 		def configuredFeatureLookup = registry.getRegistryLookup(RegistryKeys.CONFIGURED_FEATURE)
 
-		WorldGenerator.ORE_FEATURES.forEach {
+		TROreFeatureQueries.allWithDistribution().forEach {
 			registry.register(it.placedFeature(), createOrePlacedFeature(configuredFeatureLookup, it))
 		}
 

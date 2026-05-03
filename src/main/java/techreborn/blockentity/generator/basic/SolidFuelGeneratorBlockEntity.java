@@ -24,19 +24,6 @@
 
 package techreborn.blockentity.generator.basic;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.BucketItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IToolDrop;
@@ -53,6 +40,19 @@ import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
 
 import java.util.Map;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, InventoryProvider, BuiltScreenHandlerProvider {
 
@@ -72,7 +72,7 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 		if (stack.isEmpty()) {
 			return 0;
 		}
-		Map<Item, Integer> burnMap = AbstractFurnaceBlockEntity.createFuelTimeMap();
+		Map<Item, Integer> burnMap = AbstractFurnaceBlockEntity.getFuel();
 		if (burnMap.containsKey(stack.getItem())) {
 			return burnMap.get(stack.getItem()) / 4;
 		}
@@ -80,12 +80,14 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 	}
 
 	private void updateState() {
-		assert world != null;
-		final BlockState BlockStateContainer = world.getBlockState(pos);
+		Level level = getLevel();
+		assert level != null;
+		BlockPos bp = getBlockPos();
+		final BlockState BlockStateContainer = level.getBlockState(bp);
 		if (BlockStateContainer.getBlock() instanceof final BlockMachineBase blockMachineBase) {
 			boolean active = burnTime > 0 && getFreeSpace() > 0.0f;
-			if (BlockStateContainer.get(BlockMachineBase.ACTIVE) != active) {
-				blockMachineBase.setActive(active, world, pos);
+			if (BlockStateContainer.getValue(BlockMachineBase.ACTIVE) != active) {
+				blockMachineBase.setActive(active, level, bp);
 			}
 		}
 	}
@@ -93,9 +95,9 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClient){
+		if (world == null || world.isClientSide){
 			return;
 		}
 
@@ -113,15 +115,15 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 
 		if (burnTime == 0) {
 			updateState();
-			burnTime = totalBurnTime = SolidFuelGeneratorBlockEntity.getItemBurnTime(inventory.getStack(fuelSlot));
+			burnTime = totalBurnTime = SolidFuelGeneratorBlockEntity.getItemBurnTime(inventory.getItem(fuelSlot));
 			if (burnTime > 0) {
 				updateState();
-				burnItem = inventory.getStack(fuelSlot);
-				if (inventory.getStack(fuelSlot).getCount() == 1) {
-					if (inventory.getStack(fuelSlot).getItem() == Items.LAVA_BUCKET || inventory.getStack(fuelSlot).getItem() instanceof BucketItem) {
-						inventory.setStack(fuelSlot, new ItemStack(Items.BUCKET));
+				burnItem = inventory.getItem(fuelSlot);
+				if (inventory.getItem(fuelSlot).getCount() == 1) {
+					if (inventory.getItem(fuelSlot).getItem() == Items.LAVA_BUCKET || inventory.getItem(fuelSlot).getItem() instanceof BucketItem) {
+						inventory.setItem(fuelSlot, new ItemStack(Items.BUCKET));
 					} else {
-						inventory.setStack(fuelSlot, ItemStack.EMPTY);
+						inventory.setItem(fuelSlot, ItemStack.EMPTY);
 					}
 
 				} else {
@@ -154,15 +156,15 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 	}
 
 	@Override
-	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tag, registryLookup);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tag, registryLookup);
 		burnTime = tag.getInt("BurnTime");
 		totalBurnTime = tag.getInt("TotalBurnTime");
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tag, registryLookup);
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tag, registryLookup);
 		tag.putInt("BurnTime", burnTime);
 		tag.putInt("TotalBurnTime", totalBurnTime);
 	}
@@ -175,7 +177,7 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(PlayerEntity playerIn) {
+	public ItemStack getToolDrop(Player playerIn) {
 		return TRContent.Machine.SOLID_FUEL_GENERATOR.getStack();
 	}
 
@@ -207,10 +209,10 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 	}
 
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("generator").player(player.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(this).fuelSlot(0, 80, 54).energySlot(1, 8, 72).syncEnergyValue()
-				.sync(PacketCodecs.INTEGER, this::getBurnTime, this::setBurnTime)
-				.sync(PacketCodecs.INTEGER, this::getTotalBurnTime, this::setTotalBurnTime).addInventory().create(this, syncID);
+				.sync(ByteBufCodecs.INT, this::getBurnTime, this::setBurnTime)
+				.sync(ByteBufCodecs.INT, this::getTotalBurnTime, this::setTotalBurnTime).addInventory().create(this, syncID);
 	}
 }

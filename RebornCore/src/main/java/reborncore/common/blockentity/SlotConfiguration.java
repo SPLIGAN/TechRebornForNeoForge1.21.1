@@ -26,16 +26,7 @@ package reborncore.common.blockentity;
 
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.StringNbtReader;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.Direction;
+import reborncore.common.compat.TransferApiBridge;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.Nullable;
 import reborncore.RebornCore;
@@ -44,21 +35,28 @@ import reborncore.common.util.RebornInventory;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
 
 public class SlotConfiguration implements NBTSerializable {
-	public static final PacketCodec<ByteBuf, SlotConfiguration> PACKET_CODEC = SlotConfigHolder.PACKET_CODEC
-		.collect(PacketCodecs.toList())
-		.xmap(SlotConfiguration::new, SlotConfiguration::getSlotDetails);
+	public static final StreamCodec<ByteBuf, SlotConfiguration> PACKET_CODEC = SlotConfigHolder.PACKET_CODEC
+		.apply(ByteBufCodecs.list())
+		.map(SlotConfiguration::new, SlotConfiguration::getSlotDetails);
 
 	List<SlotConfigHolder> slotDetails = new ArrayList<>();
 
 	@Nullable
-	Inventory inventory;
+	Container inventory;
 
 	public SlotConfiguration(RebornInventory<?> inventory) {
 		this.inventory = inventory;
 
-		for (int i = 0; i < inventory.size(); i++) {
+		for (int i = 0; i < inventory.getContainerSize(); i++) {
 			updateSlotDetails(new SlotConfigHolder(i));
 		}
 	}
@@ -72,8 +70,8 @@ public class SlotConfiguration implements NBTSerializable {
 		if (inventory == null && machineBase.getOptionalInventory().isPresent()) {
 			inventory = machineBase.getOptionalInventory().get();
 		}
-		if (inventory != null && slotDetails.size() != inventory.size()) {
-			for (int i = 0; i < inventory.size(); i++) {
+		if (inventory != null && slotDetails.size() != inventory.getContainerSize()) {
+			for (int i = 0; i < inventory.getContainerSize(); i++) {
 				SlotConfigHolder holder = getSlotDetails(i);
 				if (holder == null) {
 					RebornCore.LOGGER.debug("Fixed slot " + i + " in " + machineBase);
@@ -82,12 +80,12 @@ public class SlotConfiguration implements NBTSerializable {
 				}
 			}
 		}
-		if (!machineBase.getWorld().isClient && machineBase.getWorld().getTime() % machineBase.slotTransferSpeed() == 0) {
+		if (!machineBase.getLevel().isClientSide && machineBase.getLevel().getGameTime() % machineBase.slotTransferSpeed() == 0) {
 			getSlotDetails().forEach(slotConfigHolder -> slotConfigHolder.handleItemIO(machineBase));
 		}
 	}
 
-	public SlotConfiguration(NbtCompound tagCompound) {
+	public SlotConfiguration(CompoundTag tagCompound) {
 		read(tagCompound);
 	}
 
@@ -125,8 +123,8 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	@Override
-	public NbtCompound write() {
-		NbtCompound tagCompound = new NbtCompound();
+	public CompoundTag write() {
+		CompoundTag tagCompound = new CompoundTag();
 		tagCompound.putInt("size", slotDetails.size());
 		for (int i = 0; i < slotDetails.size(); i++) {
 			tagCompound.put("slot_" + i, slotDetails.get(i).write());
@@ -135,23 +133,23 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	@Override
-	public void read(NbtCompound nbt) {
+	public void read(CompoundTag nbt) {
 		int size = nbt.getInt("size");
 		for (int i = 0; i < size; i++) {
-			NbtCompound tagCompound = nbt.getCompound("slot_" + i);
+			CompoundTag tagCompound = nbt.getCompound("slot_" + i);
 			SlotConfigHolder slotConfigHolder = new SlotConfigHolder(tagCompound);
 			updateSlotDetails(slotConfigHolder);
 		}
 	}
 
 	public static class SlotConfigHolder implements NBTSerializable {
-		public static final PacketCodec<ByteBuf, SlotConfigHolder> PACKET_CODEC = PacketCodec.tuple(
-			PacketCodecs.INTEGER, SlotConfigHolder::getSlotID,
-			PacketCodecs.map(HashMap::new, Direction.PACKET_CODEC, SlotConfig.PACKET_CODEC), SlotConfigHolder::getSideMap,
-			PacketCodecs.BOOL, SlotConfigHolder::autoInput,
-			PacketCodecs.BOOL, SlotConfigHolder::autoOutput,
-			PacketCodecs.BOOL, SlotConfigHolder::filter,
-			PacketCodecs.INTEGER, SlotConfigHolder::getPriority,
+		public static final StreamCodec<ByteBuf, SlotConfigHolder> PACKET_CODEC = StreamCodec.composite(
+			ByteBufCodecs.INT, SlotConfigHolder::getSlotID,
+			ByteBufCodecs.map(HashMap::new, Direction.STREAM_CODEC, SlotConfig.PACKET_CODEC), SlotConfigHolder::getSideMap,
+			ByteBufCodecs.BOOL, SlotConfigHolder::autoInput,
+			ByteBufCodecs.BOOL, SlotConfigHolder::autoOutput,
+			ByteBufCodecs.BOOL, SlotConfigHolder::filter,
+			ByteBufCodecs.INT, SlotConfigHolder::getPriority,
 			SlotConfigHolder::new
 		);
 
@@ -176,7 +174,7 @@ public class SlotConfiguration implements NBTSerializable {
 			Arrays.stream(Direction.values()).forEach(facing -> sideMap.put(facing, new SlotConfig(facing, slotID)));
 		}
 
-		public SlotConfigHolder(NbtCompound tagCompound) {
+		public SlotConfigHolder(CompoundTag tagCompound) {
 			sideMap = new HashMap<>();
 			read(tagCompound);
 			Validate.isTrue(Arrays.stream(Direction.values())
@@ -272,8 +270,8 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public NbtCompound write() {
-			NbtCompound compound = new NbtCompound();
+		public CompoundTag write() {
+			CompoundTag compound = new CompoundTag();
 			compound.putInt("slotID", slotID);
 			Arrays.stream(Direction.values()).forEach(facing -> compound.put("side_" + facing.ordinal(), sideMap.get(facing).write()));
 			compound.putBoolean("input", input);
@@ -286,11 +284,11 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public void read(NbtCompound nbt) {
+		public void read(CompoundTag nbt) {
 			sideMap.clear();
 			slotID = nbt.getInt("slotID");
 			Arrays.stream(Direction.values()).forEach(facing -> {
-				NbtCompound compound = nbt.getCompound("side_" + facing.ordinal());
+				CompoundTag compound = nbt.getCompound("side_" + facing.ordinal());
 				SlotConfig config = new SlotConfig(compound);
 				sideMap.put(facing, config);
 			});
@@ -309,10 +307,10 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	public static class SlotConfig implements NBTSerializable {
-		public static final PacketCodec<ByteBuf, SlotConfig> PACKET_CODEC = PacketCodec.tuple(
-			Direction.PACKET_CODEC, SlotConfig::getSide,
+		public static final StreamCodec<ByteBuf, SlotConfig> PACKET_CODEC = StreamCodec.composite(
+			Direction.STREAM_CODEC, SlotConfig::getSide,
 			SlotIO.PACKET_CODEC, SlotConfig::getSlotIO,
-			PacketCodecs.INTEGER, SlotConfig::getSlotID,
+			ByteBufCodecs.INT, SlotConfig::getSlotID,
 			SlotConfig::new
 		);
 
@@ -332,7 +330,7 @@ public class SlotConfiguration implements NBTSerializable {
 			this.slotID = slotID;
 		}
 
-		public SlotConfig(NbtCompound tagCompound) {
+		public SlotConfig(CompoundTag tagCompound) {
 			read(tagCompound);
 			Validate.notNull(side, "error when loading slot config");
 			Validate.notNull(slotIO, "error when loading slot config");
@@ -354,14 +352,14 @@ public class SlotConfiguration implements NBTSerializable {
 
 		private void handleItemInput(MachineBaseBlockEntity machineBase) {
 			RebornInventory<?> inventory = machineBase.getOptionalInventory().get();
-			ItemStack targetStack = inventory.getStack(slotID);
-			if (targetStack.getMaxCount() == targetStack.getCount()) {
+			ItemStack targetStack = inventory.getItem(slotID);
+			if (targetStack.getMaxStackSize() == targetStack.getCount()) {
 				return;
 			}
 
-			StorageUtil.move(
-					ItemStorage.SIDED.find(machineBase.getWorld(), machineBase.getPos().offset(side), side.getOpposite()),
-					InventoryStorage.of(machineBase, null).getSlot(slotID),
+			TransferApiBridge.moveItems(
+					TransferApiBridge.findItemStorage(machineBase.getLevel(), machineBase.getBlockPos().relative(side), side.getOpposite()),
+					TransferApiBridge.inventorySlot(machineBase, null, slotID),
 					iv -> true,
 					4, // Move up to 4 per tick.
 					null
@@ -370,14 +368,14 @@ public class SlotConfiguration implements NBTSerializable {
 
 		private void handleItemOutput(MachineBaseBlockEntity machineBase) {
 			RebornInventory<?> inventory = machineBase.getOptionalInventory().get();
-			ItemStack sourceStack = inventory.getStack(slotID);
+			ItemStack sourceStack = inventory.getItem(slotID);
 			if (sourceStack.isEmpty()) {
 				return;
 			}
 
-			StorageUtil.move(
-					InventoryStorage.of(machineBase, null).getSlot(slotID),
-					ItemStorage.SIDED.find(machineBase.getWorld(), machineBase.getPos().offset(side), side.getOpposite()),
+			TransferApiBridge.moveItems(
+					TransferApiBridge.inventorySlot(machineBase, null, slotID),
+					TransferApiBridge.findItemStorage(machineBase.getLevel(), machineBase.getBlockPos().relative(side), side.getOpposite()),
 					iv -> true,
 					Long.MAX_VALUE,
 					null
@@ -385,8 +383,8 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public NbtCompound write() {
-			NbtCompound tagCompound = new NbtCompound();
+		public CompoundTag write() {
+			CompoundTag tagCompound = new CompoundTag();
 			tagCompound.putInt("side", side.ordinal());
 			tagCompound.put("config", slotIO.write());
 			tagCompound.putInt("slot", slotID);
@@ -394,7 +392,7 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public void read(NbtCompound nbt) {
+		public void read(CompoundTag nbt) {
 			side = Direction.values()[nbt.getInt("side")];
 			slotIO = new SlotIO(nbt.getCompound("config"));
 			slotID = nbt.getInt("slot");
@@ -402,14 +400,14 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	public static class SlotIO implements NBTSerializable {
-		public static final PacketCodec<ByteBuf, SlotIO> PACKET_CODEC = PacketCodec.tuple(
+		public static final StreamCodec<ByteBuf, SlotIO> PACKET_CODEC = StreamCodec.composite(
 			ExtractConfig.PACKET_CODEC, SlotIO::getIoConfig,
 			SlotIO::new
 		);
 
 		ExtractConfig ioConfig;
 
-		public SlotIO(NbtCompound tagCompound) {
+		public SlotIO(CompoundTag tagCompound) {
 			read(tagCompound);
 		}
 
@@ -422,14 +420,14 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public NbtCompound write() {
-			NbtCompound compound = new NbtCompound();
+		public CompoundTag write() {
+			CompoundTag compound = new CompoundTag();
 			compound.putInt("config", ioConfig.ordinal());
 			return compound;
 		}
 
 		@Override
-		public void read(NbtCompound nbt) {
+		public void read(CompoundTag nbt) {
 			ioConfig = ExtractConfig.values()[nbt.getInt("config")];
 		}
 	}
@@ -439,8 +437,8 @@ public class SlotConfiguration implements NBTSerializable {
 		INPUT(false, true),
 		OUTPUT(true, false);
 
-		public static final PacketCodec<ByteBuf, ExtractConfig> PACKET_CODEC = PacketCodecs.INTEGER
-			.xmap(integer -> ExtractConfig.values()[integer], Enum::ordinal);
+		public static final StreamCodec<ByteBuf, ExtractConfig> PACKET_CODEC = ByteBufCodecs.INT
+			.map(integer -> ExtractConfig.values()[integer], Enum::ordinal);
 
 		boolean extract;
 		boolean insert;
@@ -468,16 +466,16 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	public String toJson(String machineIdent) {
-		NbtCompound tagCompound = new NbtCompound();
+		CompoundTag tagCompound = new CompoundTag();
 		tagCompound.put("data", write());
 		tagCompound.putString("machine", machineIdent);
 		return tagCompound.toString();
 	}
 
 	public void readJson(String json, String machineIdent) throws UnsupportedOperationException {
-		NbtCompound compound;
+		CompoundTag compound;
 		try {
-			compound = StringNbtReader.parse(json);
+			compound = TagParser.parseTag(json);
 		} catch (CommandSyntaxException e) {
 			throw new UnsupportedOperationException("Clipboard contents isn't a valid slot configuration");
 		}
@@ -500,7 +498,7 @@ public class SlotConfiguration implements NBTSerializable {
 					return ((SlotFilter) blockEntity).isStackValid(index, itemStackIn);
 				}
 			}
-			return blockEntity.isValid(index, itemStackIn);
+			return blockEntity.canPlaceItem(index, itemStackIn);
 		}
 		return false;
 	}

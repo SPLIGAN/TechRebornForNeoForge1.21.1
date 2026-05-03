@@ -24,9 +24,9 @@
 
 package reborncore.client.mixin;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.debug.DebugRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.debug.DebugRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -37,7 +37,7 @@ import reborncore.client.ClientChunkManager;
 public class MixinDebugRenderer {
 
 	@Inject(method = "render", at = @At("RETURN"))
-	public void render(MatrixStack matrices, VertexConsumerProvider.Immediate vertexConsumers, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
+	public void render(PoseStack matrices, MultiBufferSource.BufferSource vertexConsumers, double cameraX, double cameraY, double cameraZ, CallbackInfo info) {
 		ClientChunkManager.render(matrices, vertexConsumers, cameraX, cameraY, cameraZ);
 	}
 }

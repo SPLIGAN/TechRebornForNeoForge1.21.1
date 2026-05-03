@@ -24,16 +24,6 @@
 
 package techreborn.init;
 
-import net.fabricmc.fabric.api.object.builder.v1.block.entity.FabricBlockEntityTypeBuilder;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.registry.Registry;
 import org.apache.commons.lang3.Validate;
 import techreborn.TechReborn;
 import techreborn.blockentity.cable.CableBlockEntity;
@@ -79,9 +69,22 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiFunction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class TRBlockEntities {
 	private static final List<BlockEntityType<?>> TYPES = new ArrayList<>();
+
+	public static List<BlockEntityType<?>> allRegisteredTypes() {
+		return List.copyOf(TYPES);
+	}
 
 	public static final BlockEntityType<StorageUnitBaseBlockEntity> STORAGE_UNIT = register(StorageUnitBaseBlockEntity::new, "storage_unit", TRContent.StorageUnit.values());
 	public static final BlockEntityType<TankUnitBaseBlockEntity> TANK_UNIT = register(TankUnitBaseBlockEntity::new, "tank_unit", TRContent.TankUnit.values());
@@ -150,18 +153,18 @@ public class TRBlockEntities {
 	public static final BlockEntityType<FishingStationBlockEntity> FISHING_STATION = register(FishingStationBlockEntity::new, "fishing_station", TRContent.Machine.FISHING_STATION);
 	public static final BlockEntityType<PumpBlockEntity> PUMP = register(PumpBlockEntity::new, "pump", TRContent.Machine.PUMP);
 
-	public static <T extends BlockEntity> BlockEntityType<T> register(BiFunction<BlockPos, BlockState, T> supplier, String name, ItemConvertible... items) {
-		return register(supplier, name, Arrays.stream(items).map(itemConvertible -> Block.getBlockFromItem(itemConvertible.asItem())).toArray(Block[]::new));
+	public static <T extends BlockEntity> BlockEntityType<T> register(BiFunction<BlockPos, BlockState, T> supplier, String name, ItemLike... items) {
+		return register(supplier, name, Arrays.stream(items).map(itemConvertible -> Block.byItem(itemConvertible.asItem())).toArray(Block[]::new));
 	}
 
 	public static <T extends BlockEntity> BlockEntityType<T> register(BiFunction<BlockPos, BlockState, T> supplier, String name, Block... blocks) {
 		Validate.isTrue(blocks.length > 0, "no blocks for blockEntity entity type!");
-		return register(Identifier.of(TechReborn.MOD_ID, name).toString(), FabricBlockEntityTypeBuilder.create(supplier::apply, blocks));
+		return register(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, name).toString(), BlockEntityType.Builder.of(supplier::apply, blocks));
 	}
 
-	public static <T extends BlockEntity> BlockEntityType<T> register(String id, FabricBlockEntityTypeBuilder<T> builder) {
+	public static <T extends BlockEntity> BlockEntityType<T> register(String id, BlockEntityType.Builder<T> builder) {
 		BlockEntityType<T> blockEntityType = builder.build(null);
-		Registry.register(Registries.BLOCK_ENTITY_TYPE, Identifier.of(id), blockEntityType);
+		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ResourceLocation.parse(id), blockEntityType);
 		TRBlockEntities.TYPES.add(blockEntityType);
 		return blockEntityType;
 	}

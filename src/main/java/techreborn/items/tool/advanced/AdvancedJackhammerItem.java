@@ -24,18 +24,6 @@
 
 package techreborn.items.tool.advanced;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.misc.MultiBlockBreakingTool;
 import reborncore.common.powerSystem.RcEnergyTier;
@@ -49,6 +37,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class AdvancedJackhammerItem extends JackhammerItem implements MultiBlockBreakingTool {
 
@@ -58,10 +58,10 @@ public class AdvancedJackhammerItem extends JackhammerItem implements MultiBlock
 
 	// JackhammerItem
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState stateIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState stateIn, BlockPos pos, LivingEntity entityLiving) {
 		// No AOE mining turned on OR we've broken a wrong block
-		if (!TRItemUtils.isActive(stack) || !isCorrectForDrops(stack, stateIn)) {
-			return super.postMine(stack, worldIn, stateIn, pos, entityLiving);
+		if (!TRItemUtils.isActive(stack) || !isCorrectToolForDrops(stack, stateIn)) {
+			return super.mineBlock(stack, worldIn, stateIn, pos, entityLiving);
 		}
 
 		// Do AoE mining except original block
@@ -72,34 +72,34 @@ public class AdvancedJackhammerItem extends JackhammerItem implements MultiBlock
 		}
 
 		// Do not forget to use energy for original block
-		return super.postMine(stack, worldIn, stateIn, pos, entityLiving);
+		return super.mineBlock(stack, worldIn, stateIn, pos, entityLiving);
 	}
 
 	// Item
 	@Override
-	public TypedActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
-		final ItemStack stack = player.getStackInHand(hand);
-		if (player.isSneaking()) {
+	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+		final ItemStack stack = player.getItemInHand(hand);
+		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, cost, player);
-			return new TypedActionResult<>(ActionResult.SUCCESS, stack);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 		}
-		return new TypedActionResult<>(ActionResult.PASS, stack);
+		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
 		TRItemUtils.checkActive(stack, cost, entity);
 	}
 
 	@Override
-	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 
 	// MultiBlockBreakingTool
 	@Override
-	public Set<BlockPos> getBlocksToBreak(ItemStack stack, World worldIn, BlockPos pos, @Nullable LivingEntity entityLiving) {
-		if (!isCorrectForDrops(stack, worldIn.getBlockState(pos))) {
+	public Set<BlockPos> getBlocksToBreak(ItemStack stack, Level worldIn, BlockPos pos, @Nullable LivingEntity entityLiving) {
+		if (!isCorrectToolForDrops(stack, worldIn.getBlockState(pos))) {
 			return Collections.emptySet();
 		}
 		return ToolsUtil.getAOEMiningBlocks(worldIn, pos, entityLiving, 1, false)

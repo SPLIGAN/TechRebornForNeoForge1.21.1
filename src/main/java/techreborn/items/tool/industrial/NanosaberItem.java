@@ -24,25 +24,7 @@
 
 package techreborn.items.tool.industrial;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.PickaxeItem;
-import net.minecraft.item.SwordItem;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.component.TRDataComponentTypes;
@@ -52,53 +34,71 @@ import techreborn.init.TRToolMaterials;
 import techreborn.utils.TRItemUtils;
 
 import java.util.List;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.Level;
 
-public class NanosaberItem extends SwordItem implements RcEnergyItem {
-	private static final EntityAttributeModifier ENABLED_ATTACK_DAMAGE_MODIFIER = new EntityAttributeModifier(Identifier.of("techreborn", "nano_saber_attack_damage"), TechRebornConfig.nanosaberDamage, EntityAttributeModifier.Operation.ADD_VALUE);
-	private static final EntityAttributeModifier ENABLED_ATTACK_SPEED_MODIFIER = new EntityAttributeModifier(Identifier.of("techreborn", "nano_saber_attack_speed"), 3, EntityAttributeModifier.Operation.ADD_VALUE);
-	private static final EntityAttributeModifier DISABLED_ATTACK_DAMAGE_MODIFIER = new EntityAttributeModifier(Identifier.of("techreborn", "nano_saber_attack_damage"), 0, EntityAttributeModifier.Operation.ADD_VALUE);
-	private static final EntityAttributeModifier DISABLED_ATTACK_SPEED_MODIFIER = new EntityAttributeModifier(Identifier.of("techreborn", "nano_saber_attack_speed"), 0, EntityAttributeModifier.Operation.ADD_VALUE);
+public class NanosaberItem extends SwordItem implements RcFabricEnergyItem {
+	private static final AttributeModifier ENABLED_ATTACK_DAMAGE_MODIFIER = new AttributeModifier(ResourceLocation.fromNamespaceAndPath("techreborn", "nano_saber_attack_damage"), TechRebornConfig.nanosaberDamage, AttributeModifier.Operation.ADD_VALUE);
+	private static final AttributeModifier ENABLED_ATTACK_SPEED_MODIFIER = new AttributeModifier(ResourceLocation.fromNamespaceAndPath("techreborn", "nano_saber_attack_speed"), 3, AttributeModifier.Operation.ADD_VALUE);
+	private static final AttributeModifier DISABLED_ATTACK_DAMAGE_MODIFIER = new AttributeModifier(ResourceLocation.fromNamespaceAndPath("techreborn", "nano_saber_attack_damage"), 0, AttributeModifier.Operation.ADD_VALUE);
+	private static final AttributeModifier DISABLED_ATTACK_SPEED_MODIFIER = new AttributeModifier(ResourceLocation.fromNamespaceAndPath("techreborn", "nano_saber_attack_speed"), 0, AttributeModifier.Operation.ADD_VALUE);
 
 	// 1ME max charge with 2k charge rate
 	public NanosaberItem() {
 		super(TRToolMaterials.NANOSABER, TRItemSettings.unbreakable()
-			.attributeModifiers(PickaxeItem.createAttributeModifiers(TRToolMaterials.NANOSABER, 1, 1))
+			.attributes(PickaxeItem.createAttributes(TRToolMaterials.NANOSABER, 1, 1))
 		);
 	}
 
 	// SwordItem
 	@Override
-	public boolean postHit(ItemStack stack, LivingEntity entityHit, LivingEntity entityHitter) {
+	public boolean hurtEnemy(ItemStack stack, LivingEntity entityHit, LivingEntity entityHitter) {
 		tryUseEnergy(stack, TechRebornConfig.nanosaberCost);
 		return true;
 	}
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
 		TRItemUtils.checkActive(stack, TechRebornConfig.nanosaberCost, entityIn);
 
 		boolean isActive = stack.get(TRDataComponentTypes.IS_ACTIVE) == Boolean.TRUE;
-		AttributeModifiersComponent attributes = stack.getOrDefault(DataComponentTypes.ATTRIBUTE_MODIFIERS, AttributeModifiersComponent.DEFAULT);
-		attributes = attributes.with(EntityAttributes.GENERIC_ATTACK_DAMAGE, isActive ? ENABLED_ATTACK_DAMAGE_MODIFIER : DISABLED_ATTACK_DAMAGE_MODIFIER, AttributeModifierSlot.MAINHAND)
-			.with(EntityAttributes.GENERIC_ATTACK_SPEED, isActive ? ENABLED_ATTACK_SPEED_MODIFIER : DISABLED_ATTACK_SPEED_MODIFIER, AttributeModifierSlot.MAINHAND);
-		stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, attributes);
+		ItemAttributeModifiers attributes = stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
+		attributes = attributes.withModifierAdded(Attributes.ATTACK_DAMAGE, isActive ? ENABLED_ATTACK_DAMAGE_MODIFIER : DISABLED_ATTACK_DAMAGE_MODIFIER, EquipmentSlotGroup.MAINHAND)
+			.withModifierAdded(Attributes.ATTACK_SPEED, isActive ? ENABLED_ATTACK_SPEED_MODIFIER : DISABLED_ATTACK_SPEED_MODIFIER, EquipmentSlotGroup.MAINHAND);
+		stack.set(DataComponents.ATTRIBUTE_MODIFIERS, attributes);
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
-		final ItemStack stack = player.getStackInHand(hand);
-		if (player.isSneaking()) {
+	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+		final ItemStack stack = player.getItemInHand(hand);
+		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, TechRebornConfig.nanosaberCost, player);
-			return new TypedActionResult<>(ActionResult.SUCCESS, stack);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 		}
-		return new TypedActionResult<>(ActionResult.PASS, stack);
+		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 	}
 
 	@Override
@@ -107,22 +107,22 @@ public class NanosaberItem extends SwordItem implements RcEnergyItem {
 	}
 
 	@Override
-	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -133,7 +133,7 @@ public class NanosaberItem extends SwordItem implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return RcEnergyTier.EXTREME;
 	}
 

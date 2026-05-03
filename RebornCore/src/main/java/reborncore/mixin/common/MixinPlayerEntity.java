@@ -24,13 +24,13 @@
 
 package reborncore.mixin.common;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.world.World;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -39,24 +39,24 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.common.powerSystem.RcEnergyItem;
 
-@Mixin(PlayerEntity.class)
+@Mixin(Player.class)
 public abstract class MixinPlayerEntity extends LivingEntity {
 
 	@Shadow
-	public abstract Iterable<ItemStack> getArmorItems();
+	public abstract Iterable<ItemStack> getArmorSlots();
 
-	protected MixinPlayerEntity(EntityType<? extends LivingEntity> type, World world) {
+	protected MixinPlayerEntity(EntityType<? extends LivingEntity> type, Level world) {
 		super(type, world);
 	}
 
 	@Inject(method = "tick", at = @At("HEAD"))
 	public void tick(CallbackInfo info) {
-		PlayerEntity player = (PlayerEntity) (Object) this;
+		Player player = (Player) (Object) this;
 		if (player.isSpectator()) return;
-		if (!player.playerScreenHandler.onServer) {
-			ItemStack stack = player.playerScreenHandler.getCursorStack();
+		if (!player.inventoryMenu.active) {
+			ItemStack stack = player.inventoryMenu.getCarried();
 			if (stack.getItem() instanceof ArmorBlockEntityTicker ticker) {
-				stack.remove(DataComponentTypes.CUSTOM_DATA);
+				stack.remove(DataComponents.CUSTOM_DATA);
 				ticker.tickArmor(stack, false, player);
 			}
 			return;
@@ -64,7 +64,7 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 
 		Class<?> suit = null;
 		int count = 0;
-		for (ItemStack stack : getArmorItems()) {
+		for (ItemStack stack : getArmorSlots()) {
 			if (!(stack.getItem() instanceof RcEnergyItem item)) {
 				break;
 			}
@@ -79,11 +79,11 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 			count++;
 		}
 
-		for (ItemStack stack : getArmorItems()) {
+		for (ItemStack stack : getArmorSlots()) {
 			if (!stack.isEmpty() && stack.getItem() instanceof ArmorBlockEntityTicker) {
 				// mark tick
-				if (!stack.contains(DataComponentTypes.CUSTOM_DATA)) {
-					stack.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.DEFAULT);
+				if (!stack.has(DataComponents.CUSTOM_DATA)) {
+					stack.set(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
 				}
 				((ArmorBlockEntityTicker) stack.getItem()).tickArmor(stack, count == 4, player);
 			}

@@ -24,22 +24,13 @@
 
 package techreborn.client;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientConfigurationNetworking;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import techreborn.client.gui.GuiManual;
-import techreborn.events.OreDepthSyncHandler;
-import techreborn.packets.clientbound.OpenManualPayload;
+/**
+ * Play/configuration payload handlers for TechReborn are registered in {@link techreborn.TechRebornNeoForge}.
+ */
+public final class ClientboundPacketHandlers {
+	private ClientboundPacketHandlers() {
+	}
 
-@SuppressWarnings("UnstableApiUsage")
-public class ClientboundPacketHandlers {
 	public static void init() {
-		ClientConfigurationNetworking.registerGlobalReceiver(OreDepthSyncHandler.OreDepthPayload.ID, (payload, context) -> {
-			OreDepthSyncHandler.updateDepths(payload.oreDepths());
-		});
-
-		ClientPlayNetworking.registerGlobalReceiver(OpenManualPayload.ID, (payload, context) ->
-			MinecraftClient.getInstance().setScreen(new GuiManual())
-		);
 	}
 }

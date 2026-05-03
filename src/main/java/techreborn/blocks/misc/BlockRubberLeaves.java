@@ -24,16 +24,15 @@
 
 package techreborn.blocks.misc;
 
-
-import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.minecraft.block.LeavesBlock;
+import net.minecraft.world.level.block.LeavesBlock;
+import techreborn.init.FlammableBlockBridge;
 import techreborn.init.TRBlockSettings;
 
 public class BlockRubberLeaves extends LeavesBlock {
 
 	public BlockRubberLeaves() {
 		super(TRBlockSettings.rubberLeaves());
-		FlammableBlockRegistry.getDefaultInstance().add(this, 30, 60);
+		FlammableBlockBridge.register(this, 30, 60);
 	}
 
 }

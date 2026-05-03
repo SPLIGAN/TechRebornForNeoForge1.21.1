@@ -24,37 +24,37 @@
 
 package techreborn.items;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 
 public class GpsItem extends Item {
 
 	public GpsItem() {
-		super(new Settings());
+		super(new Properties());
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
-		ItemStack stack = player.getStackInHand(hand);
-		if (player instanceof ServerPlayerEntity serverPlayerEntity) {
-			BlockPos pos = player.getBlockPos();
-			serverPlayerEntity.sendMessage(Text.literal(" X:").formatted(Formatting.GRAY)
-											.append(Text.literal(String.valueOf(pos.getX())).formatted(Formatting.GOLD))
-											.append(Text.literal(" Y:").formatted(Formatting.GRAY))
-											.append(Text.literal(String.valueOf(pos.getY())).formatted(Formatting.GOLD))
-											.append(Text.literal(" Z:").formatted(Formatting.GRAY))
-											.append(Text.literal(String.valueOf(pos.getZ())).formatted(Formatting.GOLD)), true);
-			return new TypedActionResult<>(ActionResult.SUCCESS, stack);
+	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if (player instanceof ServerPlayer serverPlayerEntity) {
+			BlockPos pos = player.blockPosition();
+			serverPlayerEntity.displayClientMessage(Component.literal(" X:").withStyle(ChatFormatting.GRAY)
+											.append(Component.literal(String.valueOf(pos.getX())).withStyle(ChatFormatting.GOLD))
+											.append(Component.literal(" Y:").withStyle(ChatFormatting.GRAY))
+											.append(Component.literal(String.valueOf(pos.getY())).withStyle(ChatFormatting.GOLD))
+											.append(Component.literal(" Z:").withStyle(ChatFormatting.GRAY))
+											.append(Component.literal(String.valueOf(pos.getZ())).withStyle(ChatFormatting.GOLD)), true);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 		}
-		return new TypedActionResult<>(ActionResult.PASS, stack);
+		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 	}
 }

@@ -24,44 +24,52 @@
 
 package reborncore.client;
 
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.WorldRenderer;
-import net.minecraft.item.ItemStack;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.World;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import reborncore.common.misc.MultiBlockBreakingTool;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class BlockOutlineRenderer implements WorldRenderEvents.BlockOutline {
+public final class BlockOutlineRenderer {
+	private BlockOutlineRenderer() {
+	}
 
-	@Override
-	public boolean onBlockOutline(WorldRenderContext worldRenderContext, WorldRenderContext.BlockOutlineContext context) {
+	public static void onBlockHighlight(RenderHighlightEvent.Block event) {
 		List<VoxelShape> shapes = new ArrayList<>();
 
-		World world = context.entity().getWorld();
-		BlockPos targetPos = context.blockPos();
+		LocalPlayer player = Minecraft.getInstance().player;
+		if (player == null) {
+			return;
+		}
 
-		if (context.entity() == MinecraftClient.getInstance().player) {
-			ClientPlayerEntity clientPlayerEntity = MinecraftClient.getInstance().player;
+		Level world = player.level();
+		BlockPos targetPos = event.getTarget().getBlockPos();
+		Vec3 cam = event.getCamera().getPosition();
+		double cameraX = cam.x;
+		double cameraY = cam.y;
+		double cameraZ = cam.z;
 
-			ItemStack stack = clientPlayerEntity.getMainHandStack();
+		if (player == Minecraft.getInstance().player) {
+			ItemStack stack = player.getMainHandItem();
 			if (stack.isEmpty()) {
-				return true;
+				return;
 			}
 
-			if (stack.getItem() instanceof MultiBlockBreakingTool) {
-				Set<BlockPos> blockPosList = ((MultiBlockBreakingTool) stack.getItem()).getBlocksToBreak(stack, clientPlayerEntity.getWorld(), targetPos, clientPlayerEntity);
+			if (stack.getItem() instanceof MultiBlockBreakingTool tool) {
+				Set<BlockPos> blockPosList = tool.getBlocksToBreak(stack, player.level(), targetPos, player);
 
 				for (BlockPos pos : blockPosList) {
 					if (pos.equals(targetPos)) {
@@ -69,22 +77,32 @@ public class BlockOutlineRenderer implements WorldRenderEvents.BlockOutline {
 					}
 
 					BlockState blockState = world.getBlockState(pos);
-					shapes.add(blockState.getOutlineShape(world, pos, ShapeContext.of(clientPlayerEntity)).offset(pos.getX() - targetPos.getX(), pos.getY() - targetPos.getY(), pos.getZ() - targetPos.getZ()));
+					shapes.add(blockState.getShape(world, pos, CollisionContext.of(player)).move(pos.getX() - targetPos.getX(), pos.getY() - targetPos.getY(), pos.getZ() - targetPos.getZ()));
 
 				}
 			}
 		}
 
 		if (!shapes.isEmpty()) {
-			VoxelShape shape = context.blockState().getOutlineShape(world, targetPos, ShapeContext.of(context.entity()));
+			BlockState state = world.getBlockState(targetPos);
+			VoxelShape shape = state.getShape(world, targetPos, CollisionContext.of(player));
 
 			for (VoxelShape voxelShape : shapes) {
-				shape = VoxelShapes.union(shape, voxelShape);
+				shape = Shapes.or(shape, voxelShape);
 			}
 
-			WorldRenderer.drawShapeOutline(worldRenderContext.matrixStack(), worldRenderContext.consumers().getBuffer(RenderLayer.getLines()), shape, (double)targetPos.getX() - context.cameraX(), (double)targetPos.getY() - context.cameraY(), (double)targetPos.getZ() - context.cameraZ(), 0.0F, 0.0F, 0.0F, 0.4F, true);
+			LevelRenderer.renderVoxelShape(
+				event.getPoseStack(),
+				event.getMultiBufferSource().getBuffer(RenderType.lines()),
+				shape,
+				(double) targetPos.getX() - cameraX,
+				(double) targetPos.getY() - cameraY,
+				(double) targetPos.getZ() - cameraZ,
+				0.0F,
+				0.0F,
+				0.0F,
+				0.4F,
+				true);
 		}
-
-		return true;
 	}
 }

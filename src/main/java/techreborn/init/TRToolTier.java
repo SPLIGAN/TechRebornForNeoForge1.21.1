@@ -25,24 +25,23 @@
 package techreborn.init;
 
 import com.google.common.base.Suppliers;
-import net.minecraft.block.Block;
-import net.minecraft.component.type.AttributeModifierSlot;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.attribute.EntityAttributeModifier;
-import net.minecraft.entity.attribute.EntityAttributes;
-import net.minecraft.item.Item;
-import net.minecraft.item.ToolMaterial;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.registry.tag.TagKey;
-
 import java.util.function.Supplier;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.block.Block;
 
-public enum TRToolTier implements ToolMaterial {
-	BRONZE(BlockTags.INCORRECT_FOR_IRON_TOOL, 375, 7.0F, 6, 6, () -> Ingredient.ofItems(TRContent.Ingots.BRONZE.asItem())),
-	RUBY(BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 5, 10, () -> Ingredient.ofItems(TRContent.Gems.RUBY.asItem())),
-	SAPPHIRE(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 1000, 7.0F, 5, 12, () -> Ingredient.ofItems(TRContent.Gems.SAPPHIRE.asItem())),
-	PERIDOT(BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 7.0F, 5, 12, () -> Ingredient.ofItems(TRContent.Gems.PERIDOT.asItem()));
+public enum TRToolTier implements Tier {
+	BRONZE(BlockTags.INCORRECT_FOR_IRON_TOOL, 375, 7.0F, 6, 6, () -> Ingredient.of(TRContent.Ingots.BRONZE.asItem())),
+	RUBY(BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 6.0F, 5, 10, () -> Ingredient.of(TRContent.Gems.RUBY.asItem())),
+	SAPPHIRE(BlockTags.INCORRECT_FOR_DIAMOND_TOOL, 1000, 7.0F, 5, 12, () -> Ingredient.of(TRContent.Gems.SAPPHIRE.asItem())),
+	PERIDOT(BlockTags.INCORRECT_FOR_IRON_TOOL, 750, 7.0F, 5, 12, () -> Ingredient.of(TRContent.Gems.PERIDOT.asItem()));
 
 	/**
 	 * BlockTags for blocks which shouldn't be mined with this material.
@@ -82,25 +81,25 @@ public enum TRToolTier implements ToolMaterial {
 	}
 
 	@Override
-	public int getDurability() {
+	public int getUses() {
 		return itemDurability;
 	}
 
 	@Override
-	public float getMiningSpeedMultiplier() {
+	public float getSpeed() {
 		return miningSpeed;
 	}
 
 	@Override
-	public float getAttackDamage() {
+	public float getAttackDamageBonus() {
 		return attackDamage;
 	}
 
 	@Override
-	public TagKey<Block> getInverseTag() { return this.inverseTag; }
+	public TagKey<Block> getIncorrectBlocksForDrops() { return this.inverseTag; }
 
 	@Override
-	public int getEnchantability() {
+	public int getEnchantmentValue() {
 		return enchantability;
 	}
 
@@ -109,19 +108,19 @@ public enum TRToolTier implements ToolMaterial {
 		return repairMaterial.get();
 	}
 
-	public AttributeModifiersComponent createAttributeModifiers(ToolType toolType) {
-		return AttributeModifiersComponent.builder()
+	public ItemAttributeModifiers createAttributeModifiers(ToolType toolType) {
+		return ItemAttributeModifiers.builder()
 			.add(
-				EntityAttributes.GENERIC_ATTACK_DAMAGE,
-				new EntityAttributeModifier(
-					Item.BASE_ATTACK_DAMAGE_MODIFIER_ID, toolType.baseAttackDamage + getAttackDamage(), EntityAttributeModifier.Operation.ADD_VALUE
+				Attributes.ATTACK_DAMAGE,
+				new AttributeModifier(
+					Item.BASE_ATTACK_DAMAGE_ID, toolType.baseAttackDamage + getAttackDamageBonus(), AttributeModifier.Operation.ADD_VALUE
 				),
-				AttributeModifierSlot.MAINHAND
+				EquipmentSlotGroup.MAINHAND
 			)
 			.add(
-				EntityAttributes.GENERIC_ATTACK_SPEED,
-				new EntityAttributeModifier(Item.BASE_ATTACK_SPEED_MODIFIER_ID, toolType.attackSpeed, EntityAttributeModifier.Operation.ADD_VALUE),
-				AttributeModifierSlot.MAINHAND
+				Attributes.ATTACK_SPEED,
+				new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, toolType.attackSpeed, AttributeModifier.Operation.ADD_VALUE),
+				EquipmentSlotGroup.MAINHAND
 			)
 			.build();
 	}

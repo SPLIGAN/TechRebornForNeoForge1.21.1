@@ -25,34 +25,34 @@
 package reborncore.common.screen.slot;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.Nullable;
 
 public class SpriteSlot extends FilteredSlot {
 
-	private final Identifier spriteName;
+	private final ResourceLocation spriteName;
 	int stackSize;
 
-	public SpriteSlot(final Inventory inventory, final int index, final int xPosition, final int yPosition, final Identifier sprite, final int stackSize) {
+	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final ResourceLocation sprite, final int stackSize) {
 		super(inventory, index, xPosition, yPosition);
 		this.spriteName = sprite;
 		this.stackSize = stackSize;
 	}
 
-	public SpriteSlot(final Inventory inventory, final int index, final int xPosition, final int yPosition, final Identifier sprite) {
+	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final ResourceLocation sprite) {
 		this(inventory, index, xPosition, yPosition, sprite, 64);
 	}
 
 	@Override
-	public int getMaxItemCount() {
+	public int getMaxStackSize() {
 		return this.stackSize;
 	}
 
 	@Override
 	@Nullable
-	public Pair<Identifier, Identifier> getBackgroundSprite() {
-		return Pair.of(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, spriteName);
+	public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+		return Pair.of(InventoryMenu.BLOCK_ATLAS, spriteName);
 	}
 }

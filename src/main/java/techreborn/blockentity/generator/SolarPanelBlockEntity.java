@@ -24,19 +24,6 @@
 
 package techreborn.blockentity.generator;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -55,6 +42,19 @@ import techreborn.init.TRContent.SolarPanels;
 
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, BuiltScreenHandlerProvider {
 
@@ -75,9 +75,10 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	private void updatePanel() {
-		Objects.requireNonNull(world, "World may not be null.");
+		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
+		BlockPos bp = getBlockPos();
 
-		Block panelBlock = world.getBlockState(pos).getBlock();
+		Block panelBlock = level.getBlockState(bp).getBlock();
 		if (panelBlock instanceof BlockSolarPanel solarPanelBlock) {
 			panel = solarPanelBlock.panelType;
 		}
@@ -90,11 +91,11 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	// this ugly approach
 	public boolean isGenerating() { return generating; }
 	private void setIsGenerating(boolean isGenerating) {
-		Objects.requireNonNull(world, "World may not be null.");
+		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
+		BlockPos bp = getBlockPos();
 
 		if (isGenerating != isGenerating()) {
-			// Update block state if necessary
-			world.setBlockState(pos, world.getBlockState(pos).with(BlockMachineBase.ACTIVE, isGenerating));
+			level.setBlock(bp, level.getBlockState(bp).setValue(BlockMachineBase.ACTIVE, isGenerating), Block.UPDATE_ALL);
 		}
 		this.generating = isGenerating;
 	}
@@ -107,26 +108,23 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	private void updateState() {
-		Objects.requireNonNull(world, "World may not be null.");
+		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
 
-		// Generation is only possible if sky is visible above us
-		setIsGenerating(world.isSkyVisible(pos.up()));
+		setIsGenerating(level.canSeeSky(getBlockPos().above()));
 	}
 
 	public int getGenerationRate() {
-		Objects.requireNonNull(world, "World may not be null.");
+		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
 
 		if (!isGenerating()) {
 			return 0;
 		}
 
-		float skyAngle = world.getSkyAngle(0);
+		float skyAngle = level.getSunAngle(1f) / ((float) Math.PI * 2f);
 
-		// Ok, we are actively generating power, but check for a few conditions that would restrict
-		// the generation to minimal production...
-		if (!world.getDimension().hasSkyLight() || // No light source in dimension (e.g. nether or end)
-			(skyAngle > 0.25 && skyAngle < 0.75) || // Light source is below horizon
-			(world.isRaining() || world.isThundering())) { // Weather is present
+		if (!level.dimensionType().hasSkyLight()
+			|| (skyAngle > 0.25 && skyAngle < 0.75)
+			|| (level.isRaining() || level.isThundering())) {
 			return getPanel().generationRateN;
 		}
 
@@ -149,9 +147,9 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	// Overrides
 
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 
@@ -159,7 +157,7 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 			checkOverfill = false;
 			setEnergy(Integer.MAX_VALUE);
 			for (Direction side : Direction.values()) {
-				BlockEntity to = world.getBlockEntity(pos.offset(side));
+				BlockEntity to = world.getBlockEntity(pos.relative(side));
 				if (to instanceof PowerAcceptorBlockEntity receiver) {
 					if (receiver.getMaxInput(side.getOpposite()) > 0){
 						receiver.setStored(receiver.getMaxStoredPower());
@@ -170,7 +168,7 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 		}
 
 		// State checking and updating
-		if (world.getTime() % 20 == 0) {
+		if (world.getGameTime() % 20 == 0) {
 			checkOverfill = true;
 			updateState();
 		}
@@ -222,61 +220,60 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	@Override
-	public void addInfo(List<Text> info, boolean isReal, boolean hasData) {
+	public void addInfo(List<Component> info, boolean isReal, boolean hasData) {
 		if (panel == SolarPanels.CREATIVE) {
 			return;
 		}
 
 		info.add(
-				Text.translatable("reborncore.tooltip.energy.maxEnergy")
-						.formatted(Formatting.GRAY)
+				Component.translatable("reborncore.tooltip.energy.maxEnergy")
+						.withStyle(ChatFormatting.GRAY)
 						.append(": ")
 						.append(
-								Text.literal(PowerSystem.getLocalizedPower(getMaxStoredPower()))
-										.formatted(Formatting.GOLD)
+								Component.literal(PowerSystem.getLocalizedPower(getMaxStoredPower()))
+										.withStyle(ChatFormatting.GOLD)
 						)
 		);
 
 		info.add(
-				Text.translatable("techreborn.tooltip.generationRate.day")
-						.formatted(Formatting.GRAY)
+				Component.translatable("techreborn.tooltip.generationRate.day")
+						.withStyle(ChatFormatting.GRAY)
 						.append(": ")
 						.append(
-								Text.literal(PowerSystem.getLocalizedPower(panel.generationRateD))
-										.formatted(Formatting.GOLD)
+								Component.literal(PowerSystem.getLocalizedPower(panel.generationRateD))
+										.withStyle(ChatFormatting.GOLD)
 						)
 		);
 
 		info.add(
-				Text.translatable("techreborn.tooltip.generationRate.night")
-						.formatted(Formatting.GRAY)
+				Component.translatable("techreborn.tooltip.generationRate.night")
+						.withStyle(ChatFormatting.GRAY)
 						.append(": ")
 						.append(
-								Text.literal(PowerSystem.getLocalizedPower(panel.generationRateN))
-										.formatted(Formatting.GOLD)
+								Component.literal(PowerSystem.getLocalizedPower(panel.generationRateN))
+										.withStyle(ChatFormatting.GOLD)
 						)
 		);
 
 		info.add(
-				Text.translatable("reborncore.tooltip.energy.tier")
-						.formatted(Formatting.GRAY)
+				Component.translatable("reborncore.tooltip.energy.tier")
+						.withStyle(ChatFormatting.GRAY)
 						.append(": ")
 						.append(
-								Text.literal(StringUtils.toFirstCapitalAllLowercase(getTier().toString()))
-										.formatted(Formatting.GOLD)
+								Component.literal(StringUtils.toFirstCapitalAllLowercase(getTier().toString()))
+										.withStyle(ChatFormatting.GOLD)
 						)
 		);
 	}
 
 	@Override
-	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		if (world == null) {
-			// We are in BlockEntity.create method during chunk load.
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		if (level == null) {
 			this.checkOverfill = false;
 			return;
 		}
 		updatePanel();
-		super.readNbt(tag, registryLookup);
+		super.loadAdditional(tag, registryLookup);
 	}
 
 	// MachineBaseBlockEntity
@@ -288,15 +285,15 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(final PlayerEntity playerIn) {
+	public ItemStack getToolDrop(final Player playerIn) {
 		return new ItemStack(getBlockType());
 	}
 
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("solar_panel").player(player.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(this).syncEnergyValue()
-				.sync(PacketCodecs.BOOL, this::isGenerating, this::setIsGenerating)
+				.sync(ByteBufCodecs.BOOL, this::isGenerating, this::setIsGenerating)
 				.addInventory().create(this, syncID);
 	}
 }

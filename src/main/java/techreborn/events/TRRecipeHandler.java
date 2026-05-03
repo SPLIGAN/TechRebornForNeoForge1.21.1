@@ -24,28 +24,28 @@
 
 package techreborn.events;
 
-import net.minecraft.recipe.CraftingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Identifier;
 import techreborn.TechReborn;
 import techreborn.init.TRContent;
 
 import java.util.List;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 
 public class TRRecipeHandler {
 
 
-	public static void unlockTRRecipes(ServerPlayerEntity playerMP) {
-		List<Identifier> recipeList = playerMP.getWorld().getRecipeManager().getAllOfType(RecipeType.CRAFTING).stream()
+	public static void unlockTRRecipes(ServerPlayer playerMP) {
+		List<ResourceLocation> recipeList = playerMP.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
 			.filter(TRRecipeHandler::isRecipeValid)
-			.map(RecipeEntry::id)
+			.map(RecipeHolder::id)
 			.toList();
-		playerMP.unlockRecipes(recipeList);
+		playerMP.awardRecipesByKey(recipeList);
 	}
 
-	private static boolean isRecipeValid(RecipeEntry<CraftingRecipe> recipe) {
+	private static boolean isRecipeValid(RecipeHolder<CraftingRecipe> recipe) {
 		if (recipe.id() == null) {
 			return false;
 		}

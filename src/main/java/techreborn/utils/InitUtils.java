@@ -24,33 +24,37 @@
 
 package techreborn.utils;
 
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.level.block.Block;
 import reborncore.RebornRegistry;
 import techreborn.TechReborn;
 
 public class InitUtils {
 	public static <I extends Item> I setup(I item, String name) {
-		RebornRegistry.registerIdent(item, Identifier.of(TechReborn.MOD_ID, name));
+		RebornRegistry.registerIdent(item, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, name));
 		return item;
 	}
 
 	public static <B extends Block> B setup(B block, String name) {
-		RebornRegistry.registerIdent(block, Identifier.of(TechReborn.MOD_ID, name));
+		RebornRegistry.registerIdent(block, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, name));
 		return block;
 	}
 
 	public static SoundEvent setup(String name) {
-		Identifier identifier = Identifier.of(TechReborn.MOD_ID, name);
-		return Registry.register(Registries.SOUND_EVENT, identifier, SoundEvent.of(identifier));
+		ResourceLocation identifier = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, name);
+		return Registry.register(BuiltInRegistries.SOUND_EVENT, identifier, SoundEvent.createVariableRangeEvent(identifier));
 	}
 
 	public static boolean isDatagenRunning() {
-		return System.getProperty("fabric-api.datagen") != null;
+		if (System.getProperty("fabric-api.datagen") != null) {
+			return true;
+		}
+		String cmd = System.getProperty("sun.java.command", "");
+		return cmd.contains("DatagenModLauncher");
 	}
 
 	private InitUtils() {/* No instantiation. */}

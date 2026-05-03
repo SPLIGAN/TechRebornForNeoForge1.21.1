@@ -24,10 +24,10 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.common.powerSystem.PowerSystem;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -37,14 +37,14 @@ public class GuiIDSU extends GuiBase<BuiltScreenHandler> {
 
 	final InterdimensionalSUBlockEntity idsu;
 
-	public GuiIDSU(int syncID, PlayerEntity player, InterdimensionalSUBlockEntity blockEntityIDSU) {
+	public GuiIDSU(int syncID, Player player, InterdimensionalSUBlockEntity blockEntityIDSU) {
 		super(player, blockEntityIDSU, blockEntityIDSU.createScreenHandler(syncID, player));
 		idsu = blockEntityIDSU;
 	}
 
 	@Override
-	protected void drawBackground(DrawContext drawContext, final float f, final int mouseX, final int mouseY) {
-		super.drawBackground(drawContext, f, mouseX, mouseY);
+	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
+		super.renderBg(drawContext, f, mouseX, mouseY);
 		final Layer layer = Layer.BACKGROUND;
 
 		drawSlot(drawContext, 62, 45, layer);
@@ -53,16 +53,16 @@ public class GuiIDSU extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void drawForeground(DrawContext drawContext, final int mouseX, final int mouseY) {
-		super.drawForeground(drawContext, mouseX, mouseY);
+	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
+		super.renderLabels(drawContext, mouseX, mouseY);
 		final Layer layer = Layer.FOREGROUND;
 
-		MatrixStack matrices = drawContext.getMatrices();
+		PoseStack matrices = drawContext.pose();
 
-		matrices.push();
+		matrices.pushPose();
 		matrices.scale(0.6f, 0.6f, 1.0f);
 
-		Text text = Text.literal(PowerSystem.getLocalizedPowerNoSuffix(idsu.getEnergy()))
+		Component text = Component.literal(PowerSystem.getLocalizedPowerNoSuffix(idsu.getEnergy()))
 				.append("/")
 				.append(PowerSystem.getLocalizedPowerNoSuffix(idsu.getMaxStoredPower()))
 				.append(" ")
@@ -70,7 +70,7 @@ public class GuiIDSU extends GuiBase<BuiltScreenHandler> {
 
 		drawCentredText(drawContext, text, 35, 0, 58, layer);
 
-		matrices.pop();
+		matrices.popPose();
 
 		builder.drawMultiEnergyBar(drawContext, this, 81, 28, (int) idsu.getEnergy(), (int) idsu.getMaxStoredPower(), mouseX, mouseY, 0, layer);
 	}

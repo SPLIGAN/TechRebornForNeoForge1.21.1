@@ -29,9 +29,9 @@ import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.CollectionUtils;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import reborncore.common.crafting.RebornFluidRecipe;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.fluid.container.FluidInstance;
@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 
 public class MachineRecipeDisplay<R extends RebornRecipe> implements Display {
 
-	private final RecipeEntry<R> entry;
+	private final RecipeHolder<R> entry;
 
 	private final R recipe;
 	private final List<EntryIngredient> inputs;
@@ -54,7 +54,7 @@ public class MachineRecipeDisplay<R extends RebornRecipe> implements Display {
 	private final int time;
 	private FluidInstance fluidInstance = null;
 
-	public MachineRecipeDisplay(RecipeEntry<R> entry) {
+	public MachineRecipeDisplay(RecipeHolder<R> entry) {
 		this.entry = entry;
 		this.recipe = entry.value();
 		this.inputs = CollectionUtils.map(recipe.ingredients(), ing -> EntryIngredients.ofItemStacks(ing.getPreviewStacks()));
@@ -87,7 +87,7 @@ public class MachineRecipeDisplay<R extends RebornRecipe> implements Display {
 	}
 
 	@Override
-	public Optional<Identifier> getDisplayLocation() {
+	public Optional<ResourceLocation> getDisplayLocation() {
 		return Optional.of(entry.id());
 	}
 
@@ -103,6 +103,6 @@ public class MachineRecipeDisplay<R extends RebornRecipe> implements Display {
 
 	@Override
 	public CategoryIdentifier<?> getCategoryIdentifier() {
-		return CategoryIdentifier.of(Objects.requireNonNull(Registries.RECIPE_TYPE.getId(recipe.getType())));
+		return CategoryIdentifier.of(Objects.requireNonNull(BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType())));
 	}
 }

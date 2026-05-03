@@ -24,10 +24,9 @@
 
 package techreborn;
 
-import net.fabricmc.api.ModInitializer;
-import net.minecraft.block.ComposterBlock;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.ComposterBlock;
+import net.minecraft.world.level.material.Fluids;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reborncore.common.blockentity.RedstoneConfiguration;
@@ -35,10 +34,8 @@ import reborncore.common.config.Configuration;
 import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.Torus;
 import techreborn.blockentity.GuiType;
-import techreborn.component.TRDataComponentTypes;
 import techreborn.config.TechRebornConfig;
 import techreborn.events.ApplyArmorToDamageHandler;
-import techreborn.events.OreDepthSyncHandler;
 import techreborn.events.UseBlockHandler;
 import techreborn.init.FuelRecipes;
 import techreborn.init.ModLoot;
@@ -50,16 +47,15 @@ import techreborn.init.TRContent;
 import techreborn.init.TRDispenserBehavior;
 import techreborn.init.template.TechRebornTemplates;
 import techreborn.items.DynamicCellItem;
-import techreborn.packets.Packets;
-import techreborn.packets.ServerboundPackets;
 import techreborn.utils.PoweredCraftingHandler;
-import techreborn.world.WorldGenerator;
-
-public class TechReborn implements ModInitializer {
+public class TechReborn {
 	public static final String MOD_ID = "techreborn";
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
-	@Override
+	/**
+	 * Fabric {@code main} entry — runs on dedicated server and on the game client (before joining a world).
+	 * Payload codecs and registry setup must stay free of {@code net.minecraft.client} types so both environments load cleanly.
+	 */
 	public void onInitialize() {
 		new Configuration(TechRebornConfig.class, "techreborn");
 		TRContent.register();
@@ -67,19 +63,13 @@ public class TechReborn implements ModInitializer {
 		// Done to force the class to load
 		//noinspection ResultOfMethodCallIgnored
 		ModRecipes.GRINDER.hashCode();
-		TRDataComponentTypes.init();
 		TRContent.SCRAP_BOX.asItem();
-
-		Packets.register();;
-		ServerboundPackets.init();
-		OreDepthSyncHandler.setup();
 
 		if (TechRebornConfig.machineSoundVolume > 0) {
 			if (TechRebornConfig.machineSoundVolume > 1) TechRebornConfig.machineSoundVolume = 1F;
 			RecipeCrafter.soundHandler = new ModSounds.SoundHandler();
 		}
 		ModLoot.init();
-		WorldGenerator.initWorldGen();
 		//Force loads the block entities at the right time
 		//noinspection ResultOfMethodCallIgnored
 		TRBlockEntities.THERMAL_GEN.toString();
@@ -98,12 +88,12 @@ public class TechReborn implements ModInitializer {
 		RedstoneConfiguration.fluidStack = DynamicCellItem.getCellWithFluid(Fluids.LAVA);
 		RedstoneConfiguration.powerStack = new ItemStack(TRContent.RED_CELL_BATTERY);
 
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.RUBBER_SAPLING.asItem(), 0.3F);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.RUBBER_LEAVES.asItem(), 0.3F);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.Parts.PLANTBALL.asItem(), 1F);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.Parts.COMPRESSED_PLANTBALL.asItem(), 1F);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.Dusts.SAW.asItem(), 0.3F);
-		ComposterBlock.ITEM_TO_LEVEL_INCREASE_CHANCE.put(TRContent.SmallDusts.SAW.asItem(), 0.1F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.RUBBER_SAPLING.asItem(), 0.3F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.RUBBER_LEAVES.asItem(), 0.3F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.Parts.PLANTBALL.asItem(), 1F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.Parts.COMPRESSED_PLANTBALL.asItem(), 1F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.Dusts.SAW.asItem(), 0.3F);
+		ComposterBlock.COMPOSTABLES.put(TRContent.SmallDusts.SAW.asItem(), 0.1F);
 
 		TechRebornTemplates.init();
 

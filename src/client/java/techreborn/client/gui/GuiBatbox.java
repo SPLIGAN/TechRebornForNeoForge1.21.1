@@ -24,10 +24,10 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.common.powerSystem.PowerSystem;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -37,14 +37,14 @@ public class GuiBatbox extends GuiBase<BuiltScreenHandler> {
 
 	final LowVoltageSUBlockEntity blockEntity;
 
-	public GuiBatbox(int syncID, final PlayerEntity player, final LowVoltageSUBlockEntity blockEntity) {
+	public GuiBatbox(int syncID, final Player player, final LowVoltageSUBlockEntity blockEntity) {
 		super(player, blockEntity, blockEntity.createScreenHandler(syncID, player));
 		this.blockEntity = blockEntity;
 	}
 
 	@Override
-	protected void drawBackground(DrawContext drawContext, final float f, final int mouseX, final int mouseY) {
-		super.drawBackground(drawContext, f, mouseX, mouseY);
+	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
+		super.renderBg(drawContext, f, mouseX, mouseY);
 		final Layer layer = Layer.BACKGROUND;
 
 		drawSlot(drawContext, 62, 45, layer);
@@ -52,20 +52,20 @@ public class GuiBatbox extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void drawForeground(DrawContext drawContext, final int mouseX, final int mouseY) {
-		super.drawForeground(drawContext, mouseX, mouseY);
+	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
+		super.renderLabels(drawContext, mouseX, mouseY);
 		final Layer layer = Layer.FOREGROUND;
 
 		if (!hideGuiElements()) {
-			final MatrixStack matrices = drawContext.getMatrices();
-			matrices.push();
+			final PoseStack matrices = drawContext.pose();
+			matrices.pushPose();
 			matrices.scale(0.6f, 0.6f, 1.0f);
-			Text text = Text.literal(PowerSystem.getLocalizedPowerNoSuffix(blockEntity.getEnergy()))
+			Component text = Component.literal(PowerSystem.getLocalizedPowerNoSuffix(blockEntity.getEnergy()))
 					.append("/")
 					.append(PowerSystem.getLocalizedPower(blockEntity.getMaxStoredPower()));
 
 			drawCentredText(drawContext, text, 35, 0, 58, layer);
-			matrices.pop();
+			matrices.popPose();
 		}
 
 		builder.drawMultiEnergyBar(drawContext, this, 81, 28, (int) blockEntity.getEnergy(), (int) blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);

@@ -24,16 +24,16 @@
 
 package techreborn.api.events;
 
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.level.Level;
+import reborncore.api.events.internal.RcEvent;
+import reborncore.api.events.internal.RcEventFactory;
 import techreborn.blockentity.cable.CableBlockEntity;
 import techreborn.init.TRContent;
 
 public interface CableElectrocutionEvent {
-	Event<CableElectrocutionEvent> EVENT = EventFactory.createArrayBacked(CableElectrocutionEvent.class, (listeners) ->
+	RcEvent<CableElectrocutionEvent> EVENT = RcEventFactory.createArrayBacked(CableElectrocutionEvent.class, (listeners) ->
 		(livingEntity, cableType, blockPos, world, cableBlockEntity) -> {
 			for (CableElectrocutionEvent listener : listeners) {
 				if (!listener.electrocute(livingEntity, cableType, blockPos, world, cableBlockEntity)) {
@@ -49,5 +49,5 @@ public interface CableElectrocutionEvent {
 	 *
 	 * @return {@code boolean} true to electrocute the entity (if not other listeners return false), false to do nothing
 	 */
-	boolean electrocute(LivingEntity livingEntity, TRContent.Cables cableType, BlockPos blockPos, World world, CableBlockEntity cableBlockEntity);
+	boolean electrocute(LivingEntity livingEntity, TRContent.Cables cableType, BlockPos blockPos, Level world, CableBlockEntity cableBlockEntity);
 }

@@ -24,23 +24,20 @@
 
 package reborncore.common.powerSystem;
 
-import net.fabricmc.fabric.api.item.v1.FabricItem;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.ItemEnchantmentsComponent;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.Hand;
-import net.minecraft.util.math.random.Random;
-import reborncore.common.util.ItemUtils;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.SimpleEnergyItem;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.base.SimpleEnergyItem;
 
 
 /**
- * Implement on simple energy-containing items and (on top of what {@link SimpleEnergyItem} does):
+ * Implement on simple energy-containing items and (on top of what {@link SimpleEnergyItem} does).
+ * Tech Reborn gameplay items should implement {@link RcFabricEnergyItem} for energy-tool swing / re-equip parity on NeoForge.
  * <ul>
  *     <li>A tooltip will be added for the item, indicating the stored power,
  *     the max power and the extraction rates.</li>
@@ -49,30 +46,20 @@ import team.reborn.energy.api.base.SimpleEnergyItem;
  * </ul>
  * TODO: consider moving this functionality to the energy API?
  */
-public interface RcEnergyItem extends SimpleEnergyItem, FabricItem {
+public interface RcEnergyItem extends SimpleEnergyItem {
 	long getEnergyCapacity(ItemStack stack);
 
 	/**
 	 * @return {@link RcEnergyTier} the tier of this {@link EnergyStorage}, used to have standard I/O rates.
 	 */
-	RcEnergyTier getTier();
+	RcEnergyTier getEnergyTier();
 
 	default long getEnergyMaxInput(ItemStack stack) {
-		return getTier().getMaxInput();
+		return getEnergyTier().getMaxInput();
 	}
 
 	default long getEnergyMaxOutput(ItemStack stack) {
-		return getTier().getMaxOutput();
-	}
-
-	@Override
-	default boolean allowComponentsUpdateAnimation(PlayerEntity player, Hand hand, ItemStack oldStack, ItemStack newStack) {
-		return !ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
-	}
-
-	@Override
-	default boolean allowContinuingBlockBreaking(PlayerEntity player, ItemStack oldStack, ItemStack newStack) {
-		return ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
+		return getEnergyTier().getMaxOutput();
 	}
 
 	/**
@@ -85,7 +72,7 @@ public interface RcEnergyItem extends SimpleEnergyItem, FabricItem {
 	 */
 	@Override
 	default boolean tryUseEnergy(ItemStack stack, long amount){
-		Random random = Random.create();
+		RandomSource random = RandomSource.create();
 
 		int unbreakingLevel = getUnbreakingLevel(stack);
 		if (unbreakingLevel > 0) {
@@ -96,9 +83,9 @@ public interface RcEnergyItem extends SimpleEnergyItem, FabricItem {
 
 	// A hack to do this without context of the DRM
 	private int getUnbreakingLevel(ItemStack stack) {
-		ItemEnchantmentsComponent enchantments = stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
-		for (RegistryEntry<Enchantment> entry : enchantments.getEnchantments()) {
-			if (entry.getKey().equals(Enchantments.UNBREAKING)) {
+		ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+		for (Holder<Enchantment> entry : enchantments.keySet()) {
+			if (entry.unwrapKey().equals(Enchantments.UNBREAKING)) {
 				return enchantments.getLevel(entry);
 			}
 		}

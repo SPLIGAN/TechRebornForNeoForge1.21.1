@@ -24,15 +24,15 @@
 
 package techreborn.blockentity.machine.tier0.block;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -64,7 +64,7 @@ public class AbstractBlockBlockEntity extends GenericMachineBlockEntity implemen
 
 	// BuiltScreenHandlerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, Player player) {
 		BlockEntityScreenHandlerBuilder builder = new ScreenHandlerBuilder("blockplacer")
 			.player(player.getInventory())
 			.inventory()
@@ -80,9 +80,9 @@ public class AbstractBlockBlockEntity extends GenericMachineBlockEntity implemen
 	}
 
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 
@@ -90,15 +90,15 @@ public class AbstractBlockBlockEntity extends GenericMachineBlockEntity implemen
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tag, registryLookup);
-		processor.writeNbt(tag);
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tag, registryLookup);
+		processor.saveAdditional(tag);
 	}
 
 	@Override
-	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tag, registryLookup);
-		processor.readNbt(tag);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tag, registryLookup);
+		processor.loadAdditional(tag);
 	}
 
 	public BlockProcessor getProcessor() {

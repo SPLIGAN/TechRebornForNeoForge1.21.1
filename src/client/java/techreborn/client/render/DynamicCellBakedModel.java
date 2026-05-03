@@ -24,51 +24,55 @@
 
 package techreborn.client.render;
 
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.render.model.BakedModelManager;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.random.Random;
+import java.util.ArrayList;
+import java.util.List;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.ModelManager;
+import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import techreborn.TechReborn;
 
-import java.util.function.Supplier;
+public class DynamicCellBakedModel extends DynamicFluidItemModelBase {
 
-public class DynamicCellBakedModel extends BaseDynamicFluidBakedModel {
-	public static final Identifier CELL_BASE = Identifier.of(TechReborn.MOD_ID, "item/cell_base");
-	public static final Identifier CELL_BACKGROUND = Identifier.of(TechReborn.MOD_ID, "item/cell_background");
-	public static final Identifier CELL_FLUID = Identifier.of(TechReborn.MOD_ID, "item/cell_fluid");
-	public static final Identifier CELL_GLASS = Identifier.of(TechReborn.MOD_ID, "item/cell_glass");
+	public static final ResourceLocation CELL_BASE = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/cell_base");
+	public static final ResourceLocation CELL_BACKGROUND = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/cell_background");
+	public static final ResourceLocation CELL_FLUID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/cell_fluid");
+	public static final ResourceLocation CELL_GLASS = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/cell_glass");
 
 	@Override
-	public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-		super.emitItemQuads(stack, randomSupplier, context);
-
-		BakedModelManager bakedModelManager = MinecraftClient.getInstance().getBakedModelManager();
-		bakedModelManager.getModel(CELL_GLASS).emitItemQuads(stack, randomSupplier, context);
+	protected List<BakedQuad> buildExtraLayers(ItemStack stack, RandomSource rand, @Nullable RenderType renderType) {
+		ModelManager bakedModelManager = Minecraft.getInstance().getModelManager();
+		BakedModel glass = bakedModelManager.getModel(ModelResourceLocation.standalone(CELL_GLASS));
+		return new ArrayList<>(DynamicFluidItemModelBase.collectQuadsForModel(glass, rand, renderType));
 	}
 
 	@Override
-	public Sprite getParticleSprite() {
-		return MinecraftClient.getInstance()
-				.getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE)
-				.apply(Identifier.of("techreborn:item/cell_base"));
+	public TextureAtlasSprite getParticleIcon() {
+		return Minecraft.getInstance()
+				.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+				.apply(ResourceLocation.parse("techreborn:item/cell_base"));
 	}
 
 	@Override
-	public Identifier getBaseModel() {
+	public ResourceLocation getBaseModel() {
 		return CELL_BASE;
 	}
 
 	@Override
-	public Identifier getBackgroundModel() {
+	public ResourceLocation getBackgroundModel() {
 		return CELL_BACKGROUND;
 	}
 
 	@Override
-	public Identifier getFluidModel() {
+	public ResourceLocation getFluidModel() {
 		return CELL_FLUID;
 	}
 }

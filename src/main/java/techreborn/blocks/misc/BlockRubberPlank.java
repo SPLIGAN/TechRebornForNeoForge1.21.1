@@ -24,8 +24,8 @@
 
 package techreborn.blocks.misc;
 
-import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
+import techreborn.init.FlammableBlockBridge;
 import techreborn.init.TRBlockSettings;
 
 /**
@@ -35,6 +35,6 @@ public class BlockRubberPlank extends Block {
 
 	public BlockRubberPlank() {
 		super(TRBlockSettings.rubberWood());
-		FlammableBlockRegistry.getDefaultInstance().add(this, 5, 20);
+		FlammableBlockBridge.register(this, 5, 20);
 	}
 }

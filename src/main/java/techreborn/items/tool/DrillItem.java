@@ -24,18 +24,21 @@
 
 package techreborn.items.tool;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.*;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.item.*;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRContent;
 import techreborn.init.TRItemSettings;
 
-public class DrillItem extends MiningToolItem implements RcEnergyItem {
+public class DrillItem extends DiggerItem implements RcFabricEnergyItem {
 	public final int maxCharge;
 	public final RcEnergyTier tier;
 	public final int cost;
@@ -43,7 +46,7 @@ public class DrillItem extends MiningToolItem implements RcEnergyItem {
 	protected final float unpoweredSpeed = 0.5f;
 
 
-	public DrillItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
+	public DrillItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
 		super(material, TRContent.BlockTags.DRILL_MINEABLE, TRItemSettings.unbreakable());
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
@@ -53,21 +56,21 @@ public class DrillItem extends MiningToolItem implements RcEnergyItem {
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	//Item
 	@Override
-	public float getMiningSpeed(ItemStack stack, BlockState state) {
-		if (getStoredEnergy(stack) >= cost && isCorrectForDrops(stack, state)) {
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
+		if (getStoredEnergy(stack) >= cost && isCorrectToolForDrops(stack, state)) {
 			return poweredSpeed;
 		}
 		return unpoweredSpeed;
 	}
 
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, cost);
 		return true;
 	}
@@ -78,17 +81,17 @@ public class DrillItem extends MiningToolItem implements RcEnergyItem {
 	}
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -99,7 +102,7 @@ public class DrillItem extends MiningToolItem implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

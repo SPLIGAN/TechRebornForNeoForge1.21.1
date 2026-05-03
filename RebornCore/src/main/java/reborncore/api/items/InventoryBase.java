@@ -24,38 +24,38 @@
 
 package reborncore.api.items;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.inventory.Inventories;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
-public abstract class InventoryBase implements Inventory {
+public abstract class InventoryBase implements Container {
 
 	private final int size;
-	private DefaultedList<ItemStack> stacks;
+	private NonNullList<ItemStack> stacks;
 
 	public InventoryBase(int size) {
 		this.size = size;
-		stacks = DefaultedList.ofSize(size, ItemStack.EMPTY);
+		stacks = NonNullList.withSize(size, ItemStack.EMPTY);
 	}
 
-	public NbtElement serializeNBT(RegistryWrapper.WrapperLookup registryLookup) {
-		NbtCompound tag = new NbtCompound();
-		Inventories.writeNbt(tag, stacks, registryLookup);
+	public Tag serializeNBT(HolderLookup.Provider registryLookup) {
+		CompoundTag tag = new CompoundTag();
+		ContainerHelper.saveAllItems(tag, stacks, registryLookup);
 		return tag;
 	}
 
-	public void deserializeNBT(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		stacks = DefaultedList.ofSize(size, ItemStack.EMPTY);
-		Inventories.readNbt(tag, stacks, registryLookup);
+	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		stacks = NonNullList.withSize(size, ItemStack.EMPTY);
+		ContainerHelper.loadAllItems(tag, stacks, registryLookup);
 	}
 
 	@Override
-	public int size() {
+	public int getContainerSize() {
 		return size;
 	}
 
@@ -65,50 +65,50 @@ public abstract class InventoryBase implements Inventory {
 	}
 
 	@Override
-	public ItemStack getStack(int i) {
+	public ItemStack getItem(int i) {
 		return stacks.get(i);
 	}
 
 	@Override
-	public ItemStack removeStack(int i, int i1) {
-		ItemStack stack = Inventories.splitStack(stacks, i, i1);
+	public ItemStack removeItem(int i, int i1) {
+		ItemStack stack = ContainerHelper.removeItem(stacks, i, i1);
 		if (!stack.isEmpty()) {
-			this.markDirty();
+			this.setChanged();
 		}
 		return stack;
 	}
 
 	@Override
-	public ItemStack removeStack(int i) {
-		return Inventories.removeStack(stacks, i);
+	public ItemStack removeItemNoUpdate(int i) {
+		return ContainerHelper.takeItem(stacks, i);
 	}
 
 	@Override
-	public void setStack(int i, ItemStack itemStack) {
+	public void setItem(int i, ItemStack itemStack) {
 		stacks.set(i, itemStack);
-		if (itemStack.getCount() > this.getMaxCountPerStack()) {
-			itemStack.setCount(this.getMaxCountPerStack());
+		if (itemStack.getCount() > this.getMaxStackSize()) {
+			itemStack.setCount(this.getMaxStackSize());
 		}
 
-		this.markDirty();
+		this.setChanged();
 	}
 
 	@Override
-	public void markDirty() {
+	public void setChanged() {
 		// Stuff happens in the super methods
 	}
 
 	@Override
-	public boolean canPlayerUse(PlayerEntity playerEntity) {
+	public boolean stillValid(Player playerEntity) {
 		return true;
 	}
 
 	@Override
-	public void clear() {
+	public void clearContent() {
 		stacks.clear();
 	}
 
-	public DefaultedList<ItemStack> getStacks() {
+	public NonNullList<ItemStack> getStacks() {
 		return stacks;
 	}
 }

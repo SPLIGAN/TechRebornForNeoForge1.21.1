@@ -24,19 +24,11 @@
 
 package reborncore.client;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.screen.ScreenHandler;
-import net.minecraft.world.World;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import reborncore.RebornCore;
 import reborncore.common.blockentity.FluidConfiguration;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.SlotConfiguration;
+import reborncore.common.network.ClientPacketDispatcher;
 import reborncore.common.network.clientbound.ChunkSyncPayload;
 import reborncore.common.network.clientbound.CustomDescriptionPayload;
 import reborncore.common.network.clientbound.FluidConfigSyncPayload;
@@ -44,60 +36,78 @@ import reborncore.common.network.clientbound.QueueItemStacksPayload;
 import reborncore.common.network.clientbound.ScreenHandlerUpdatePayload;
 import reborncore.common.network.clientbound.SlotSyncPayload;
 import reborncore.common.screen.BuiltScreenHandler;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ClientBoundPacketHandlers {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ClientBoundPacketHandlers.class);
-
 	public static void init() {
-		ClientPlayNetworking.registerGlobalReceiver(CustomDescriptionPayload.ID, (payload, context) -> {
-			World world = MinecraftClient.getInstance().world;
-			if (world.isChunkLoaded(payload.pos())) {
-				BlockEntity blockentity = world.getBlockEntity(payload.pos());
-				if (blockentity != null && payload.nbt() != null) {
-					blockentity.read(payload.nbt(), world.getRegistryManager());
-				}
-			}
-		});
+		ClientPacketDispatcher.customDescription = ClientBoundPacketHandlers::handleCustomDescription;
+		ClientPacketDispatcher.fluidConfigSync = ClientBoundPacketHandlers::handleFluidConfigSync;
+		ClientPacketDispatcher.slotSync = ClientBoundPacketHandlers::handleSlotSync;
+		ClientPacketDispatcher.screenHandlerUpdate = ClientBoundPacketHandlers::handleScreenHandlerUpdate;
+		ClientPacketDispatcher.chunkSync = ClientBoundPacketHandlers::handleChunkSync;
+		ClientPacketDispatcher.queueItemStacks = ClientBoundPacketHandlers::handleQueueItemStacks;
+	}
 
-		ClientPlayNetworking.registerGlobalReceiver(FluidConfigSyncPayload.ID, (payload, context) -> {
-			FluidConfiguration fluidConfiguration = payload.fluidConfiguration();
-			if (!MinecraftClient.getInstance().world.isChunkLoaded(payload.pos())) {
-				return;
+	private static void handleCustomDescription(CustomDescriptionPayload payload, IPayloadContext context) {
+		ClientLevel world = Minecraft.getInstance().level;
+		if (world != null && world.hasChunkAt(payload.pos())) {
+			BlockEntity blockentity = world.getBlockEntity(payload.pos());
+			if (blockentity != null && payload.nbt() != null) {
+				blockentity.loadWithComponents(payload.nbt(), world.registryAccess());
 			}
-			MachineBaseBlockEntity machineBase = (MachineBaseBlockEntity) MinecraftClient.getInstance().world.getBlockEntity(payload.pos());
-			if (machineBase == null || machineBase.fluidConfiguration == null || fluidConfiguration == null) {
-				RebornCore.LOGGER.error("Failed to sync fluid config data to " + payload.pos());
-				return;
-			}
-			fluidConfiguration.getAllSides().forEach(fluidConfig -> machineBase.fluidConfiguration.updateFluidConfig(fluidConfig));
-			machineBase.fluidConfiguration.setInput(fluidConfiguration.autoInput());
-			machineBase.fluidConfiguration.setOutput(fluidConfiguration.autoOutput());;
-		});
+		}
+	}
 
-		ClientPlayNetworking.registerGlobalReceiver(SlotSyncPayload.ID, (payload, context) -> {
-			SlotConfiguration slotConfig = payload.slotConfig();
-			if (!MinecraftClient.getInstance().world.isChunkLoaded(payload.pos())) {
-				return;
-			}
-			MachineBaseBlockEntity machineBase = (MachineBaseBlockEntity) MinecraftClient.getInstance().world.getBlockEntity(payload.pos());
-			if (machineBase == null || machineBase.getSlotConfiguration() == null || slotConfig == null || slotConfig.getSlotDetails() == null) {
-				RebornCore.LOGGER.error("Failed to sync slot data to " + payload.pos());
-				return;
-			}
-			MinecraftClient.getInstance().execute(() -> slotConfig.getSlotDetails().forEach(slotConfigHolder -> machineBase.getSlotConfiguration().updateSlotDetails(slotConfigHolder)));
-		});
+	private static void handleFluidConfigSync(FluidConfigSyncPayload payload, IPayloadContext context) {
+		FluidConfiguration fluidConfiguration = payload.fluidConfiguration();
+		ClientLevel world = Minecraft.getInstance().level;
+		if (world == null || !world.hasChunkAt(payload.pos())) {
+			return;
+		}
+		MachineBaseBlockEntity machineBase = (MachineBaseBlockEntity) world.getBlockEntity(payload.pos());
+		if (machineBase == null || machineBase.fluidConfiguration == null || fluidConfiguration == null) {
+			RebornCore.LOGGER.error("Failed to sync fluid config data to " + payload.pos());
+			return;
+		}
+		fluidConfiguration.getAllSides().forEach(fluidConfig -> machineBase.fluidConfiguration.updateFluidConfig(fluidConfig));
+		machineBase.fluidConfiguration.setInput(fluidConfiguration.autoInput());
+		machineBase.fluidConfiguration.setOutput(fluidConfiguration.autoOutput());
+	}
 
-		ClientPlayNetworking.registerGlobalReceiver(ScreenHandlerUpdatePayload.ID, (payload, context) -> {
-			Screen gui = MinecraftClient.getInstance().currentScreen;
-			if (gui instanceof HandledScreen handledScreen) {
-				ScreenHandler screenHandler = handledScreen.getScreenHandler();
-				if (screenHandler instanceof BuiltScreenHandler builtScreenHandler) {
-					builtScreenHandler.applyScreenHandlerData(payload.data());
-				}
-			}
-		});
+	private static void handleSlotSync(SlotSyncPayload payload, IPayloadContext context) {
+		SlotConfiguration slotConfig = payload.slotConfig();
+		ClientLevel world = Minecraft.getInstance().level;
+		if (world == null || !world.hasChunkAt(payload.pos())) {
+			return;
+		}
+		MachineBaseBlockEntity machineBase = (MachineBaseBlockEntity) world.getBlockEntity(payload.pos());
+		if (machineBase == null || machineBase.getSlotConfiguration() == null || slotConfig == null || slotConfig.getSlotDetails() == null) {
+			RebornCore.LOGGER.error("Failed to sync slot data to " + payload.pos());
+			return;
+		}
+		Minecraft.getInstance().execute(() -> slotConfig.getSlotDetails().forEach(slotConfigHolder -> machineBase.getSlotConfiguration().updateSlotDetails(slotConfigHolder)));
+	}
 
-		ClientPlayNetworking.registerGlobalReceiver(ChunkSyncPayload.ID, (payload, context) -> ClientChunkManager.setLoadedChunks(payload.chunks()));
-		ClientPlayNetworking.registerGlobalReceiver(QueueItemStacksPayload.ID, (payload, context) -> ItemStackRenderManager.RENDER_QUEUE.addAll(payload.stacks()));
+	private static void handleScreenHandlerUpdate(ScreenHandlerUpdatePayload payload, IPayloadContext context) {
+		Screen gui = Minecraft.getInstance().screen;
+		if (gui instanceof AbstractContainerScreen<?> handledScreen) {
+			var screenHandler = handledScreen.getMenu();
+			if (screenHandler instanceof BuiltScreenHandler builtScreenHandler) {
+				builtScreenHandler.applyScreenHandlerData(payload.data());
+			}
+		}
+	}
+
+	private static void handleChunkSync(ChunkSyncPayload payload, IPayloadContext context) {
+		ClientChunkManager.setLoadedChunks(payload.chunks());
+	}
+
+	private static void handleQueueItemStacks(QueueItemStacksPayload payload, IPayloadContext context) {
+		ItemStackRenderManager.RENDER_QUEUE.addAll(payload.stacks());
 	}
 }

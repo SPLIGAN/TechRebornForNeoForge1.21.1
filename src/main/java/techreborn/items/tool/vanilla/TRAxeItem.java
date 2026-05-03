@@ -24,9 +24,9 @@
 
 package techreborn.items.tool.vanilla;
 
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRToolTier;
 
@@ -39,15 +39,15 @@ public class TRAxeItem extends AxeItem {
 	}
 
 	public TRAxeItem(TRToolTier material, String repairOreDict) {
-		super(material, new Item.Settings().attributeModifiers(material.createAttributeModifiers(TRToolTier.ToolType.AXE)));
+		super(material, new Item.Properties().attributes(material.createAttributeModifiers(TRToolTier.ToolType.AXE)));
 		this.repairOreDict = repairOreDict;
 	}
 
 	@Override
-	public boolean canRepair(ItemStack toRepair, ItemStack repair) {
+	public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 		if (toRepair.getItem() == this && !repairOreDict.isEmpty()) {
 			return ItemUtils.isInputEqual(repairOreDict, repair, false, false);
 		}
-		return super.canRepair(toRepair, repair);
+		return super.isValidRepairItem(toRepair, repair);
 	}
 }

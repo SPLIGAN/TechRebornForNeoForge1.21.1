@@ -24,16 +24,16 @@
 
 package techreborn.blockentity.machine.tier1;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.Mth;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -76,34 +76,34 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
 
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 
-		if (world.getTime() % 20 != 0) {
+		if (world.getGameTime() % 20 != 0) {
 			return;
 		}
 
 		boolean lastRedstone = redstone;
 		redstone = false;
 		if (getStored() > TechRebornConfig.playerDetectorEuPerTick) {
-			for (PlayerEntity player : world.getPlayers()) {
+			for (Player player : world.players()) {
 				if (player.isSpectator()){
 					continue;
 				}
-				if (MathHelper.sqrt((float)player.squaredDistanceTo(pos.getX() +0.5f, pos.getY() +0.5f, pos.getZ() +0.5f)) <= (float)radius ) {
-					PlayerDetectorType type = world.getBlockState(pos).get(PlayerDetectorBlock.TYPE);
+				if (Mth.sqrt((float)player.distanceToSqr(pos.getX() +0.5f, pos.getY() +0.5f, pos.getZ() +0.5f)) <= (float)radius ) {
+					PlayerDetectorType type = world.getBlockState(pos).getValue(PlayerDetectorBlock.TYPE);
 					if (type == PlayerDetectorType.ALL) {// ALL
 						redstone = true;
 					} else if (type == PlayerDetectorType.OTHERS) {// Others
-						if (!ownerUdid.isEmpty() && !ownerUdid.equals(player.getUuid().toString())) {
+						if (!ownerUdid.isEmpty() && !ownerUdid.equals(player.getUUID().toString())) {
 							redstone = true;
 						}
 					} else {// You
-						if (!ownerUdid.isEmpty() && ownerUdid.equals(player.getUuid().toString())) {
+						if (!ownerUdid.isEmpty() && ownerUdid.equals(player.getUUID().toString())) {
 							redstone = true;
 						}
 					}
@@ -113,7 +113,7 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 		}
 		if (lastRedstone != redstone) {
 			WorldUtils.updateBlock(world, pos);
-			world.updateNeighborsAlways(pos, world.getBlockState(pos).getBlock());
+			world.updateNeighborsAt(pos, world.getBlockState(pos).getBlock());
 		}
 	}
 
@@ -138,15 +138,15 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 	}
 
 	@Override
-	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tag, registryLookup);
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tag, registryLookup);
 		ownerUdid = tag.getString("ownerID");
 		radius = tag.getInt("radius");
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tag, registryLookup);
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tag, registryLookup);
 		tag.putString("ownerID", ownerUdid);
 		tag.putInt("radius", radius);
 	}
@@ -164,19 +164,19 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(PlayerEntity p0) {
+	public ItemStack getToolDrop(Player p0) {
 		return TRContent.Machine.PLAYER_DETECTOR.getStack();
 	}
 
 	// BuiltScreenHandlerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, Player player) {
 		return new ScreenHandlerBuilder("player_detector")
 				.player(player.getInventory())
 				.inventory().hotbar().addInventory()
 				.blockEntity(this)
 				.syncEnergyValue()
-				.sync(PacketCodecs.INTEGER, this::getCurrentRadius, this::setCurrentRadius)
+				.sync(ByteBufCodecs.INT, this::getCurrentRadius, this::setCurrentRadius)
 				.addInventory().create(this, syncID);
 	}
 

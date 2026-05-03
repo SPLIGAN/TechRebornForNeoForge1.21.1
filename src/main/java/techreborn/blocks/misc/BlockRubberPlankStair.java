@@ -24,13 +24,13 @@
 
 package techreborn.blocks.misc;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.StairsBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import techreborn.init.TRContent;
 
-public class BlockRubberPlankStair extends StairsBlock {
+public class BlockRubberPlankStair extends StairBlock {
 
 	public BlockRubberPlankStair() {
-		super(TRContent.RUBBER_PLANKS.getDefaultState(), Block.Settings.copy(TRContent.RUBBER_PLANKS));
+		super(TRContent.RUBBER_PLANKS.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(TRContent.RUBBER_PLANKS));
 	}
 }

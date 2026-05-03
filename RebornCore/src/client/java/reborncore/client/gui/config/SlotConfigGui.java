@@ -26,19 +26,13 @@ package reborncore.client.gui.config;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.slot.Slot;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import reborncore.client.ClientChatUtils;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.config.elements.ConfigSlotElement;
 import reborncore.client.gui.config.elements.SlotType;
+import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.network.serverbound.SlotConfigSavePayload;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.slot.BaseSlot;
@@ -46,6 +40,12 @@ import reborncore.common.util.Color;
 
 import java.util.List;
 import java.util.Objects;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 public class SlotConfigGui extends GuiTab {
 	private Int2ObjectMap<ConfigSlotElement> slotElementMap = new Int2ObjectOpenHashMap<>();
@@ -79,7 +79,7 @@ public class SlotConfigGui extends GuiTab {
 
 		BuiltScreenHandler container = guiBase.builtScreenHandler;
 		for (Slot slot : container.slots) {
-			if (guiBase.be != slot.inventory) {
+			if (guiBase.be != slot.container) {
 				continue;
 			}
 
@@ -92,7 +92,7 @@ public class SlotConfigGui extends GuiTab {
 				guiBase,
 				this::close
 			);
-			slotElementMap.put(slot.getIndex(), slotElement);
+			slotElementMap.put(slot.getContainerSlot(), slotElement);
 		}
 
 	}
@@ -103,10 +103,10 @@ public class SlotConfigGui extends GuiTab {
 	}
 
 	@Override
-	public void draw(DrawContext drawContext, int x, int y) {
+	public void draw(GuiGraphics drawContext, int x, int y) {
 		BuiltScreenHandler container = guiBase.builtScreenHandler;
 		for (Slot slot : container.slots) {
-			if (guiBase.be != slot.inventory) {
+			if (guiBase.be != slot.container) {
 				continue;
 			}
 			Color color = new Color(255, 0, 0, 128);
@@ -127,11 +127,11 @@ public class SlotConfigGui extends GuiTab {
 			return selectedSlot.onClick(guiBase, mouseX, mouseY);
 		} else {
 			for (Slot slot : screenHandler.slots) {
-				if (guiBase.be != slot.inventory) {
+				if (guiBase.be != slot.container) {
 					continue;
 				}
 				if (guiBase.isPointInRect(slot.x, slot.y, 18, 18, mouseX, mouseY)) {
-					selectedSlot = slotElementMap.get(slot.getIndex());
+					selectedSlot = slotElementMap.get(slot.getContainerSlot());
 					return true;
 				}
 			}
@@ -177,20 +177,20 @@ public class SlotConfigGui extends GuiTab {
 	private void copyToClipboard() {
 		machine.getSlotConfiguration();
 		String json = machine.getSlotConfiguration().toJson(machine.getClass().getCanonicalName());
-		MinecraftClient.getInstance().keyboard.setClipboard(json);
-		ClientChatUtils.addHudMessage(Text.literal("Slot configuration copied to clipboard"));
+		Minecraft.getInstance().keyboardHandler.setClipboard(json);
+		ClientChatUtils.addHudMessage(Component.literal("Slot configuration copied to clipboard"));
 	}
 
 	private void pasteFromClipboard() {
 		machine.getSlotConfiguration();
 
-		String json = MinecraftClient.getInstance().keyboard.getClipboard();
+		String json = Minecraft.getInstance().keyboardHandler.getClipboard();
 		try {
 			machine.getSlotConfiguration().readJson(json, machine.getClass().getCanonicalName());
-			ClientPlayNetworking.send(new SlotConfigSavePayload(machine.getPos(), machine.getSlotConfiguration()));
-			ClientChatUtils.addHudMessage(Text.literal("Slot configuration loaded from clipboard"));
+			ClientNetworkingBridge.sendToServer(new SlotConfigSavePayload(machine.getBlockPos(), machine.getSlotConfiguration()));
+			ClientChatUtils.addHudMessage(Component.literal("Slot configuration loaded from clipboard"));
 		} catch (UnsupportedOperationException e) {
-			ClientChatUtils.addHudMessage(Text.literal(e.getMessage()));
+			ClientChatUtils.addHudMessage(Component.literal(e.getMessage()));
 		}
 	}
 

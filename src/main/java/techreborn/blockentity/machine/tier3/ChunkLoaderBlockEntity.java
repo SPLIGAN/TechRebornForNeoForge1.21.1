@@ -24,17 +24,17 @@
 
 package techreborn.blockentity.machine.tier3;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IToolDrop;
@@ -60,7 +60,7 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 		this.radius = 1;
 	}
 
-	public void handleGuiInputFromClient(int buttonID, @Nullable PlayerEntity playerEntity) {
+	public void handleGuiInputFromClient(int buttonID, @Nullable Player playerEntity) {
 		radius += buttonID;
 
 		if (radius > TechRebornConfig.chunkLoaderMaxRadius) {
@@ -73,8 +73,8 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 		reload();
 
 		if (playerEntity != null) {
-			ChunkLoaderManager manager = ChunkLoaderManager.get(getWorld());
-			manager.syncChunkLoaderToClient((ServerPlayerEntity) playerEntity, getPos());
+			ChunkLoaderManager manager = ChunkLoaderManager.get(getLevel());
+			manager.syncChunkLoaderToClient((ServerPlayer) playerEntity, getBlockPos());
 		}
 	}
 
@@ -84,49 +84,53 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 	}
 
 	private void load() {
-		ChunkLoaderManager manager = ChunkLoaderManager.get(getWorld());
+		ChunkLoaderManager manager = ChunkLoaderManager.get(getLevel());
 		ChunkPos rootPos = getChunkPos();
 		int loadRadius = radius - 1;
 		for (int i = -loadRadius; i <= loadRadius; i++) {
 			for (int j = -loadRadius; j <= loadRadius; j++) {
 				ChunkPos loadPos = new ChunkPos(rootPos.x + i, rootPos.z + j);
 
-				if (!manager.isChunkLoaded(getWorld(), loadPos, getPos())) {
-					manager.loadChunk(getWorld(), loadPos, getPos(), ownerUdid);
+				if (!manager.isChunkLoaded(getLevel(), loadPos, getBlockPos())) {
+					manager.loadChunk(getLevel(), loadPos, getBlockPos(), ownerUdid);
 				}
 			}
 		}
 	}
 
 	private void unloadAll() {
-		ChunkLoaderManager manager = ChunkLoaderManager.get(world);
-		manager.unloadChunkLoader(world, getPos());
+		Level lv = getLevel();
+		if (lv == null) {
+			return;
+		}
+		ChunkLoaderManager manager = ChunkLoaderManager.get(lv);
+		manager.unloadChunkLoader(lv, getBlockPos());
 	}
 
 	public ChunkPos getChunkPos() {
-		return new ChunkPos(getPos());
+		return new ChunkPos(getBlockPos());
 	}
 
 	// MachineBaseBlockEntity
 	@Override
-	public void onBreak(World world, PlayerEntity playerEntity, BlockPos blockPos, BlockState blockState) {
-		if (world.isClient) {
+	public void onBreak(Level world, Player playerEntity, BlockPos blockPos, BlockState blockState) {
+		if (world.isClientSide) {
 			return;
 		}
 		unloadAll();
-		ChunkLoaderManager.get(world).clearClient((ServerPlayerEntity) playerEntity);
+		ChunkLoaderManager.get(world).clearClient((ServerPlayer) playerEntity);
 	}
 
 	@Override
-	public void onPlace(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		ownerUdid = placer.getUuidAsString();
-		if (worldIn.isClient) return;
+	public void onPlace(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		ownerUdid = placer.getStringUUID();
+		if (worldIn.isClientSide) return;
 		reload();
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tagCompound, registryLookup);
+	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tagCompound, registryLookup);
 		tagCompound.putInt("radius", radius);
 		if (ownerUdid != null && !ownerUdid.isEmpty()){
 			tagCompound.putString("ownerUdid", ownerUdid);
@@ -135,8 +139,8 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 	}
 
 	@Override
-	public void readNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(nbtCompound, registryLookup);
+	public void loadAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(nbtCompound, registryLookup);
 		this.radius = nbtCompound.getInt("radius");
 		this.ownerUdid = nbtCompound.getString("ownerUdid");
 		if (!StringUtils.isBlank(ownerUdid)) {
@@ -147,7 +151,7 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(final PlayerEntity entityPlayer) {
+	public ItemStack getToolDrop(final Player entityPlayer) {
 		return TRContent.Machine.CHUNK_LOADER.getStack();
 	}
 
@@ -159,9 +163,9 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 
 	// BuiltScreenHandlerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, Player player) {
 		return new ScreenHandlerBuilder("chunkloader").player(player.getInventory()).inventory().hotbar().addInventory()
-				.blockEntity(this).sync(PacketCodecs.INTEGER, this::getRadius, this::setRadius).addInventory().create(this, syncID);
+				.blockEntity(this).sync(ByteBufCodecs.INT, this::getRadius, this::setRadius).addInventory().create(this, syncID);
 	}
 
 	public int getRadius() {

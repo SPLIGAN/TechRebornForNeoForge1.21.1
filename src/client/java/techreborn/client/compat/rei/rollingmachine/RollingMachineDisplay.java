@@ -28,9 +28,9 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import me.shedaniel.rei.plugin.common.displays.crafting.DefaultCraftingDisplay;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.registry.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import reborncore.common.crafting.RebornRecipe;
 import techreborn.init.ModRecipes;
 import techreborn.recipe.recipes.RollingMachineRecipe;
@@ -46,10 +46,10 @@ public class RollingMachineDisplay extends DefaultCraftingDisplay<RebornRecipe> 
 	private final int energy;
 	private final int time;
 
-	public RollingMachineDisplay(RecipeEntry<RebornRecipe> entry) {
+	public RollingMachineDisplay(RecipeHolder<RebornRecipe> entry) {
 		super(
 			EntryIngredients.ofIngredients(entry.value().getIngredients()),
-			Collections.singletonList(EntryIngredients.of(entry.value().getResult(BasicDisplay.registryAccess()))),
+			Collections.singletonList(EntryIngredients.of(entry.value().getResultItem(BasicDisplay.registryAccess()))),
 			Optional.of(entry)
 		);
 		RollingMachineRecipe recipe = (RollingMachineRecipe) entry.value();
@@ -80,6 +80,6 @@ public class RollingMachineDisplay extends DefaultCraftingDisplay<RebornRecipe> 
 
 	@Override
 	public CategoryIdentifier<?> getCategoryIdentifier() {
-		return CategoryIdentifier.of(Objects.requireNonNull(Registries.RECIPE_TYPE.getId(ModRecipes.ROLLING_MACHINE)));
+		return CategoryIdentifier.of(Objects.requireNonNull(BuiltInRegistries.RECIPE_TYPE.getKey(ModRecipes.ROLLING_MACHINE)));
 	}
 }

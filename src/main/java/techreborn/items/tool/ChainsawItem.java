@@ -24,20 +24,20 @@
 
 package techreborn.items.tool;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ToolMaterial;
-import net.minecraft.registry.tag.BlockTags;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.BlockPos;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.AxeItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRItemSettings;
 
-public class ChainsawItem extends AxeItem implements RcEnergyItem {
+public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
 
 	public final int maxCharge;
 	public final RcEnergyTier tier;
@@ -46,7 +46,7 @@ public class ChainsawItem extends AxeItem implements RcEnergyItem {
 	protected final float unpoweredSpeed = 0.5f;
 
 
-	public ChainsawItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
+	public ChainsawItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
 		super(material, TRItemSettings.unbreakable());
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
@@ -60,31 +60,31 @@ public class ChainsawItem extends AxeItem implements RcEnergyItem {
 
 	// MiningToolItem
 	@Override
-	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 		return true;
 	}
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public float getMiningSpeed(ItemStack stack, BlockState state) {
-		if (getStoredEnergy(stack) >= cost && isCorrectForDrops(stack, state)) { return poweredSpeed; }
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
+		if (getStoredEnergy(stack) >= cost && isCorrectToolForDrops(stack, state)) { return poweredSpeed; }
 		return unpoweredSpeed;
 	}
 
 	@Override
-	public boolean isCorrectForDrops(ItemStack stack, BlockState state) {
-		if (state.isIn(BlockTags.LEAVES)){ return true; }
-		return super.isCorrectForDrops(stack, state);
+	public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+		if (state.is(BlockTags.LEAVES)){ return true; }
+		return super.isCorrectToolForDrops(stack, state);
 	}
 
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, cost);
 		return true;
 	}
@@ -93,15 +93,15 @@ public class ChainsawItem extends AxeItem implements RcEnergyItem {
 	public boolean isEnchantable(ItemStack stack) { return true; }
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) { return true;	}
+	public boolean isBarVisible(ItemStack stack) { return true;	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -110,7 +110,7 @@ public class ChainsawItem extends AxeItem implements RcEnergyItem {
 	public long getEnergyCapacity(ItemStack stack) { return maxCharge; }
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

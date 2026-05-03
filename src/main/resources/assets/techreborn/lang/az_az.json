@@ -91,5 +91,9 @@
   "gui.techreborn.tank.type": "Maye Növü:",
   "gui.techreborn.tank.amount": "Maye Miqdarı:",
   "gui.techreborn.storage.store": "Saxlama:",
-  "gui.techreborn.storage.amount": "Miqdar:"
+  "gui.techreborn.storage.amount": "Miqdar:",
+  "entity.minecraft.villager.techreborn.metallurgist": "Metalurq",
+  "entity.minecraft.villager.metallurgist": "Metalurq",
+  "entity.minecraft.villager.techreborn.electrician": "Elektrik",
+  "entity.minecraft.villager.electrician": "Elektrik"
 }

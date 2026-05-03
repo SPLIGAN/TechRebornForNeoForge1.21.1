@@ -27,15 +27,14 @@ package reborncore.common.crafting;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
 
 /**
  * An ingredient with a specific item stack count
@@ -45,11 +44,11 @@ import java.util.function.Predicate;
 public record SizedIngredient(int count, Ingredient ingredient) implements Predicate<ItemStack> {
 	public static MapCodec<SizedIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.INT.optionalFieldOf("count", 1).forGetter(SizedIngredient::count),
-		MapCodec.assumeMapUnsafe(Ingredient.DISALLOW_EMPTY_CODEC).forGetter(SizedIngredient::ingredient)
+		MapCodec.assumeMapUnsafe(Ingredient.CODEC_NONEMPTY).forGetter(SizedIngredient::ingredient)
 	).apply(instance, SizedIngredient::new));
-	public static PacketCodec<RegistryByteBuf, SizedIngredient> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.INTEGER, SizedIngredient::count,
-		Ingredient.PACKET_CODEC, SizedIngredient::ingredient,
+	public static StreamCodec<RegistryFriendlyByteBuf, SizedIngredient> PACKET_CODEC = StreamCodec.composite(
+		ByteBufCodecs.INT, SizedIngredient::count,
+		Ingredient.CONTENTS_STREAM_CODEC, SizedIngredient::ingredient,
 		SizedIngredient::new
 	);
 
@@ -68,7 +67,7 @@ public record SizedIngredient(int count, Ingredient ingredient) implements Predi
 	}
 
 	public List<ItemStack> getPreviewStacks() {
-		return Arrays.stream(ingredient.getMatchingStacks())
+		return Arrays.stream(ingredient.getItems())
 			.map(ItemStack::copy)
 			.peek(itemStack -> itemStack.setCount(count))
 			.toList();

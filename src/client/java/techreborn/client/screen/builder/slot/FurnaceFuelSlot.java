@@ -24,26 +24,26 @@
 
 package techreborn.client.screen.builder.slot;
 
-import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import reborncore.common.screen.slot.BaseSlot;
 
 public class FurnaceFuelSlot extends BaseSlot {
 
-	public FurnaceFuelSlot(Inventory inventoryIn, int index, int xPosition, int yPosition) {
+	public FurnaceFuelSlot(Container inventoryIn, int index, int xPosition, int yPosition) {
 		super(inventoryIn, index, xPosition, yPosition);
 	}
 
 	@Override
-	public boolean canInsert(ItemStack stack) {
-		return AbstractFurnaceBlockEntity.canUseAsFuel(stack) || isBucket(stack);
+	public boolean mayPlace(ItemStack stack) {
+		return super.mayPlace(stack) && (AbstractFurnaceBlockEntity.isFuel(stack) || isBucket(stack));
 	}
 
 	@Override
-	public int getMaxItemCount(ItemStack stack) {
-		return isBucket(stack) ? 1 : super.getMaxItemCount(stack);
+	public int getMaxStackSize(ItemStack stack) {
+		return isBucket(stack) ? 1 : super.getMaxStackSize(stack);
 	}
 
 	public static boolean isBucket(ItemStack stack) {

@@ -25,31 +25,30 @@
 package reborncore.common.blockentity;
 
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import reborncore.common.transfer.RcFluidVariant;
+import reborncore.common.transfer.RcStorage;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import reborncore.common.compat.TransferApiBridge;
 import reborncore.common.util.NBTSerializable;
 
 import java.util.*;
 
 public class FluidConfiguration implements NBTSerializable {
-	private static final PacketCodec<ByteBuf, Map<Direction, FluidConfig>> SIDE_MAP_PACKET_CODEC = PacketCodecs.map(
+	private static final StreamCodec<ByteBuf, Map<Direction, FluidConfig>> SIDE_MAP_PACKET_CODEC = ByteBufCodecs.map(
 		HashMap::new,
-		Direction.PACKET_CODEC,
+		Direction.STREAM_CODEC,
 		FluidConfig.PACKET_CODEC
 	);
-	public static final PacketCodec<ByteBuf, FluidConfiguration> PACKET_CODEC = PacketCodec.tuple(
+	public static final StreamCodec<ByteBuf, FluidConfiguration> PACKET_CODEC = StreamCodec.composite(
 		SIDE_MAP_PACKET_CODEC, FluidConfiguration::getSideMap,
-		PacketCodecs.BOOL, FluidConfiguration::autoInput,
-		PacketCodecs.BOOL, FluidConfiguration::autoOutput,
+		ByteBufCodecs.BOOL, FluidConfiguration::autoInput,
+		ByteBufCodecs.BOOL, FluidConfiguration::autoOutput,
 		FluidConfiguration::new
 	);
 
@@ -61,7 +60,7 @@ public class FluidConfiguration implements NBTSerializable {
 		Arrays.stream(Direction.values()).forEach(facing -> sideMap.put(facing, new FluidConfig(facing)));
 	}
 
-	public FluidConfiguration(NbtCompound tagCompound) {
+	public FluidConfiguration(CompoundTag tagCompound) {
 		sideMap = new HashMap<>();
 		read(tagCompound);
 	}
@@ -96,7 +95,7 @@ public class FluidConfiguration implements NBTSerializable {
 		if (!input && !output) {
 			return;
 		}
-		if (machineBase.getTank() == null || machineBase.getWorld().getTime() % machineBase.slotTransferSpeed() != 0) {
+		if (machineBase.getTank() == null || machineBase.getLevel().getGameTime() % machineBase.slotTransferSpeed() != 0) {
 			return;
 		}
 		for (Direction facing : Direction.values()) {
@@ -106,20 +105,20 @@ public class FluidConfiguration implements NBTSerializable {
 			}
 
 			@Nullable
-			Storage<FluidVariant> tank = getTank(machineBase, facing);
+			RcStorage<RcFluidVariant> tank = getTank(machineBase, facing);
 			if (autoInput() && fluidConfig.getIoConfig().isInsert()) {
-				StorageUtil.move(tank, machineBase.getTank(), fv -> true, machineBase.fluidTransferAmount().getRawValue(), null);
+				TransferApiBridge.moveFluids(tank, machineBase.getTank(), fv -> true, machineBase.fluidTransferAmount().getRawValue(), null);
 			}
 			if (autoOutput() && fluidConfig.getIoConfig().isExtract()) {
-				StorageUtil.move(machineBase.getTank(), tank, fv -> true, machineBase.fluidTransferAmount().getRawValue(), null);
+				TransferApiBridge.moveFluids(machineBase.getTank(), tank, fv -> true, machineBase.fluidTransferAmount().getRawValue(), null);
 			}
 		}
 	}
 
 	@Nullable
-	private Storage<FluidVariant> getTank(MachineBaseBlockEntity machine, Direction facing) {
-		BlockPos pos = machine.getPos().offset(facing);
-		return FluidStorage.SIDED.find(machine.getWorld(), pos, facing.getOpposite());
+	private RcStorage<RcFluidVariant> getTank(MachineBaseBlockEntity machine, Direction facing) {
+		BlockPos pos = machine.getBlockPos().relative(facing);
+		return TransferApiBridge.findFluidStorage(machine.getLevel(), pos, facing.getOpposite());
 	}
 
 	public boolean autoInput() {
@@ -140,8 +139,8 @@ public class FluidConfiguration implements NBTSerializable {
 
 	@NotNull
 	@Override
-	public NbtCompound write() {
-		NbtCompound compound = new NbtCompound();
+	public CompoundTag write() {
+		CompoundTag compound = new CompoundTag();
 		Arrays.stream(Direction.values()).forEach(facing -> compound.put("side_" + facing.ordinal(), sideMap.get(facing).write()));
 		compound.putBoolean("input", input);
 		compound.putBoolean("output", output);
@@ -149,10 +148,10 @@ public class FluidConfiguration implements NBTSerializable {
 	}
 
 	@Override
-	public void read(@NotNull NbtCompound nbt) {
+	public void read(@NotNull CompoundTag nbt) {
 		sideMap.clear();
 		Arrays.stream(Direction.values()).forEach(facing -> {
-			NbtCompound compound = nbt.getCompound("side_" + facing.ordinal());
+			CompoundTag compound = nbt.getCompound("side_" + facing.ordinal());
 			FluidConfig config = new FluidConfig(compound);
 			sideMap.put(facing, config);
 		});
@@ -161,8 +160,8 @@ public class FluidConfiguration implements NBTSerializable {
 	}
 
 	public static class FluidConfig implements NBTSerializable {
-		public static final PacketCodec<ByteBuf, FluidConfig> PACKET_CODEC = PacketCodec.tuple(
-			Direction.PACKET_CODEC, FluidConfig::getSide,
+		public static final StreamCodec<ByteBuf, FluidConfig> PACKET_CODEC = StreamCodec.composite(
+			Direction.STREAM_CODEC, FluidConfig::getSide,
 			ExtractConfig.PACKET_CODEC, FluidConfig::getIoConfig,
 			FluidConfig::new
 		);
@@ -180,7 +179,7 @@ public class FluidConfiguration implements NBTSerializable {
 			this.ioConfig = ioConfig;
 		}
 
-		public FluidConfig(NbtCompound tagCompound) {
+		public FluidConfig(CompoundTag tagCompound) {
 			read(tagCompound);
 		}
 
@@ -194,15 +193,15 @@ public class FluidConfiguration implements NBTSerializable {
 
 		@NotNull
 		@Override
-		public NbtCompound write() {
-			NbtCompound tagCompound = new NbtCompound();
+		public CompoundTag write() {
+			CompoundTag tagCompound = new CompoundTag();
 			tagCompound.putInt("side", side.ordinal());
 			tagCompound.putInt("config", ioConfig.ordinal());
 			return tagCompound;
 		}
 
 		@Override
-		public void read(@NotNull NbtCompound nbt) {
+		public void read(@NotNull CompoundTag nbt) {
 			side = Direction.values()[nbt.getInt("side")];
 			ioConfig = FluidConfiguration.ExtractConfig.values()[nbt.getInt("config")];
 		}
@@ -214,8 +213,8 @@ public class FluidConfiguration implements NBTSerializable {
 		OUTPUT(true, false),
 		ALL(true, true);
 
-		public static final PacketCodec<ByteBuf, ExtractConfig> PACKET_CODEC = PacketCodecs.INTEGER
-			.xmap(integer -> ExtractConfig.values()[integer], Enum::ordinal);
+		public static final StreamCodec<ByteBuf, ExtractConfig> PACKET_CODEC = ByteBufCodecs.INT
+			.map(integer -> ExtractConfig.values()[integer], Enum::ordinal);
 
 		boolean extract;
 		boolean insert;

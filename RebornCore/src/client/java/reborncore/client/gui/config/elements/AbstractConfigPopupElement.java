@@ -24,21 +24,6 @@
 
 package reborncore.client.gui.config.elements;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.OverlayTexture;
-import net.minecraft.client.render.RenderLayer;
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.model.BakedModel;
-import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -46,8 +31,22 @@ import org.joml.Vector3f;
 import reborncore.client.gui.GuiBase;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.util.MachineFacing;
-
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
 import java.util.Arrays;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.BakedModel;
+import net.minecraft.client.resources.model.Material;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class AbstractConfigPopupElement extends ElementBase {
 	private final int height;
@@ -76,7 +75,7 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 	@Nullable
 	public String pencil;
 
-	public AbstractConfigPopupElement(int x, int y, int height, SpriteIdentifier sprite, int textureWidth, int textureHeight, String[] pencils) {
+	public AbstractConfigPopupElement(int x, int y, int height, Material sprite, int textureWidth, int textureHeight, String[] pencils) {
 		super(x, y, sprite, textureWidth, textureHeight);
 		this.height = height;
 		this.pencils = pencils;
@@ -95,8 +94,8 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 	}
 
 	@Override
-	public final void draw(DrawContext drawContext, GuiBase<?> gui, int mouseX, int mouseY) {
-		drawContext.getMatrices().push();
+	public final void draw(GuiGraphics drawContext, GuiBase<?> gui, int mouseX, int mouseY) {
+		drawContext.pose().pushPose();
 		int x = adjustX(gui, getX() - 8);
 		int y = adjustY(gui, getY() - 7);
 		gui.builder.drawDefaultBackground(
@@ -106,22 +105,22 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 			84,
 			height
 		);
-		drawContext.getMatrices().pop();
+		drawContext.pose().popPose();
 
 		super.draw(drawContext, gui, mouseX, mouseY);
 
 		final MachineBaseBlockEntity machine = ((MachineBaseBlockEntity) gui.be);
-		final BlockState state = machine.getCachedState();
-		final BlockState defaultState = state.getBlock().getDefaultState();
-		final BlockRenderManager dispatcher = MinecraftClient.getInstance().getBlockRenderManager();
-		final BakedModel model = dispatcher.getModels().getModel(defaultState);
+		final BlockState state = machine.getBlockState();
+		final BlockState defaultState = state.getBlock().defaultBlockState();
+		final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
+		final BakedModel model = dispatcher.getBlockModelShaper().getBlockModel(defaultState);
 
-		drawState(drawContext, gui, model, defaultState, dispatcher, 4, 23, RotationAxis.POSITIVE_Y.rotationDegrees(90F), 0, 0); //left
-		drawState(drawContext, gui, model, defaultState, dispatcher, 23, 4, RotationAxis.NEGATIVE_X.rotationDegrees(90F), 0, 0); //top
+		drawState(drawContext, gui, model, defaultState, dispatcher, 4, 23, Axis.YP.rotationDegrees(90F), 0, 0); //left
+		drawState(drawContext, gui, model, defaultState, dispatcher, 23, 4, Axis.XN.rotationDegrees(90F), 0, 0); //top
 		drawState(drawContext, gui, model, defaultState, dispatcher, 23, 23, null, 0, 0); //centre
-		drawState(drawContext, gui, model, defaultState, dispatcher, 23, 26, RotationAxis.POSITIVE_X.rotationDegrees(90F), 0, 16); //bottom
-		drawState(drawContext, gui, model, defaultState, dispatcher, 42, 23, RotationAxis.POSITIVE_Y.rotationDegrees(90F), 0, 0); //right
-		drawState(drawContext, gui, model, defaultState, dispatcher, 26, 42, RotationAxis.POSITIVE_Y.rotationDegrees(180F), 16, 0); //back
+		drawState(drawContext, gui, model, defaultState, dispatcher, 23, 26, Axis.XP.rotationDegrees(90F), 0, 16); //bottom
+		drawState(drawContext, gui, model, defaultState, dispatcher, 42, 23, Axis.YP.rotationDegrees(90F), 0, 0); //right
+		drawState(drawContext, gui, model, defaultState, dispatcher, 26, 42, Axis.YP.rotationDegrees(180F), 16, 0); //back
 
 		if (mouseDown) {
 			for (int i = 0; i < 6; i++) {
@@ -176,7 +175,7 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 
 	protected abstract void cycleConfig(Direction side, GuiBase<?> guiBase);
 
-	protected abstract void drawSateColor(DrawContext drawContext, GuiBase<?> gui, Direction side, int inx, int iny);
+	protected abstract void drawSateColor(GuiGraphics drawContext, GuiBase<?> gui, Direction side, int inx, int iny);
 
 	protected boolean isInBox(int rectX, int rectY, int rectWidth, int rectHeight, double pointX, double pointY, GuiBase<?> guiBase) {
 		rectX += getX();
@@ -185,66 +184,66 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 		//return (pointX - guiBase.getGuiLeft()) >= rectX - 1 && (pointX - guiBase.getGuiLeft()) < rectX + rectWidth + 1 && (pointY - guiBase.getGuiTop()) >= rectY - 1 && (pointY - guiBase.getGuiTop()) < rectY + rectHeight + 1;
 	}
 
-	protected void drawState(DrawContext drawContext,
+	protected void drawState(GuiGraphics drawContext,
 						GuiBase<?> gui,
 						BakedModel model,
 						BlockState actualState,
-						BlockRenderManager dispatcher,
+						BlockRenderDispatcher dispatcher,
 						int x,
 						int y,
 						Quaternionf quaternion,
 						int paddingLeft,
 						int paddingTop) {
-		MatrixStack matrixStack = drawContext.getMatrices();
-		Matrix4f positionMatrix = matrixStack.peek().getPositionMatrix();
+		PoseStack matrixStack = drawContext.pose();
+		Matrix4f positionMatrix = matrixStack.last().pose();
 		int left = gui.getGuiLeft() + getX() + x;
 		int top = gui.getGuiTop() + getY() + y;
 		Vector3f vector3f = positionMatrix.transformPosition(left + paddingLeft, top + paddingTop, 0.0F, new Vector3f());
 		Vector3f vector3f2 = positionMatrix.transformPosition(left + paddingLeft + 16, top + paddingTop + 16, 0.0F, new Vector3f());
-		drawContext.enableScissor(MathHelper.floor(vector3f.x), MathHelper.floor(vector3f.y), MathHelper.floor(vector3f2.x), MathHelper.floor(vector3f2.y));
+		drawContext.enableScissor(Mth.floor(vector3f.x), Mth.floor(vector3f.y), Mth.floor(vector3f2.x), Mth.floor(vector3f2.y));
 
-		matrixStack.push();
+		matrixStack.pushPose();
 		matrixStack.translate(left + 8, top + 8, 0);
 		matrixStack.scale(16F, 16F, 16F);
 		matrixStack.translate(0.5F, 0.5F, 0);
 		matrixStack.scale(-1, -1, 0);
 
 		if (quaternion != null) {
-			matrixStack.multiply(quaternion);
+			matrixStack.mulPose(quaternion);
 		}
 
-		VertexConsumerProvider.Immediate immediate = drawContext.getVertexConsumers();
-		dispatcher.getModelRenderer().render(matrixStack.peek(), immediate.getBuffer(RenderLayer.getSolid()), actualState, model, 1F, 1F, 1F, OverlayTexture.getU(15F), OverlayTexture.DEFAULT_UV);
-		immediate.draw();
-		matrixStack.pop();
+		MultiBufferSource.BufferSource immediate = drawContext.bufferSource();
+		dispatcher.getModelRenderer().renderModel(matrixStack.last(), immediate.getBuffer(RenderType.solid()), actualState, model, 1F, 1F, 1F, OverlayTexture.u(15F), OverlayTexture.NO_OVERLAY);
+		immediate.endBatch();
+		matrixStack.popPose();
 		drawContext.disableScissor();
 	}
 
 	protected abstract int getPencilColor(String pencil);
 
-	protected void drawPencil(DrawContext drawContext, GuiBase<?> gui, int mouseX, int mouseY, int x, int y) {
+	protected void drawPencil(GuiGraphics drawContext, GuiBase<?> gui, int mouseX, int mouseY, int x, int y) {
 		int mx = mouseX - gui.getGuiLeft();
 		int my = mouseY - gui.getGuiTop();
 		x += 5;
 		int color, x2, y2 = y + 13, x3, y3 = y + 3;
-		TextRenderer textRenderer = gui.getTextRenderer();
+		Font textRenderer = gui.getTextRenderer();
 		String pencil;
-		Text letter;
+		Component letter;
 		for (int i = 0, len = pencils.length; i < len; i++) {
 			pencil = pencils[i];
 			x2 = x + (i >= fixIndex ? pencilWidth - 1 : pencilWidth);
 			if (pencil.equals(this.pencil)) {
 				color = getPencilColor(pencil);
 			} else if ((mx >= x && mx <= x2) && (my >= y && my < y2)) {
-				drawContext.drawTooltip(textRenderer, Text.translatable("reborncore.gui.slotconfig." + pencil), mx, my);
+				drawContext.renderTooltip(textRenderer, Component.translatable("reborncore.gui.slotconfig." + pencil), mx, my);
 				color = mx != x2 ? 0xff8b8b8b : 0x668b8b8b;
 			} else {
 				color = 0x668b8b8b;
 			}
 			drawContext.fill(x, y, x2, y2, color);
-			letter = Text.of(pencil.substring(0, 1));
-			x3 = x + (pencilWidth - textRenderer.getWidth(letter)) / 2;
-			drawContext.drawText(textRenderer, letter, x3, y3, -1, false);
+			letter = Component.nullToEmpty(pencil.substring(0, 1));
+			x3 = x + (pencilWidth - textRenderer.width(letter)) / 2;
+			drawContext.drawString(textRenderer, letter, x3, y3, -1, false);
 			x = x2 + 1;
 		}
 	}

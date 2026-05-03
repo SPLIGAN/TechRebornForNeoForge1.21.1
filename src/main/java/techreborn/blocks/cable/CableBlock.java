@@ -25,44 +25,6 @@
 package techreborn.blocks.cable;
 
 import com.mojang.serialization.MapCodec;
-import net.fabricmc.fabric.api.rendering.data.v1.RenderAttachedBlockView;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockRenderType;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.BlockWithEntity;
-import net.minecraft.block.Blocks;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.Waterloggable;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityTicker;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.FluidState;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemPlacementContext;
-import net.minecraft.item.ItemStack;
-import net.minecraft.particle.ParticleTypes;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.ItemScatterer;
-import net.minecraft.util.Util;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.shape.VoxelShape;
-import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockRenderView;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.ToolManager;
 import reborncore.common.blocks.BlockWrenchEventHandler;
@@ -77,20 +39,57 @@ import techreborn.init.TRDamageTypes;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.Util;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.Containers;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.SimpleWaterloggedBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * Created by modmuss50 on 19/05/2017.
  */
-public class CableBlock extends BlockWithEntity implements Waterloggable {
+public class CableBlock extends BaseEntityBlock implements SimpleWaterloggedBlock {
 
-	public static final BooleanProperty EAST = BooleanProperty.of("east");
-	public static final BooleanProperty WEST = BooleanProperty.of("west");
-	public static final BooleanProperty NORTH = BooleanProperty.of("north");
-	public static final BooleanProperty SOUTH = BooleanProperty.of("south");
-	public static final BooleanProperty UP = BooleanProperty.of("up");
-	public static final BooleanProperty DOWN = BooleanProperty.of("down");
-	public static final BooleanProperty WATERLOGGED = Properties.WATERLOGGED;
-	public static final BooleanProperty COVERED = BooleanProperty.of("covered");
+	public static final BooleanProperty EAST = BooleanProperty.create("east");
+	public static final BooleanProperty WEST = BooleanProperty.create("west");
+	public static final BooleanProperty NORTH = BooleanProperty.create("north");
+	public static final BooleanProperty SOUTH = BooleanProperty.create("south");
+	public static final BooleanProperty UP = BooleanProperty.create("up");
+	public static final BooleanProperty DOWN = BooleanProperty.create("down");
+	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
+	public static final BooleanProperty COVERED = BooleanProperty.create("covered");
 
 	public static final Map<Direction, BooleanProperty> PROPERTY_MAP = Util.make(new HashMap<>(), map -> {
 		map.put(Direction.EAST, EAST);
@@ -106,121 +105,121 @@ public class CableBlock extends BlockWithEntity implements Waterloggable {
 	public CableBlock(TRContent.Cables type) {
 		super(TRBlockSettings.cable());
 		this.type = type;
-		setDefaultState(this.getStateManager().getDefaultState().with(EAST, false).with(WEST, false).with(NORTH, false)
-				.with(SOUTH, false).with(UP, false).with(DOWN, false).with(WATERLOGGED, false).with(COVERED, false));
+		registerDefaultState(this.getStateDefinition().any().setValue(EAST, false).setValue(WEST, false).setValue(NORTH, false)
+				.setValue(SOUTH, false).setValue(UP, false).setValue(DOWN, false).setValue(WATERLOGGED, false).setValue(COVERED, false));
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);
 	}
 
 	@Override
-	protected MapCodec<? extends BlockWithEntity> getCodec() {
+	protected MapCodec<? extends BaseEntityBlock> codec() {
 		throw new IllegalStateException("CableBlock does not support getCodec!");
 	}
 
 	// BlockWithEntity
 	@Override
-	public BlockRenderType getRenderType(BlockState state) {
-		return BlockRenderType.MODEL;
+	public RenderShape getRenderShape(BlockState state) {
+		return RenderShape.MODEL;
 	}
 
 	@Nullable
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new CableBlockEntity(pos, state, type);
 	}
 
 	@Override
-	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
+	public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level world, BlockState state, BlockEntityType<T> type) {
 		return (world1, pos, state1, blockEntity) -> ((CableBlockEntity) blockEntity).tick(world1, pos, state1, (CableBlockEntity) blockEntity);
 	}
 
 	// Block
 	@Override
-	public ActionResult onUse(BlockState state, World worldIn, BlockPos pos, PlayerEntity playerIn, BlockHitResult hitResult) {
-		ItemStack stack = playerIn.getStackInHand(Hand.MAIN_HAND);
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
+		ItemStack stack = playerIn.getItemInHand(InteractionHand.MAIN_HAND);
 		BlockEntity blockEntity = worldIn.getBlockEntity(pos);
 
 		// We should always have blockEntity entity. I hope.
 		if (blockEntity == null) {
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		}
 
 		if (stack.isEmpty()) {
-			return super.onUse(state, worldIn, pos, playerIn, hitResult);
+			return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 		}
 
 		if (ToolManager.INSTANCE.canHandleTool(stack)) {
-			if (state.get(COVERED) && !playerIn.isSneaking()) {
+			if (state.getValue(COVERED) && !playerIn.isShiftKeyDown()) {
 				((CableBlockEntity) blockEntity).setCover(null);
-				worldIn.setBlockState(pos, state.with(COVERED, false));
-				worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_WOOD_BREAK, SoundCategory.BLOCKS, 0.6F, 1.0F);
-				if (!worldIn.isClient) {
-					ItemScatterer.spawn(worldIn, pos.getX(), pos.getY(), pos.getZ(), TRContent.Plates.WOOD.getStack());
+				worldIn.setBlockAndUpdate(pos, state.setValue(COVERED, false));
+				worldIn.playSound(playerIn, pos, SoundEvents.WOOD_BREAK, SoundSource.BLOCKS, 0.6F, 1.0F);
+				if (!worldIn.isClientSide) {
+					Containers.dropItemStack(worldIn, pos.getX(), pos.getY(), pos.getZ(), TRContent.Plates.WOOD.getStack());
 				}
-				return ActionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 			}
 
-			if (WrenchUtils.handleWrench(stack, worldIn, pos, playerIn, hitResult.getSide())) {
-				return ActionResult.SUCCESS;
+			if (WrenchUtils.handleWrench(stack, worldIn, pos, playerIn, hitResult.getDirection())) {
+				return InteractionResult.SUCCESS;
 			}
 		}
 
-		if (!state.get(COVERED) && !type.canKill
+		if (!state.getValue(COVERED) && !type.canKill
 				&& stack.getItem() == TRContent.Plates.WOOD.asItem()) {
-			worldIn.setBlockState(pos, state.with(COVERED, true));
-			worldIn.playSound(playerIn, pos, SoundEvents.BLOCK_WOOD_PLACE, SoundCategory.BLOCKS, 0.6F, 1.0F);
-			if (!worldIn.isClient && !playerIn.isCreative()) {
-				stack.decrement(1);
+			worldIn.setBlockAndUpdate(pos, state.setValue(COVERED, true));
+			worldIn.playSound(playerIn, pos, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 0.6F, 1.0F);
+			if (!worldIn.isClientSide && !playerIn.isCreative()) {
+				stack.shrink(1);
 			}
-			return ActionResult.SUCCESS;
+			return InteractionResult.SUCCESS;
 		}
 
-		return super.onUse(state, worldIn, pos, playerIn, hitResult);
+		return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 	}
 
 	@Override
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(EAST, WEST, NORTH, SOUTH, UP, DOWN, WATERLOGGED, COVERED);
 	}
 
 	@Override
-	public BlockState getPlacementState(ItemPlacementContext context) {
-		return getDefaultState()
-				.with(WATERLOGGED, context.getWorld().getFluidState(context.getBlockPos()).getFluid() == Fluids.WATER);
+	public BlockState getStateForPlacement(BlockPlaceContext context) {
+		return defaultBlockState()
+				.setValue(WATERLOGGED, context.getLevel().getFluidState(context.getClickedPos()).getType() == Fluids.WATER);
 	}
 
 	@Override
-	public BlockState getStateForNeighborUpdate(BlockState ourState, Direction direction, BlockState otherState,
-												WorldAccess worldIn, BlockPos ourPos, BlockPos otherPos) {
-		if (ourState.get(WATERLOGGED)) {
-			worldIn.scheduleFluidTick(ourPos, Fluids.WATER, Fluids.WATER.getTickRate(worldIn));
+	public BlockState updateShape(BlockState ourState, Direction direction, BlockState otherState,
+												LevelAccessor worldIn, BlockPos ourPos, BlockPos otherPos) {
+		if (ourState.getValue(WATERLOGGED)) {
+			worldIn.scheduleTick(ourPos, Fluids.WATER, Fluids.WATER.getTickDelay(worldIn));
 		}
 		return ourState;
 	}
 
 	@Override
-	public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
+	public void neighborChanged(BlockState state, Level world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
 		if (world.getBlockEntity(pos) instanceof CableBlockEntity cable) {
 			cable.neighborUpdate();
 		}
-		super.neighborUpdate(state, world, pos, block, fromPos, notify);
+		super.neighborChanged(state, world, pos, block, fromPos, notify);
 	}
 
 	@Override
-	public VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext shapeContext) {
-		if (state.get(COVERED)) {
-			return VoxelShapes.fullCube();
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext shapeContext) {
+		if (state.getValue(COVERED)) {
+			return Shapes.block();
 		}
 		return CableShapeUtil.getShape(state);
 	}
 
 	@Override
-	public VoxelShape getCullingShape(BlockState state, BlockView world, BlockPos pos) {
+	public VoxelShape getOcclusionShape(BlockState state, BlockGetter world, BlockPos pos) {
 		return CableShapeUtil.getShape(state);
 	}
 
 	@Override
-	public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-		super.onEntityCollision(state, world, pos, entity);
+	public void entityInside(BlockState state, Level world, BlockPos pos, Entity entity) {
+		super.entityInside(state, world, pos, entity);
 		if (!type.canKill) {
 			return;
 		}
@@ -246,14 +245,14 @@ public class CableBlock extends BlockWithEntity implements Waterloggable {
 
 		if (TechRebornConfig.uninsulatedElectrocutionDamage) {
 			if (type == TRContent.Cables.HV) {
-				entity.setOnFireFor(1);
+				entity.igniteForSeconds(1);
 			}
 
-			entity.damage(TRDamageTypes.create(world, TRDamageTypes.ELECTRIC_SHOCK), 1F);
+			entity.hurt(TRDamageTypes.create(world, TRDamageTypes.ELECTRIC_SHOCK), 1F);
 			blockEntityCable.setEnergy(0);
 		}
 		if (TechRebornConfig.uninsulatedElectrocutionSound) {
-			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), ModSounds.CABLE_SHOCK, SoundCategory.BLOCKS,
+			world.playSound(null, entity.getX(), entity.getY(), entity.getZ(), ModSounds.CABLE_SHOCK, SoundSource.BLOCKS,
 					0.6F, 1F);
 		}
 		if (TechRebornConfig.uninsulatedElectrocutionParticles) {
@@ -262,32 +261,26 @@ public class CableBlock extends BlockWithEntity implements Waterloggable {
 	}
 
 	@Override
-	public boolean tryFillWithFluid(WorldAccess world, BlockPos pos, BlockState state, FluidState fluidState) {
-		return !state.get(COVERED) && Waterloggable.super.tryFillWithFluid(world, pos, state, fluidState);
+	public boolean placeLiquid(LevelAccessor world, BlockPos pos, BlockState state, FluidState fluidState) {
+		return !state.getValue(COVERED) && SimpleWaterloggedBlock.super.placeLiquid(world, pos, state, fluidState);
 	}
 
 	@Override
-	public boolean canFillWithFluid(PlayerEntity player, BlockView view, BlockPos pos, BlockState state, Fluid fluid) {
-		return !state.get(COVERED) && Waterloggable.super.canFillWithFluid(player, view, pos, state, fluid);
+	public boolean canPlaceLiquid(Player player, BlockGetter view, BlockPos pos, BlockState state, Fluid fluid) {
+		return !state.getValue(COVERED) && SimpleWaterloggedBlock.super.canPlaceLiquid(player, view, pos, state, fluid);
 	}
 
 	@Override
 	public FluidState getFluidState(BlockState state) {
-		return state.get(WATERLOGGED) ? Fluids.WATER.getStill(false) : super.getFluidState(state);
+		return state.getValue(WATERLOGGED) ? Fluids.WATER.getSource(false) : super.getFluidState(state);
 	}
 
 	@Override
-	public BlockState getAppearance(BlockState state, BlockRenderView renderView, BlockPos pos, Direction side, @Nullable BlockState sourceState, @Nullable BlockPos sourcePos) {
-		if (state.get(COVERED)) {
-			final BlockState cover;
+	public BlockState getAppearance(BlockState state, BlockAndTintGetter renderView, BlockPos pos, Direction side, @Nullable BlockState sourceState, @Nullable BlockPos sourcePos) {
+		if (state.getValue(COVERED)) {
+			final BlockState cover = RenderDataBridge.getRenderAttachment(renderView, pos);
 
-			if (((RenderAttachedBlockView) renderView).getBlockEntityRenderAttachment(pos) instanceof BlockState blockState) {
-				cover = blockState;
-			} else {
-				cover = Blocks.OAK_PLANKS.getDefaultState();
-			}
-
-			return cover;
+			return cover != null ? cover : Blocks.OAK_PLANKS.defaultBlockState();
 		}
 
 		return super.getAppearance(state, renderView, pos, side, sourceState, sourcePos);

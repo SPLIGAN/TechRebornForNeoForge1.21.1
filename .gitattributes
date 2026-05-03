@@ -1,0 +1,14 @@
+* text=auto
+
+# Spotless / Gradle expect LF; avoids CRLF churn on Windows editors.
+*.java text eol=lf
+*.gradle text eol=lf
+*.groovy text eol=lf
+*.gradle.kts text eol=lf
+*.properties text eol=lf
+*.toml text eol=lf
+HEADER text eol=lf
+RebornCore/HEADER text eol=lf
+
+# Windows wrapper scripts
+*.bat text eol=crlf

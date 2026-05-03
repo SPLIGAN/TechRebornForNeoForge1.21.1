@@ -24,14 +24,6 @@
 
 package techreborn.blockentity.storage.energy.lesu;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -44,6 +36,14 @@ import techreborn.init.TRContent;
 
 import java.util.HashSet;
 import java.util.LinkedList;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements BuiltScreenHandlerProvider {
 
@@ -87,9 +87,9 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	// EnergyStorageBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 		if (getEnergy() > getMaxStoredPower()) {
@@ -101,15 +101,16 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		if (world == null || world.isClient) return;
+		if (level == null || level.isClientSide) return;
 
 		// 1. Collect information and change the relationship between surrounding blocks
 		byte flagInvalidNeighbors = 0b000000;
 		LinkedList<LSUStorageBlockEntity> canConnect = new LinkedList<>();
 		HashSet<BlockPos> visited = new HashSet<>();
+		BlockPos bp = getBlockPos();
 		for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
 			if ((neighbors & FLAGS[i]) != 0) {
-				if (world.getBlockEntity(pos.offset(DIRECTIONS[i])) instanceof LSUStorageBlockEntity lsu_storage) {
+				if (level.getBlockEntity(bp.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity lsu_storage) {
 					if (lsu_storage.master == null) {
 						canConnect.add(lsu_storage);
 						lsu_storage.addTo(visited);
@@ -123,7 +124,7 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 		// 2. Compatible with older versions: initialize neighbors
 		if (flagInvalidNeighbors != 0b000000) {
 			neighbors ^= flagInvalidNeighbors;
-			markDirty();
+			setChanged();
 		}
 
 		// 3. Expand outward layer by layer to search for connectable blocks and connect them
@@ -136,7 +137,7 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 			for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
 				if ((lsu_storage.neighbors & FLAGS[i]) != 0) {
 					linkPos = lsu_storage.posOffset(DIRECTIONS[i]);
-					if (visited.add(linkPos) && world.getBlockEntity(linkPos) instanceof LSUStorageBlockEntity link_lsu_storage) {
+					if (visited.add(linkPos) && level.getBlockEntity(linkPos) instanceof LSUStorageBlockEntity link_lsu_storage) {
 						lsu_storage.links |= FLAGS[i];
 						canConnect.add(link_lsu_storage);
 					}
@@ -150,7 +151,7 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	}
 
 	public void disconnectNetwork() {
-		if (world == null) return;
+		if (level == null) return;
 
 		// 1. Collect surrounding connected blocks
 		LinkedList<LSUStorageBlockEntity> canDelete = new LinkedList<>();
@@ -178,28 +179,29 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	}
 
 	public final void checkNeighbors() {
-		if (world == null) return;
+		if (level == null) return;
+		BlockPos bp = getBlockPos();
 		for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
-			if (world.getBlockEntity(pos.offset(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
+			if (level.getBlockEntity(bp.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
 				neighbors |= FLAGS[i];
 			}
 		}
 		if (neighbors != 0b000000) {
-			markDirty();
+			setChanged();
 		}
 	}
 
 	public LSUStorageBlockEntity fastGetLSUS(Direction direction) {
-		assert world != null;
-		return (LSUStorageBlockEntity) world.getBlockEntity(pos.offset(direction));
+		assert level != null;
+		return (LSUStorageBlockEntity) level.getBlockEntity(getBlockPos().relative(direction));
 	}
 
 	// IContainerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("lesu").player(player.getInventory()).inventory().hotbar().armor().complete(8, 18)
 				.addArmor().addInventory().blockEntity(this).energySlot(0, 62, 45).energySlot(1, 98, 45).syncEnergyValue()
-				.sync(PacketCodecs.INTEGER, this::getConnectedBlocksNum, this::setConnectedBlocksNum).addInventory().create(this, syncID);
+				.sync(ByteBufCodecs.INT, this::getConnectedBlocksNum, this::setConnectedBlocksNum).addInventory().create(this, syncID);
 	}
 
 	public int getConnectedBlocksNum() {
@@ -213,14 +215,14 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tagCompound, registryLookup);
+	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tagCompound, registryLookup);
 		tagCompound.putByte("neighbors", neighbors);
 	}
 
 	@Override
-	public void readNbt(NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tagCompound, registryLookup);
+	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tagCompound, registryLookup);
 		if (tagCompound.contains("neighbors")) {
 			neighbors = tagCompound.getByte("neighbors");
 		} else {

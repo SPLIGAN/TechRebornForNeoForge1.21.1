@@ -1,0 +1,11 @@
+{
+	"schemaVersion": 1,
+	"id": "migration_tool",
+	"version": "1.0.0",
+	"name": "Migration Tool",
+	"environment": "*",
+	"depends": {
+		"fabricloader": ">=0.15.0",
+		"minecraft": "~1.21.1"
+	}
+}

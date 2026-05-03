@@ -24,11 +24,11 @@
 
 package reborncore.common;
 
-import net.minecraft.block.Block;
+import net.minecraft.world.level.block.Block;
 
 public abstract class BaseBlock extends Block {
 
-	public BaseBlock(Settings builder) {
+	public BaseBlock(Properties builder) {
 		super(builder);
 	}
 

@@ -30,22 +30,22 @@ import com.google.gson.JsonSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.util.JsonHelper;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.GsonHelper;
+import reborncore.common.transfer.RcTransferConstants;
 import reborncore.common.util.FluidTextHelper;
 
 public record FluidValue(long rawValue) {
 	public static final FluidValue EMPTY = new FluidValue(0);
-	public static final FluidValue BUCKET_QUARTER = new FluidValue(FluidConstants.BUCKET / 4);
-	public static final FluidValue BUCKET = new FluidValue(FluidConstants.BUCKET);
+	public static final FluidValue BUCKET_QUARTER = new FluidValue(RcTransferConstants.DROPLETS_PER_BUCKET / 4);
+	public static final FluidValue BUCKET = new FluidValue(RcTransferConstants.DROPLETS_PER_BUCKET);
 
 	public static final Codec<FluidValue> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 		Codec.LONG.fieldOf("value").forGetter(FluidValue::getRawValue)
 	).apply(instance, FluidValue::fromRaw));
-	public static final PacketCodec<ByteBuf, FluidValue> PACKET_CODEC = PacketCodec.tuple(
-		PacketCodecs.VAR_LONG, FluidValue::getRawValue,
+	public static final StreamCodec<ByteBuf, FluidValue> PACKET_CODEC = StreamCodec.composite(
+		ByteBufCodecs.VAR_LONG, FluidValue::getRawValue,
 		FluidValue::new
 	);
 
@@ -114,10 +114,10 @@ public record FluidValue(long rawValue) {
 		if (jsonElement.isJsonObject()) {
 			final JsonObject jsonObject = jsonElement.getAsJsonObject();
 			if (jsonObject.has("buckets")) {
-				int buckets = JsonHelper.getInt(jsonObject, "buckets");
+				int buckets = GsonHelper.getAsInt(jsonObject, "buckets");
 				return BUCKET.multiply(buckets);
 			} else if (jsonObject.has("droplets")) {
-				long droplets = JsonHelper.getLong(jsonObject, "droplets");
+				long droplets = GsonHelper.getAsLong(jsonObject, "droplets");
 				return fromRaw(droplets);
 			}
 		} else if (jsonElement.isJsonPrimitive() && jsonElement.getAsJsonPrimitive().isNumber()) {

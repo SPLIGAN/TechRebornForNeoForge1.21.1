@@ -24,19 +24,22 @@
 
 package techreborn.blocks.misc;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.projectile.ProjectileEntity;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import net.minecraft.world.explosion.Explosion;
+import java.util.function.BiConsumer;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Explosion;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import reborncore.common.BaseBlock;
 import techreborn.config.TechRebornConfig;
 import techreborn.entities.EntityNukePrimed;
@@ -46,66 +49,66 @@ import techreborn.init.TRBlockSettings;
  * Created by Mark on 13/03/2016.
  */
 public class BlockNuke extends BaseBlock {
-	public static final BooleanProperty OVERLAY = BooleanProperty.of("overlay");
+	public static final BooleanProperty OVERLAY = BooleanProperty.create("overlay");
 
 	public BlockNuke() {
 		super(TRBlockSettings.nuke());
-		this.setDefaultState(this.getStateManager().getDefaultState().with(OVERLAY, false));
+		registerDefaultState(getStateDefinition().any().setValue(OVERLAY, false));
 	}
 
-	public void ignite(World worldIn, BlockPos pos, BlockState state, LivingEntity igniter) {
-		if (!worldIn.isClient) {
+	public void ignite(Level worldIn, BlockPos pos, BlockState state, LivingEntity igniter) {
+		if (!worldIn.isClientSide()) {
 			EntityNukePrimed entitynukeprimed = new EntityNukePrimed(worldIn, (float) pos.getX() + 0.5F,
 					pos.getY(), (float) pos.getZ() + 0.5F, igniter);
-			worldIn.spawnEntity(entitynukeprimed);
+			worldIn.addFreshEntity(entitynukeprimed);
 			worldIn.playSound(null, entitynukeprimed.getX(), entitynukeprimed.getY(), entitynukeprimed.getZ(),
-					SoundEvents.ENTITY_TNT_PRIMED, SoundCategory.BLOCKS, 1.0F, 1.0F);
+					SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
 		}
 	}
 
 	@Override
-	public void onDestroyedByExplosion(World worldIn, BlockPos pos, Explosion explosionIn) {
-		if (!worldIn.isClient) {
+	public void onExplosionHit(BlockState state, Level worldIn, BlockPos pos, Explosion explosionIn, BiConsumer<ItemStack, BlockPos> dropConsumer) {
+		if (!worldIn.isClientSide()) {
 			EntityNukePrimed entitynukeprimed = new EntityNukePrimed(worldIn, (float) pos.getX() + 0.5F,
-					pos.getY(), (float) pos.getZ() + 0.5F, explosionIn.getCausingEntity());
+					pos.getY(), (float) pos.getZ() + 0.5F, explosionIn.getIndirectSourceEntity());
 			entitynukeprimed.setFuse(worldIn.random.nextInt(TechRebornConfig.nukeFuseTime / 4) + TechRebornConfig.nukeFuseTime / 8);
-			worldIn.spawnEntity(entitynukeprimed);
+			worldIn.addFreshEntity(entitynukeprimed);
 		}
 	}
 
 	@Override
-	public void onEntityCollision(BlockState state, World worldIn, BlockPos pos, Entity entityIn) {
-		if (!worldIn.isClient && entityIn instanceof ProjectileEntity projectileEntity) {
+	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn) {
+		if (!worldIn.isClientSide() && entityIn instanceof Projectile projectileEntity) {
 			LivingEntity shooter = null;
-			if (projectileEntity.getOwner() instanceof LivingEntity) {
-				shooter = (LivingEntity) projectileEntity.getOwner();
+			if (projectileEntity.getOwner() instanceof LivingEntity living) {
+				shooter = living;
 			}
 			if (projectileEntity.isOnFire()) {
 				ignite(worldIn, pos, state, shooter);
-				worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
+				worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			}
 		}
 	}
 
 	@Override
-	public void onBlockAdded(BlockState state, World worldIn, BlockPos pos, BlockState oldState, boolean b) {
-		super.onBlockAdded(state, worldIn, pos, oldState, b);
-		if (worldIn.isReceivingRedstonePower(pos)) {
+	public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+		super.onPlace(state, worldIn, pos, oldState, movedByPiston);
+		if (worldIn.hasNeighborSignal(pos)) {
 			ignite(worldIn, pos, state, null);
-			worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
 	@Override
-	public void neighborUpdate(BlockState state, World worldIn, BlockPos pos, Block blockIn, BlockPos p_189540_5_, boolean bo) {
-		if (worldIn.isReceivingRedstonePower(pos)) {
+	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
+		if (worldIn.hasNeighborSignal(pos)) {
 			ignite(worldIn, pos, state, null);
-			worldIn.setBlockState(pos, Blocks.AIR.getDefaultState());
+			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 
 	@Override
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(OVERLAY);
 	}
 }

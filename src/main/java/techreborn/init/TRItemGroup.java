@@ -24,20 +24,24 @@
 
 package techreborn.init;
 
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroupEntries;
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.*;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.material.Fluid;
+import reborncore.common.compat.ItemGroupApiBridge;
 import reborncore.common.fluid.FluidUtils;
 import reborncore.common.powerSystem.RcEnergyItem;
 import techreborn.TechReborn;
@@ -55,27 +59,27 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TRItemGroup {
-	private static final RegistryKey<ItemGroup> ITEM_GROUP = RegistryKey.of(RegistryKeys.ITEM_GROUP, Identifier.of(TechReborn.MOD_ID, "item_group"));
+	private static final ResourceKey<CreativeModeTab> ITEM_GROUP = ResourceKey.create(Registries.CREATIVE_MODE_TAB, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item_group"));
 
 	public static void register() {
-		Registry.register(Registries.ITEM_GROUP, ITEM_GROUP, FabricItemGroup.builder()
-			.displayName(Text.translatable("itemGroup.techreborn.item_group"))
+		Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, ITEM_GROUP, ItemGroupApiBridge.createItemGroupBuilder()
+			.title(Component.translatable("itemGroup.techreborn.item_group"))
 			.icon(() -> new ItemStack(TRContent.NUKE))
 			.build());
 
-		ItemGroupEvents.modifyEntriesEvent(ITEM_GROUP).register(TRItemGroup::entries);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.BUILDING_BLOCKS).register(TRItemGroup::addBuildingBlocks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COLORED_BLOCKS).register(TRItemGroup::addColoredBlocks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.NATURAL).register(TRItemGroup::addNaturalBlocks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.FUNCTIONAL).register(TRItemGroup::addFunctionalBlocks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.REDSTONE).register(TRItemGroup::addRedstoneBlocks);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.TOOLS).register(TRItemGroup::addTools);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.COMBAT).register(TRItemGroup::addCombat);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.INGREDIENTS).register(TRItemGroup::addIngredients);
-		ItemGroupEvents.modifyEntriesEvent(ItemGroups.OPERATOR).register(TRItemGroup::addOperator);
+		ItemGroupApiBridge.registerModifyEntriesEvent(ITEM_GROUP, TRItemGroup::entries);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.BUILDING_BLOCKS, TRItemGroup::addBuildingBlocks);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.COLORED_BLOCKS, TRItemGroup::addColoredBlocks);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.NATURAL_BLOCKS, TRItemGroup::addNaturalBlocks);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.FUNCTIONAL_BLOCKS, TRItemGroup::addFunctionalBlocks);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.REDSTONE_BLOCKS, TRItemGroup::addRedstoneBlocks);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.TOOLS_AND_UTILITIES, TRItemGroup::addTools);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.COMBAT, TRItemGroup::addCombat);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.INGREDIENTS, TRItemGroup::addIngredients);
+		ItemGroupApiBridge.registerModifyEntriesEvent(CreativeModeTabs.OP_BLOCKS, TRItemGroup::addOperator);
 	}
 
-	private static final ItemConvertible[] rubberOrderSmall = new ItemConvertible[]{
+	private static final ItemLike[] rubberOrderSmall = new ItemLike[]{
 		TRContent.RUBBER_LOG,
 		TRContent.RUBBER_LOG_STRIPPED,
 		TRContent.RUBBER_WOOD,
@@ -91,7 +95,7 @@ public class TRItemGroup {
 		TRContent.RUBBER_BUTTON
 	};
 
-	private static void entries(FabricItemGroupEntries entries) {
+	private static void entries(ItemGroupApiBridge.Entries entries) {
 		// rubber tree and related stuff
 		entries.add(TRContent.RUBBER_SAPLING);
 		entries.add(TRContent.RUBBER_LEAVES);
@@ -103,7 +107,7 @@ public class TRItemGroup {
 		entries.add(TRContent.Parts.RUBBER);
 
 		// resources
-		List<Enum<? extends ItemConvertible>> stuff = new LinkedList<>();
+		List<Enum<? extends ItemLike>> stuff = new LinkedList<>();
 		stuff.addAll(Arrays.stream(TRContent.Ores.values()).filter(ore -> !ore.isDeepslate()).toList());
 		stuff.addAll(Arrays.stream(TRContent.Dusts.values()).toList());
 		stuff.addAll(Arrays.stream(TRContent.RawMetals.values()).toList());
@@ -115,7 +119,7 @@ public class TRItemGroup {
 		stuff.addAll(Arrays.stream(TRContent.StorageBlocks.values()).filter(block -> !block.name().startsWith("RAW")).toList());
 		stuff.sort(new MaterialComparator().thenComparing(new MaterialTypeComparator()));
 		for (Object item : stuff) {
-			entries.add((ItemConvertible)item);
+			entries.add((ItemLike)item);
 		}
 		entries.addAfter(TRContent.Plates.COPPER, TRContent.COPPER_WALL);
 		entries.addAfter(TRContent.Plates.IRON, TRContent.REFINED_IRON_FENCE);
@@ -267,7 +271,7 @@ public class TRItemGroup {
 		entries.add(TRContent.DEBUG_TOOL);
 	}
 
-	private static void addBuildingBlocks(FabricItemGroupEntries entries) {
+	private static void addBuildingBlocks(ItemGroupApiBridge.Entries entries) {
 		entries.addAfter(Items.MANGROVE_BUTTON, rubberOrderSmall);
 		entries.addAfter(Items.AMETHYST_BLOCK,
 			TRContent.MachineBlocks.BASIC.getFrame(),
@@ -403,11 +407,11 @@ public class TRItemGroup {
 			TRContent.StorageBlocks.IRIDIUM_REINFORCED_TUNGSTENSTEEL.getWallBlock());
 	}
 
-	private static void addColoredBlocks(FabricItemGroupEntries entries) {
+	private static void addColoredBlocks(ItemGroupApiBridge.Entries entries) {
 		entries.addBefore(Items.TINTED_GLASS, TRContent.REINFORCED_GLASS);
 	}
 
-	private static void addNaturalBlocks(FabricItemGroupEntries entries) {
+	private static void addNaturalBlocks(ItemGroupApiBridge.Entries entries) {
 		entries.addBefore(Items.IRON_ORE, TRContent.Ores.TIN, TRContent.Ores.DEEPSLATE_TIN);
 		entries.addAfter(Items.DEEPSLATE_COPPER_ORE,
 			TRContent.Ores.LEAD, TRContent.Ores.DEEPSLATE_LEAD,
@@ -440,7 +444,7 @@ public class TRItemGroup {
 		entries.addAfter(Items.MANGROVE_PROPAGULE, TRContent.RUBBER_SAPLING);
 	}
 
-	private static void addFunctionalBlocks(FabricItemGroupEntries entries) {
+	private static void addFunctionalBlocks(ItemGroupApiBridge.Entries entries) {
 		entries.addAfter(Items.END_ROD,
 			TRContent.Machine.LAMP_INCANDESCENT,
 			TRContent.Machine.LAMP_LED);
@@ -550,12 +554,12 @@ public class TRItemGroup {
 			TRContent.Machine.WIRE_MILL);
 	}
 
-	private static void addRedstoneBlocks(FabricItemGroupEntries entries) {
+	private static void addRedstoneBlocks(ItemGroupApiBridge.Entries entries) {
 		entries.addBefore(Items.SCULK_SENSOR, TRContent.Machine.ALARM);
 		entries.addAfter(Items.WHITE_WOOL, TRContent.Machine.PLAYER_DETECTOR);
 	}
 
-	private static void addTools(FabricItemGroupEntries entries) {
+	private static void addTools(ItemGroupApiBridge.Entries entries) {
 		entries.addBefore(Items.GOLDEN_SHOVEL,
 			TRContent.BRONZE_SPADE,
 			TRContent.BRONZE_PICKAXE,
@@ -605,7 +609,7 @@ public class TRItemGroup {
 		entries.addAfter(Items.SPYGLASS, TRContent.WRENCH);
 	}
 
-	private static void addCombat(FabricItemGroupEntries entries) {
+	private static void addCombat(ItemGroupApiBridge.Entries entries) {
 		addNanosaber(entries, Items.WOODEN_AXE, true);
 		entries.addAfter(Items.IRON_BOOTS,
 			TRContent.STEEL_HELMET,
@@ -646,7 +650,7 @@ public class TRItemGroup {
 		entries.addAfter(Items.END_CRYSTAL, TRContent.NUKE);
 	}
 
-	private static void addIngredients(FabricItemGroupEntries entries) {
+	private static void addIngredients(ItemGroupApiBridge.Entries entries) {
 		// raw / gem
 		entries.addBefore(Items.RAW_IRON, TRContent.RawMetals.TIN);
 		entries.addAfter(Items.RAW_COPPER,
@@ -761,28 +765,28 @@ public class TRItemGroup {
 			TRContent.Parts.HELIUM_COOLANT_CELL_360K);
 	}
 
-	private static void addOperator(FabricItemGroupEntries entries) {
+	private static void addOperator(ItemGroupApiBridge.Entries entries) {
 		if (entries.shouldShowOpRestrictedItems()) {
 			entries.addAfter(Items.DEBUG_STICK, TRContent.DEBUG_TOOL);
 		}
 	}
 
-	private static void addContent(ItemConvertible[] items, FabricItemGroupEntries entries) {
-		for (ItemConvertible item : items) {
+	private static void addContent(ItemLike[] items, ItemGroupApiBridge.Entries entries) {
+		for (ItemLike item : items) {
 			entries.add(item);
 		}
 	}
 
-	private static void addCells(FabricItemGroupEntries entries) {
+	private static void addCells(ItemGroupApiBridge.Entries entries) {
 		entries.add(DynamicCellItem.getEmptyCell(1));
 		for (Fluid fluid : FluidUtils.getAllFluids()) {
-			if (fluid.isStill(fluid.getDefaultState())) {
+			if (fluid.isSource(fluid.defaultFluidState())) {
 				entries.add(DynamicCellItem.getCellWithFluid(fluid));
 			}
 		}
 	}
 
-	private static void addPoweredItem(Item item, FabricItemGroupEntries entries, ItemConvertible before, boolean includeUncharged) {
+	private static void addPoweredItem(Item item, ItemGroupApiBridge.Entries entries, ItemLike before, boolean includeUncharged) {
 		ItemStack uncharged = new ItemStack(item);
 		ItemStack charged = new ItemStack(item);
 		RcEnergyItem energyItem = (RcEnergyItem) item;
@@ -812,14 +816,14 @@ public class TRItemGroup {
 		}
 	}
 
-	private static void addRockCutter(FabricItemGroupEntries entries, ItemConvertible before, boolean includeUncharged) {
-		RegistryWrapper.Impl<Enchantment> enchantmentRegistry = entries.getContext().lookup().getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
+	private static void addRockCutter(ItemGroupApiBridge.Entries entries, ItemLike before, boolean includeUncharged) {
+		HolderLookup.RegistryLookup<Enchantment> enchantmentRegistry = entries.enchantmentRegistry();
 		RockCutterItem rockCutter = (RockCutterItem) TRContent.ROCK_CUTTER;
 
 		ItemStack uncharged = new ItemStack(rockCutter);
-		uncharged.addEnchantment(enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH), 1);
+		uncharged.enchant(enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH), 1);
 		ItemStack charged = new ItemStack(rockCutter);
-		charged.addEnchantment(enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH), 1);
+		charged.enchant(enchantmentRegistry.getOrThrow(Enchantments.SILK_TOUCH), 1);
 		rockCutter.setStoredEnergy(charged, rockCutter.getEnergyCapacity(charged));
 
 		if (before == null) {
@@ -838,7 +842,7 @@ public class TRItemGroup {
 		}
 	}
 
-	private static void addNanosaber(FabricItemGroupEntries entries, ItemConvertible before, boolean onlyPoweredAndActive) {
+	private static void addNanosaber(ItemGroupApiBridge.Entries entries, ItemLike before, boolean onlyPoweredAndActive) {
 		NanosaberItem nanosaber = (NanosaberItem) TRContent.NANOSABER;
 
 		ItemStack inactiveUncharged = new ItemStack(nanosaber);

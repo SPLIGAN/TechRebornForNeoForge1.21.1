@@ -24,27 +24,27 @@
 
 package techreborn.items.tool;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.PickaxeItem;
-import net.minecraft.item.ToolMaterial;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.Tier;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRContent;
 import techreborn.init.TRItemSettings;
 
 
-public class JackhammerItem extends PickaxeItem implements RcEnergyItem {
+public class JackhammerItem extends PickaxeItem implements RcFabricEnergyItem {
 	public final int maxCharge;
 	public final RcEnergyTier tier;
 	public final int cost;
 	protected final float unpoweredSpeed = 0.5F;
 
-	public JackhammerItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost) {
+	public JackhammerItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost) {
 		super(material, TRItemSettings.unbreakable());
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
@@ -59,36 +59,36 @@ public class JackhammerItem extends PickaxeItem implements RcEnergyItem {
 	 * @param pos         Additional block to check
 	 * @return Returns true if block should be broken by AOE mining
 	 */
-	protected boolean shouldBreak(World worldIn, BlockPos originalPos, BlockPos pos) {
+	protected boolean shouldBreak(Level worldIn, BlockPos originalPos, BlockPos pos) {
 		if (originalPos.equals(pos)) {
 			return false;
 		}
-		return worldIn.getBlockState(pos).isIn(TRContent.BlockTags.JACKHAMMER_MINEABLE);
+		return worldIn.getBlockState(pos).is(TRContent.BlockTags.JACKHAMMER_MINEABLE);
 	}
 
 	// MiningToolItem
 	@Override
-	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 			return true;
 		}
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public float getMiningSpeed(ItemStack stack, BlockState state) {
-		if (getStoredEnergy(stack) >= cost && state.isIn(TRContent.BlockTags.JACKHAMMER_MINEABLE)) {
-			return super.getMiningSpeed(stack, state);
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
+		if (getStoredEnergy(stack) >= cost && state.is(TRContent.BlockTags.JACKHAMMER_MINEABLE)) {
+			return super.getDestroySpeed(stack, state);
 		}
 		return unpoweredSpeed;
 	}
 
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, cost);
 		return true;
 	}
@@ -99,17 +99,17 @@ public class JackhammerItem extends PickaxeItem implements RcEnergyItem {
 	}
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -120,7 +120,7 @@ public class JackhammerItem extends PickaxeItem implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

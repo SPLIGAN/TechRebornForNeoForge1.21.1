@@ -24,20 +24,6 @@
 
 package techreborn.blockentity.machine.iron;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.ExperienceOrbEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.AbstractCookingRecipe;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.SmeltingRecipe;
-import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.BuiltScreenHandlerProvider;
@@ -48,6 +34,20 @@ import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
 
 import java.util.Optional;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.AbstractCookingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity implements BuiltScreenHandlerProvider {
 
@@ -58,34 +58,34 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 	public float experience;
 	private boolean previousValid = false;
 	private ItemStack previousStack = ItemStack.EMPTY;
-	private RecipeEntry<SmeltingRecipe> lastRecipe = null;
+	private RecipeHolder<SmeltingRecipe> lastRecipe = null;
 
 	public IronFurnaceBlockEntity(BlockPos pos, BlockState state) {
 		super(TRBlockEntities.IRON_FURNACE, pos, state, FUEL_SLOT, TRContent.Machine.IRON_FURNACE.block);
 		this.inventory = new RebornInventory<>(3, "IronFurnaceBlockEntity", 64, this);
 	}
 
-	public void handleGuiInputFromClient(PlayerEntity playerIn) {
-		if (playerIn instanceof ServerPlayerEntity player) {
+	public void handleGuiInputFromClient(Player playerIn) {
+		if (playerIn instanceof ServerPlayer player) {
 			int totalExperience = (int) experience;
 			while (totalExperience > 0) {
-				int expToDrop = ExperienceOrbEntity.roundToOrbSize(totalExperience);
+				int expToDrop = ExperienceOrb.getExperienceValue(totalExperience);
 				totalExperience -= expToDrop;
-				player.getWorld().spawnEntity(new ExperienceOrbEntity(player.getWorld(), player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, expToDrop));
+				player.level().addFreshEntity(new ExperienceOrb(player.level(), player.getX(), player.getY() + 0.5D, player.getZ() + 0.5D, expToDrop));
 			}
 		}
 		experience = 0;
 	}
 
 	@Nullable
-	private RecipeEntry<SmeltingRecipe> refreshRecipe(ItemStack stack) {
+	private RecipeHolder<SmeltingRecipe> refreshRecipe(ItemStack stack) {
 		// Check the previous recipe to see if it still applies to the current inv, saves rechecking the whole recipe list
-		if (lastRecipe != null && lastRecipe.value().matches(new SingleStackRecipeInput(stack), world)) {
+		if (lastRecipe != null && lastRecipe.value().matches(new SingleRecipeInput(stack), level)) {
 			return lastRecipe;
 		} else {
 			// If the previous recipe does not apply anymore, reset the progress
 			progress = 0;
-			RecipeEntry<SmeltingRecipe> matchingRecipe = world.getRecipeManager().getFirstMatch(RecipeType.SMELTING, new SingleStackRecipeInput(stack), world).orElse(null);
+			RecipeHolder<SmeltingRecipe> matchingRecipe = level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(stack), level).orElse(null);
 			if (matchingRecipe != null) {
 				lastRecipe = matchingRecipe;
 			}
@@ -100,21 +100,21 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 			// Fast fail if there is no input, no point checking the recipes if the machine is empty
 			return ItemStack.EMPTY;
 		}
-		if (previousStack.isOf(stack.getItem()) && !previousValid){
+		if (previousStack.is(stack.getItem()) && !previousValid){
 			return ItemStack.EMPTY;
 		}
 
-		RecipeEntry<SmeltingRecipe> matchingRecipe = refreshRecipe(stack);
+		RecipeHolder<SmeltingRecipe> matchingRecipe = refreshRecipe(stack);
 
 		if (matchingRecipe != null) {
-			return matchingRecipe.value().getResult(getWorld().getRegistryManager()).copy();
+			return matchingRecipe.value().getResultItem(level.registryAccess()).copy();
 		}
 
 		return ItemStack.EMPTY;
 	}
 
 	private float getExperienceFor() {
-		Optional<SmeltingRecipe> recipe = world.getRecipeManager().getFirstMatch(RecipeType.SMELTING, new SingleStackRecipeInput(inventory.getStack(0)), world).map(RecipeEntry::value);
+		Optional<SmeltingRecipe> recipe = level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(inventory.getItem(0)), level).map(RecipeHolder::value);
 		return recipe.map(AbstractCookingRecipe::getExperience).orElse(0F);
 	}
 
@@ -124,25 +124,25 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 		if (!canSmelt()) {
 			return;
 		}
-		ItemStack inputStack = inventory.getStack(INPUT_SLOT);
+		ItemStack inputStack = inventory.getItem(INPUT_SLOT);
 		ItemStack resultStack = getResultFor(inputStack);
 
-		if (inventory.getStack(OUTPUT_SLOT).isEmpty()) {
-			inventory.setStack(OUTPUT_SLOT, resultStack.copy());
-		} else if (inventory.getStack(OUTPUT_SLOT).isOf(resultStack.getItem())) {
-			inventory.getStack(OUTPUT_SLOT).increment(resultStack.getCount());
+		if (inventory.getItem(OUTPUT_SLOT).isEmpty()) {
+			inventory.setItem(OUTPUT_SLOT, resultStack.copy());
+		} else if (inventory.getItem(OUTPUT_SLOT).is(resultStack.getItem())) {
+			inventory.getItem(OUTPUT_SLOT).grow(resultStack.getCount());
 		}
 		experience += getExperienceFor();
 		if (inputStack.getCount() > 1) {
 			inventory.shrinkSlot(INPUT_SLOT, 1);
 		} else {
-			inventory.setStack(INPUT_SLOT, ItemStack.EMPTY);
+			inventory.setItem(INPUT_SLOT, ItemStack.EMPTY);
 		}
 	}
 
 	@Override
 	protected boolean canSmelt() {
-		ItemStack inputStack = inventory.getStack(INPUT_SLOT);
+		ItemStack inputStack = inventory.getItem(INPUT_SLOT);
 		if (inputStack.isEmpty())
 			return false;
 		if (previousStack != inputStack) {
@@ -157,13 +157,13 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 		else {
 			previousValid = true;
 		}
-		ItemStack outputSlotStack = inventory.getStack(OUTPUT_SLOT);
+		ItemStack outputSlotStack = inventory.getItem(OUTPUT_SLOT);
 		if (outputSlotStack.isEmpty())
 			return true;
-		if (!outputSlotStack.isOf(outputStack.getItem()))
+		if (!outputSlotStack.is(outputStack.getItem()))
 			return false;
 		int result = outputSlotStack.getCount() + outputStack.getCount();
-		return result <= inventory.getStackLimit() && result <= outputStack.getMaxCount();
+		return result <= inventory.getStackLimit() && result <= outputStack.getMaxStackSize();
 	}
 
 	@Override
@@ -171,7 +171,7 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 		// default value for vanilla smelting recipes is 200
 		int cookingTime = 200;
 
-		RecipeEntry<SmeltingRecipe> recipe = refreshRecipe(inventory.getStack(INPUT_SLOT));
+		RecipeHolder<SmeltingRecipe> recipe = refreshRecipe(inventory.getItem(INPUT_SLOT));
 
 		if (recipe != null) {
 			try {
@@ -191,14 +191,14 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 	}
 
 	@Override
-	public void readNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(compoundTag, registryLookup);
+	public void loadAdditional(CompoundTag compoundTag, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(compoundTag, registryLookup);
 		experience = compoundTag.getFloat("Experience");
 	}
 
 	@Override
-	public void writeNbt(NbtCompound compoundTag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(compoundTag, registryLookup);
+	public void saveAdditional(CompoundTag compoundTag, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(compoundTag, registryLookup);
 		compoundTag.putFloat("Experience", experience);
 	}
 
@@ -217,14 +217,14 @@ public class IronFurnaceBlockEntity extends AbstractIronMachineBlockEntity imple
 	}
 
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("ironfurnace").player(player.getInventory()).inventory().hotbar()
 				.addInventory().blockEntity(this)
 				.fuelSlot(2, 56, 53).slot(0, 56, 17).outputSlot(1, 116, 35)
-				.sync(PacketCodecs.INTEGER, this::getBurnTime, this::setBurnTime)
-				.sync(PacketCodecs.INTEGER, this::getProgress, this::setProgress)
-				.sync(PacketCodecs.INTEGER, this::getTotalBurnTime, this::setTotalBurnTime)
-				.sync(PacketCodecs.FLOAT, this::getExperience, this::setExperience)
+				.sync(ByteBufCodecs.INT, this::getBurnTime, this::setBurnTime)
+				.sync(ByteBufCodecs.INT, this::getProgress, this::setProgress)
+				.sync(ByteBufCodecs.INT, this::getTotalBurnTime, this::setTotalBurnTime)
+				.sync(ByteBufCodecs.FLOAT, this::getExperience, this::setExperience)
 				.addInventory().create(this, syncID);
 	}
 }

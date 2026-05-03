@@ -1,0 +1,48 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "techreborn"
+version = "${mod_version}"
+displayName = "Tech Reborn"
+description = "A completely standalone tech mod including tools and machines to gather resources, process materials, and progress through the mod."
+logoFile = "assets/techreborn/icon.png"
+authors = "Team Reborn, modmuss50, drcrazy"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/techreborn"
+issueTrackerURL = "https://github.com/TechReborn/TechReborn/issues"
+
+[[dependencies.techreborn]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.219,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.techreborn]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.techreborn]]
+modId = "reborncore"
+type = "required"
+versionRange = "[0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.techreborn]]
+modId = "jei"
+type = "optional"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "CLIENT"
+
+[[dependencies.techreborn]]
+modId = "rei"
+type = "optional"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "CLIENT"

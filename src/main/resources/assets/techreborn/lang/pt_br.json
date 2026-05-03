@@ -800,6 +800,8 @@
   "gui.techreborn.block.interrupted": "Interrompido",
   "gui.techreborn.block.progress.active": "Progresso: (%s)",
   "_comment28": "Aldeões",
+  "entity.minecraft.villager.techreborn.metallurgist": "Metalúrgico",
+  "entity.minecraft.villager.metallurgist": "Metalúrgico",
   "entity.minecraft.villager.techreborn.electrician": "Eletricista",
   "entity.minecraft.villager.electrician": "Eletricista"
 }

@@ -25,24 +25,20 @@
 package techreborn.world;
 
 import io.netty.buffer.ByteBuf;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectionContext;
-import net.fabricmc.fabric.api.biome.v1.BiomeSelectors;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-
-import java.util.function.Predicate;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 
 public enum TargetDimension {
-	OVERWORLD(BiomeSelectors.foundInOverworld()),
-	NETHER(BiomeSelectors.foundInTheNether()),
-	END(BiomeSelectors.foundInTheEnd());
+	OVERWORLD(WorldgenBridge.foundInOverworld()),
+	NETHER(WorldgenBridge.foundInNether()),
+	END(WorldgenBridge.foundInEnd());
 
-	public static final PacketCodec<ByteBuf, TargetDimension> PACKET_CODEC = PacketCodecs.INTEGER
-		.xmap(integer -> TargetDimension.values()[integer], Enum::ordinal);
+	public static final StreamCodec<ByteBuf, TargetDimension> PACKET_CODEC = ByteBufCodecs.INT
+		.map(integer -> TargetDimension.values()[integer], Enum::ordinal);
 
-	public final Predicate<BiomeSelectionContext> biomeSelector;
+	public final WorldgenBridge.BiomeSelector biomeSelector;
 
-	TargetDimension(Predicate<BiomeSelectionContext> biomeSelector) {
+	TargetDimension(WorldgenBridge.BiomeSelector biomeSelector) {
 		this.biomeSelector = biomeSelector;
 	}
 }

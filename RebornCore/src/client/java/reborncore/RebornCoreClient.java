@@ -24,57 +24,40 @@
 
 package reborncore;
 
-import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
-import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Identifier;
 import reborncore.api.blockentity.UnloadHandler;
 import reborncore.client.*;
-import reborncore.client.gui.ThemeManager;
+import reborncore.client.event.ClientLifecycleBridge;
+import reborncore.common.util.LoaderBridge;
 
 import java.util.Locale;
 
-public class RebornCoreClient implements ClientModInitializer {
+public class RebornCoreClient {
 
-	@Override
 	public void onInitializeClient() {
-		RebornFluidRenderManager.setupClient();
 		ClientBoundPacketHandlers.init();
-		HudRenderCallback.EVENT.register(new ItemStackRenderer());
-		ItemTooltipCallback.EVENT.register(new StackToolTipHandler());
-		WorldRenderEvents.BLOCK_OUTLINE.register(new BlockOutlineRenderer());
+		ClientLifecycleBridge.onHudRender(new ItemStackRenderer());
+		ClientLifecycleBridge.registerTooltipAppender(new StackToolTipHandler());
+		ClientLifecycleBridge.onBlockOutline(BlockOutlineRenderer::onBlockHighlight);
 
 		/* register UnloadHandler */
-		ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
+		ClientLifecycleBridge.onBlockEntityUnload((blockEntity, world) -> {
 			if (blockEntity instanceof UnloadHandler) ((UnloadHandler) blockEntity).onUnload();
 		});
 
-		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
-			String strangeMcLang = client.getLanguageManager().getLanguage();
+		ClientLifecycleBridge.onClientStarted(client -> {
+			String strangeMcLang = client.options.languageCode;
 			RebornCore.locale = Locale.forLanguageTag(strangeMcLang.substring(0, 2));
 		});
 
-		ClientTickEvents.END_CLIENT_TICK.register(client -> {
-			if (client.options.jumpKey.isPressed()) {
+		ClientLifecycleBridge.onEndClientTick(client -> {
+			if (client.options.keyJump.isDown()) {
 				ClientJumpEvent.EVENT.invoker().jump();
 			}
 		});
 
-		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
-			.registerReloadListener(new ThemeManager());
-
-		ResourceManagerHelper.registerBuiltinResourcePack(
-			Identifier.of("reborncore", "reborncore_darkmode"),
-			FabricLoader.getInstance().getModContainer("reborncore").get(),
-			ResourcePackActivationType.NORMAL
+		ClientLifecycleBridge.registerBuiltinResourcePack(
+			net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("reborncore", "reborncore_darkmode"),
+			LoaderBridge.getModContainer("reborncore").orElseThrow()
 		);
 	}
 }

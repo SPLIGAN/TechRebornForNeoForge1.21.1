@@ -24,70 +24,25 @@
 
 package techreborn.init;
 
-import net.fabricmc.fabric.api.loot.v2.LootTableEvents;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.Items;
-import net.minecraft.loot.LootPool;
-import net.minecraft.loot.entry.ItemEntry;
-import net.minecraft.loot.entry.LootPoolEntry;
-import net.minecraft.loot.function.SetCountLootFunction;
-import net.minecraft.loot.function.SetDamageLootFunction;
-import net.minecraft.loot.provider.number.UniformLootNumberProvider;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRContent.Ingots;
 import techreborn.init.TRContent.Parts;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.storage.loot.LootPool;
+import net.minecraft.world.level.storage.loot.LootTable;
+import net.minecraft.world.level.storage.loot.entries.LootItem;
+import net.minecraft.world.level.storage.loot.entries.LootPoolSingletonContainer;
+import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
+import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import reborncore.common.event.EventBridge;
 
 public class ModLoot {
 
 	public static void init() {
-
-		LootPoolEntry copperIngot = makeEntry(Items.COPPER_INGOT);
-		LootPoolEntry tinIngot = makeEntry(Ingots.TIN);
-		LootPoolEntry leadIngot = makeEntry(Ingots.LEAD);
-		LootPoolEntry silverIngot = makeEntry(Ingots.SILVER);
-		LootPoolEntry refinedIronIngot = makeEntry(Ingots.REFINED_IRON);
-		LootPoolEntry advancedAlloyIngot = makeEntry(Ingots.ADVANCED_ALLOY);
-		LootPoolEntry basicFrame = makeEntry(TRContent.MachineBlocks.BASIC.frame.asItem());
-		LootPoolEntry basicCircuit = makeEntry(Parts.ELECTRONIC_CIRCUIT);
-		LootPoolEntry rubberSapling = makeEntry(TRContent.RUBBER_SAPLING, 25);
-
-		LootPool poolBasic = LootPool.builder().with(copperIngot).with(tinIngot)
-			.with(leadIngot).with(silverIngot).with(refinedIronIngot).with(advancedAlloyIngot)
-			.with(basicFrame).with(basicCircuit).with(rubberSapling).rolls(UniformLootNumberProvider.create(1.0f, 2.0f))
-			.build();
-
-		LootPoolEntry aluminumIngot = makeEntry(Ingots.ALUMINUM);
-		LootPoolEntry electrumIngot = makeEntry(Ingots.ELECTRUM);
-		LootPoolEntry invarIngot = makeEntry(Ingots.INVAR);
-		LootPoolEntry nickelIngot = makeEntry(Ingots.NICKEL);
-		LootPoolEntry steelIngot = makeEntry(Ingots.STEEL);
-		LootPoolEntry zincIngot = makeEntry(Ingots.ZINC);
-		LootPoolEntry advancedFrame = makeEntry(TRContent.MachineBlocks.ADVANCED.frame.asItem());
-		LootPoolEntry advancedCircuit = makeEntry(Parts.ADVANCED_CIRCUIT);
-		LootPoolEntry dataStorageChip = makeEntry(Parts.DATA_STORAGE_CHIP);
-
-		LootPool poolAdvanced = LootPool.builder().with(aluminumIngot).with(electrumIngot)
-			.with(invarIngot).with(nickelIngot).with(steelIngot).with(zincIngot)
-			.with(advancedFrame).with(advancedCircuit).with(dataStorageChip).rolls(UniformLootNumberProvider.create(1.0f, 3.0f))
-			.build();
-
-		LootPoolEntry chromeIngot = makeEntry(Ingots.CHROME);
-		LootPoolEntry iridiumIngot = makeEntry(Ingots.IRIDIUM);
-		LootPoolEntry platinumIngot = makeEntry(Ingots.PLATINUM);
-		LootPoolEntry titaniumIngot = makeEntry(Ingots.TITANIUM);
-		LootPoolEntry tungstenIngot = makeEntry(Ingots.TUNGSTEN);
-		LootPoolEntry tungstensteelIngot = makeEntry(Ingots.TUNGSTENSTEEL);
-		LootPoolEntry industrialFrame = makeEntry(TRContent.MachineBlocks.INDUSTRIAL.frame.asItem());
-		LootPoolEntry industrialCircuit = makeEntry(Parts.INDUSTRIAL_CIRCUIT);
-		LootPoolEntry energyFlowChip = makeEntry(Parts.ENERGY_FLOW_CHIP);
-
-		LootPool poolIndustrial = LootPool.builder().with(chromeIngot).with(iridiumIngot)
-				.with(platinumIngot).with(titaniumIngot).with(tungstenIngot).with(tungstensteelIngot)
-				.with(industrialFrame).with(industrialCircuit).with(energyFlowChip).rolls(UniformLootNumberProvider.create(1.0f, 3.0f))
-				.build();
-
-		LootTableEvents.MODIFY.register((key, tableBuilder, source) -> {
-			String stringId = key.getValue().toString();
+		EventBridge.registerLootModify((key, table, source) -> {
+			String stringId = key.location().toString();
 			if (!stringId.startsWith("minecraft:gameplay") && !stringId.startsWith("minecraft:chests")) {
 				return;
 			}
@@ -104,20 +59,28 @@ public class ModLoot {
 						"minecraft:chests/village/village_weaponsmith",
 						"minecraft:chests/village/village_armorer",
 						"minecraft:chests/village/village_toolsmith"
-						-> tableBuilder.pool(poolBasic);
+						-> addBasicTechRebornPool(table);
 					case "minecraft:chests/stronghold_corridor",
 						"minecraft:chests/stronghold_crossing",
 						"minecraft:chests/stronghold_library",
 						"minecraft:chests/underwater_ruin_big",
 						"minecraft:chests/pillager_outpost"
-						-> tableBuilder.pool(poolAdvanced);
+						-> addAdvancedTechRebornPool(table);
 					case "minecraft:chests/woodland_mansion",
 						"minecraft:chests/ancient_city"
-						-> tableBuilder.pool(poolIndustrial);
+						-> addIndustrialTechRebornPool(table);
 					case "minecraft:archeology/trail_ruins_common"
-						-> tableBuilder.modifyPools(poolBuilder -> poolBuilder.with(ItemEntry.builder(Parts.RUBBER).build()));
+						-> table.addPool(LootPool.lootPool()
+								.add(LootItem.lootTableItem(Parts.RUBBER))
+								.setRolls(ConstantValue.exactly(1))
+								.build());
 					case "minecraft:gameplay/cat_morning_gift"
-						-> tableBuilder.modifyPools(poolBuilder -> poolBuilder.with(ItemEntry.builder(Parts.SCRAP).weight(5).build()));
+						-> table.addPool(LootPool.lootPool()
+								.add(LootItem.lootTableItem(Parts.SCRAP).setWeight(5))
+								.setRolls(ConstantValue.exactly(1))
+								.build());
+					default -> {
+					}
 				}
 			}
 
@@ -127,51 +90,80 @@ public class ModLoot {
 						stringId.equals("minecraft:chests/bastion_hoglin_stable") ||
 						stringId.equals("minecraft:chests/bastion_treasure") ||
 						stringId.equals("minecraft:chests/bastion_other")) {
-					tableBuilder.pool(poolAdvanced);
+					addAdvancedTechRebornPool(table);
 				}
 			}
 
 			if (TechRebornConfig.enableEndLoot) {
 				if (stringId.equals("minecraft:chests/end_city_treasure")) {
-					tableBuilder.pool(poolIndustrial);
+					addIndustrialTechRebornPool(table);
 				}
 			}
 
 			if (TechRebornConfig.enableFishingJunkLoot) {
 				if (stringId.equals("minecraft:gameplay/fishing/junk")) {
-					LootPoolEntry rubber = ItemEntry.builder(Parts.RUBBER).weight(10).build();
-					LootPoolEntry treeTap = ItemEntry.builder(TRContent.TREE_TAP).weight(10)
-						.apply(SetDamageLootFunction.builder(UniformLootNumberProvider.create(0.0f, 0.9f))).build();
-					LootPoolEntry scrap = ItemEntry.builder(Parts.SCRAP).weight(10).build();
-					tableBuilder.modifyPools(poolBuilder -> poolBuilder
-						.with(rubber).with(treeTap).with(scrap));
+					table.addPool(LootPool.lootPool()
+							.add(LootItem.lootTableItem(Parts.RUBBER).setWeight(10))
+							.add(LootItem.lootTableItem(TRContent.TREE_TAP).setWeight(10))
+							.add(LootItem.lootTableItem(Parts.SCRAP).setWeight(10))
+							.setRolls(ConstantValue.exactly(1))
+							.build());
 				}
 			}
 		});
-
 	}
 
-	/**
-	 * Makes loot entry from item provided
-	 *
-	 * @param item {@link ItemConvertible} Item to include into LootEntry
-	 * @return {@link LootPoolEntry} Entry for item provided
-	 */
-	private static LootPoolEntry makeEntry(ItemConvertible item) {
+	private static void addBasicTechRebornPool(LootTable table) {
+		table.addPool(LootPool.lootPool()
+				.add(makeEntry(Items.COPPER_INGOT))
+				.add(makeEntry(Ingots.TIN))
+				.add(makeEntry(Ingots.LEAD))
+				.add(makeEntry(Ingots.SILVER))
+				.add(makeEntry(Ingots.REFINED_IRON))
+				.add(makeEntry(Ingots.ADVANCED_ALLOY))
+				.add(makeEntry(TRContent.MachineBlocks.BASIC.frame.asItem()))
+				.add(makeEntry(Parts.ELECTRONIC_CIRCUIT))
+				.add(makeEntry(TRContent.RUBBER_SAPLING, 25))
+				.setRolls(UniformGenerator.between(1.0f, 2.0f))
+				.build());
+	}
+
+	private static void addAdvancedTechRebornPool(LootTable table) {
+		table.addPool(LootPool.lootPool()
+				.add(makeEntry(Ingots.ALUMINUM))
+				.add(makeEntry(Ingots.ELECTRUM))
+				.add(makeEntry(Ingots.INVAR))
+				.add(makeEntry(Ingots.NICKEL))
+				.add(makeEntry(Ingots.STEEL))
+				.add(makeEntry(Ingots.ZINC))
+				.add(makeEntry(TRContent.MachineBlocks.ADVANCED.frame.asItem()))
+				.add(makeEntry(Parts.ADVANCED_CIRCUIT))
+				.add(makeEntry(Parts.DATA_STORAGE_CHIP))
+				.setRolls(UniformGenerator.between(1.0f, 3.0f))
+				.build());
+	}
+
+	private static void addIndustrialTechRebornPool(LootTable table) {
+		table.addPool(LootPool.lootPool()
+				.add(makeEntry(Ingots.CHROME))
+				.add(makeEntry(Ingots.IRIDIUM))
+				.add(makeEntry(Ingots.PLATINUM))
+				.add(makeEntry(Ingots.TITANIUM))
+				.add(makeEntry(Ingots.TUNGSTEN))
+				.add(makeEntry(Ingots.TUNGSTENSTEEL))
+				.add(makeEntry(TRContent.MachineBlocks.INDUSTRIAL.frame.asItem()))
+				.add(makeEntry(Parts.INDUSTRIAL_CIRCUIT))
+				.add(makeEntry(Parts.ENERGY_FLOW_CHIP))
+				.setRolls(UniformGenerator.between(1.0f, 3.0f))
+				.build());
+	}
+
+	private static LootPoolSingletonContainer.Builder<?> makeEntry(ItemLike item) {
 		return makeEntry(item, 5);
 	}
 
-	/**
-	 * Makes loot entry from item provided with weight provided
-	 *
-	 * @param item   {@link ItemConvertible} Item to include into LootEntry
-	 * @param weight {@code int} Weight of that item
-	 * @return {@link LootPoolEntry} Entry for item and weight provided
-	 */
-	private static LootPoolEntry makeEntry(ItemConvertible item, int weight) {
-		return ItemEntry.builder(item).weight(weight)
-				.apply(SetCountLootFunction.builder(UniformLootNumberProvider.create(1.0f, 2.0f))).build();
+	private static LootPoolSingletonContainer.Builder<?> makeEntry(ItemLike item, int weight) {
+		return LootItem.lootTableItem(item).setWeight(weight)
+				.apply(SetItemCountFunction.setCount(UniformGenerator.between(1.0f, 2.0f)));
 	}
-
-
 }

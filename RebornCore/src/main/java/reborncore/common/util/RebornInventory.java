@@ -24,10 +24,10 @@
 
 package reborncore.common.util;
 
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.NotNull;
 import reborncore.api.items.InventoryBase;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -45,7 +45,7 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	public RebornInventory(int size, String invName, int invStackLimit, T blockEntity, IInventoryAccess<T> access) {
 		super(size);
 		name = invName;
-		stackLimit = (invStackLimit == 64 ? Items.AIR.getMaxCount() : invStackLimit); // Blame asie for this
+		stackLimit = (invStackLimit == 64 ? Items.AIR.getDefaultMaxStackSize() : invStackLimit); // Blame asie for this
 		this.blockEntity = blockEntity;
 		this.inventoryAccess = access;
 	}
@@ -68,14 +68,14 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	}
 
 	@Override
-	public void setStack(int slot, @NotNull ItemStack stack) {
-		super.setStack(slot, stack);
+	public void setItem(int slot, @NotNull ItemStack stack) {
+		super.setItem(slot, stack);
 		setHashChanged();
 	}
 
 	@Override
-	public ItemStack removeStack(int i, int i1) {
-		ItemStack stack = super.removeStack(i, i1);
+	public ItemStack removeItem(int i, int i1) {
+		ItemStack stack = super.removeItem(i, i1);
 
 		if (!stack.isEmpty()) {
 			setHashChanged();
@@ -85,32 +85,32 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	}
 
 	@Override
-	public int getMaxCountPerStack() {
+	public int getMaxStackSize() {
 		return stackLimit;
 	}
 
 	public ItemStack shrinkSlot(int slot, int count) {
-		ItemStack stack = getStack(slot);
-		stack.decrement(count);
+		ItemStack stack = getItem(slot);
+		stack.shrink(count);
 		setHashChanged();
 		return stack;
 	}
 
-	public void read(NbtCompound data, RegistryWrapper.WrapperLookup registryLookup) {
+	public void read(CompoundTag data, HolderLookup.Provider registryLookup) {
 		read(data, "Items", registryLookup);
 	}
 
-	public void read(NbtCompound data, String tag, RegistryWrapper.WrapperLookup registryLookup) {
-		NbtCompound nbtTagList = data.getCompound(tag);
+	public void read(CompoundTag data, String tag, HolderLookup.Provider registryLookup) {
+		CompoundTag nbtTagList = data.getCompound(tag);
 		deserializeNBT(nbtTagList, registryLookup);
 		hasChanged = true;
 	}
 
-	public void write(NbtCompound data, RegistryWrapper.WrapperLookup registryLookup) {
+	public void write(CompoundTag data, HolderLookup.Provider registryLookup) {
 		write(data, "Items", registryLookup);
 	}
 
-	public void write(NbtCompound data, String tag, RegistryWrapper.WrapperLookup registryLookup) {
+	public void write(CompoundTag data, String tag, HolderLookup.Provider registryLookup) {
 		data.put(tag, serializeNBT(registryLookup));
 	}
 
@@ -136,7 +136,7 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 
 	public void setHashChanged() {
 		this.hasChanged = true;
-		this.markDirty();
+		this.setChanged();
 	}
 
 	public void setHashChanged(boolean changed) {
@@ -152,9 +152,9 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	}
 
 	@Override
-	public void markDirty() {
-		super.markDirty();
-		blockEntity.markDirty();
+	public void setChanged() {
+		super.setChanged();
+		blockEntity.setChanged();
 	}
 
 }

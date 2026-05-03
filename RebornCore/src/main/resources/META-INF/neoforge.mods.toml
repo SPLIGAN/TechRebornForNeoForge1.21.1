@@ -1,0 +1,28 @@
+modLoader = "javafml"
+loaderVersion = "[4,)"
+license = "MIT"
+
+[[mods]]
+modId = "reborncore"
+version = "${mod_version}"
+displayName = "Reborn Core"
+description = "Reborn Core is a library used for many of the Tech Reborn team's mods."
+logoFile = "assets/reborncore/icon.png"
+authors = "Team Reborn, modmuss50, drcrazy"
+displayURL = "https://www.curseforge.com/minecraft/mc-mods/reborncore"
+issueTrackerURL = "https://github.com/TechReborn/RebornCore/issues"
+
+[[dependencies.reborncore]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21.1.219,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.reborncore]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,1.21.2)"
+ordering = "NONE"
+side = "BOTH"
+

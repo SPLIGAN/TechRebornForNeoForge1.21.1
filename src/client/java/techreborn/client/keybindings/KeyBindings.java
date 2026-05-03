@@ -24,11 +24,12 @@
 
 package techreborn.client.keybindings;
 
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
+import com.mojang.blaze3d.platform.InputConstants;
+import net.minecraft.client.KeyMapping;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
+import reborncore.client.input.ClientInputBridge;
+import reborncore.client.network.ClientNetworkingBridge;
 import techreborn.packets.serverbound.QuantumSuitSprintPayload;
 import techreborn.packets.serverbound.SuitNightVisionPayload;
 
@@ -36,28 +37,28 @@ public class KeyBindings {
 	// Actual keybindings are in TechRebornClient
 	public static final String CATEGORY = "key.techreborn.category";
 
-	public static KeyBinding suitNightVision;
-	public static KeyBinding quantumSuitSprint;
+	public static KeyMapping suitNightVision;
+	public static KeyMapping quantumSuitSprint;
 
-	public static void registerKeys() {
-		suitNightVision = KeyBindingHelper.registerKeyBinding(
-			new KeyBinding("key.techreborn.suitNightVision",
-				InputUtil.Type.KEYSYM,
+	public static void registerKeys(RegisterKeyMappingsEvent event) {
+		suitNightVision = ClientInputBridge.register(event,
+			new KeyMapping("key.techreborn.suitNightVision",
+				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_N,
 				CATEGORY));
 
-		quantumSuitSprint = KeyBindingHelper.registerKeyBinding(
-			new KeyBinding("key.techreborn.quantumSuitSprint",
-				InputUtil.Type.KEYSYM,
+		quantumSuitSprint = ClientInputBridge.register(event,
+			new KeyMapping("key.techreborn.quantumSuitSprint",
+				InputConstants.Type.KEYSYM,
 				GLFW.GLFW_KEY_R,
 				CATEGORY));
 	}
 
 	public static void handleSuitNVToggle() {
-		ClientPlayNetworking.send(new SuitNightVisionPayload());
+		ClientNetworkingBridge.sendToServer(new SuitNightVisionPayload());
 	}
 
 	public static void handleQuantumSuitSprintToggle() {
-		ClientPlayNetworking.send(new QuantumSuitSprintPayload());
+		ClientNetworkingBridge.sendToServer(new QuantumSuitSprintPayload());
 	}
 }

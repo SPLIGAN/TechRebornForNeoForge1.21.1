@@ -24,14 +24,14 @@
 
 package techreborn.blocks.misc;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateManager;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.multiblock.BlockMultiblockBase;
 import techreborn.blockentity.machine.multiblock.casing.MachineCasingBlockEntity;
@@ -44,27 +44,27 @@ public class BlockMachineCasing extends BlockMultiblockBase {
 
 	public BlockMachineCasing(int heatCapacity) {
 		super(TRBlockSettings.machineCasing());
-		setDefaultState(getDefaultState().with(DirectionUtils.HORIZONTAL_NEIGHBORS, 0));
 		this.heatCapacity = heatCapacity;
+		registerDefaultState(getStateDefinition().any().setValue(DirectionUtils.HORIZONTAL_NEIGHBORS, 0));
 	}
 
 	@Override
-	public void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-		super.appendProperties(builder);
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+		super.createBlockStateDefinition(builder);
 		builder.add(DirectionUtils.HORIZONTAL_NEIGHBORS);
 	}
 
 	@Override
-	public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {
+	protected void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() != newState.getBlock()) {
 			DirectionUtils.removeHorizontalNeighbor(world, pos, state, block -> block instanceof BlockMachineCasing);
 		}
-		super.onStateReplaced(state, world, pos, newState, moved);
+		super.onRemove(state, world, pos, newState, isMoving);
 	}
 
 	@Override
-	public void onPlaced(World world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
-		super.onPlaced(world, pos, state, placer, itemStack);
+	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
+		super.setPlacedBy(world, pos, state, placer, itemStack);
 		DirectionUtils.addHorizontalNeighbor(world, pos, state, block -> block instanceof BlockMachineCasing);
 	}
 
@@ -78,7 +78,7 @@ public class BlockMachineCasing extends BlockMultiblockBase {
 	}
 
 	@Override
-	public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
+	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new MachineCasingBlockEntity(pos, state);
 	}
 }

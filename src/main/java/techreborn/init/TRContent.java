@@ -25,23 +25,27 @@
 package techreborn.init;
 
 import com.google.common.base.Preconditions;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.BlockSetTypeBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.block.type.WoodTypeBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
-import net.minecraft.block.*;
-import net.minecraft.entity.EntityDimensions;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Pair;
-import net.minecraft.util.math.intprovider.UniformIntProvider;
+import net.minecraft.world.level.block.*;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.util.Tuple;
+import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DropExperienceBlock;
+import net.minecraft.world.level.block.SlabBlock;
+import net.minecraft.world.level.block.StairBlock;
+import net.minecraft.world.level.block.WallBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.block.state.properties.BlockSetType;
+import net.minecraft.world.level.block.state.properties.WoodType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Marker;
@@ -109,8 +113,8 @@ import java.util.stream.Stream;
 
 public class TRContent {
 	public static final Marker DATAGEN = MarkerFactory.getMarker("datagen");
-	public static final BlockSetType RUBBER_WOOD_SET_TYPE = BlockSetTypeBuilder.copyOf(BlockSetType.OAK).build(Identifier.of(TechReborn.MOD_ID, "rubber_wood"));
-	public static final WoodType RUBBER_WOOD_TYPE = WoodTypeBuilder.copyOf(WoodType.OAK).register(Identifier.of(TechReborn.MOD_ID, "rubber_wood"), RUBBER_WOOD_SET_TYPE);
+	public static final BlockSetType RUBBER_WOOD_SET_TYPE = WoodTypeBridge.createBlockSetType(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), BlockSetType.OAK);
+	public static final WoodType RUBBER_WOOD_TYPE = WoodTypeBridge.registerWoodType(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), WoodType.OAK, RUBBER_WOOD_SET_TYPE);
 
 	// Misc Blocks
 	public static Block COMPUTER_CUBE;
@@ -234,34 +238,34 @@ public class TRContent {
 	public static Item STEEL_BOOTS;
 
 	public final static class BlockTags {
-		public static final TagKey<Block> RUBBER_LOGS = TagKey.of(RegistryKeys.BLOCK, Identifier.of(TechReborn.MOD_ID, "rubber_logs"));
-		public static final TagKey<Block> OMNI_TOOL_MINEABLE = TagKey.of(RegistryKeys.BLOCK, Identifier.of(TechReborn.MOD_ID, "mineable/omni_tool"));
-		public static final TagKey<Block> JACKHAMMER_MINEABLE = TagKey.of(RegistryKeys.BLOCK, Identifier.of(TechReborn.MOD_ID, "mineable/jackhammer"));
-		public static final TagKey<Block> DRILL_MINEABLE = TagKey.of(RegistryKeys.BLOCK, Identifier.of(TechReborn.MOD_ID, "mineable/drill"));
-		public static final TagKey<Block> NONE_SOLID_COVERS = TagKey.of(RegistryKeys.BLOCK, Identifier.of(TechReborn.MOD_ID, "none_solid_covers"));
+		public static final TagKey<Block> RUBBER_LOGS = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
+		public static final TagKey<Block> OMNI_TOOL_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/omni_tool"));
+		public static final TagKey<Block> JACKHAMMER_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/jackhammer"));
+		public static final TagKey<Block> DRILL_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/drill"));
+		public static final TagKey<Block> NONE_SOLID_COVERS = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "none_solid_covers"));
 
 		private BlockTags() {
 		}
 	}
 
 	public final static class ItemTags {
-		public static final TagKey<Item> RUBBER_LOGS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "rubber_logs"));
-		public static final TagKey<Item> INGOTS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "ingots"));
-		public static final TagKey<Item> ORES = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "ores"));
-		public static final TagKey<Item> STORAGE_BLOCK = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "storage_blocks"));
-		public static final TagKey<Item> DUSTS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "dusts"));
-		public static final TagKey<Item> RAW_METALS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "raw_metals"));
-		public static final TagKey<Item> SMALL_DUSTS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "small_dusts"));
-		public static final TagKey<Item> GEMS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "gems"));
-		public static final TagKey<Item> NUGGETS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "nuggets"));
-		public static final TagKey<Item> PLATES = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "plates"));
-		public static final TagKey<Item> STORAGE_UNITS = TagKey.of(RegistryKeys.ITEM, Identifier.of(TechReborn.MOD_ID, "storage_units"));
+		public static final TagKey<Item> RUBBER_LOGS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
+		public static final TagKey<Item> INGOTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ingots"));
+		public static final TagKey<Item> ORES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ores"));
+		public static final TagKey<Item> STORAGE_BLOCK = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_blocks"));
+		public static final TagKey<Item> DUSTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "dusts"));
+		public static final TagKey<Item> RAW_METALS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "raw_metals"));
+		public static final TagKey<Item> SMALL_DUSTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "small_dusts"));
+		public static final TagKey<Item> GEMS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "gems"));
+		public static final TagKey<Item> NUGGETS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuggets"));
+		public static final TagKey<Item> PLATES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "plates"));
+		public static final TagKey<Item> STORAGE_UNITS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_units"));
 
 		private ItemTags() {
 		}
 	}
 
-	public enum SolarPanels implements ItemConvertible {
+	public enum SolarPanels implements ItemLike {
 		BASIC(RcEnergyTier.MICRO, TechRebornConfig.basicGenerationRateD, TechRebornConfig.basicGenerationRateN),
 		ADVANCED(RcEnergyTier.LOW, TechRebornConfig.advancedGenerationRateD, TechRebornConfig.advancedGenerationRateN),
 		INDUSTRIAL(RcEnergyTier.MEDIUM, TechRebornConfig.industrialGenerationRateD, TechRebornConfig.industrialGenerationRateN),
@@ -298,7 +302,7 @@ public class TRContent {
 		}
 	}
 
-	public enum StorageUnit implements ItemConvertible {
+	public enum StorageUnit implements ItemLike {
 		BUFFER(1, false),
 		CRUDE(TechRebornConfig.crudeStorageUnitMaxStorage, true),
 		BASIC(TechRebornConfig.basicStorageUnitMaxStorage, true),
@@ -358,7 +362,7 @@ public class TRContent {
 		}
 	}
 
-	public enum TankUnit implements ItemConvertible {
+	public enum TankUnit implements ItemLike {
 		BASIC(TechRebornConfig.basicTankUnitCapacity),
 		ADVANCED(TechRebornConfig.advancedTankUnitMaxStorage),
 		INDUSTRIAL(TechRebornConfig.industrialTankUnitCapacity),
@@ -409,7 +413,7 @@ public class TRContent {
 		}
 	}
 
-	public enum Cables implements ItemConvertible {
+	public enum Cables implements ItemLike {
 		COPPER(128, 12.0, true, RcEnergyTier.MEDIUM),
 		TIN(32, 12.0, true, RcEnergyTier.LOW),
 		GOLD(512, 12.0, true, RcEnergyTier.HIGH),
@@ -460,7 +464,7 @@ public class TRContent {
 
 	private final static Map<Ores, Ores> unDeepslateMap = new HashMap<>();
 
-	public enum Ores implements ItemConvertible, TagConvertible<Item> {
+	public enum Ores implements ItemLike, TagConvertible<Item> {
 		// when changing ores also change data/minecraft/tags/blocks for correct mining level
 		BAUXITE(OreDistribution.BAUXITE),
 		CINNABAR(OreDistribution.CINNABAR),
@@ -497,12 +501,12 @@ public class TRContent {
 		private final boolean industrial;
 		private final TagKey<Item> tag;
 
-		Ores(OreDistribution distribution, UniformIntProvider experienceDroppedFallback, boolean industrial) {
+		Ores(OreDistribution distribution, UniformInt experienceDroppedFallback, boolean industrial) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			block = new ExperienceDroppingBlock(distribution != null ? distribution.experienceDropped : experienceDroppedFallback, TRBlockSettings.ore(name.startsWith("deepslate")));
+			block = new DropExperienceBlock(distribution != null ? distribution.experienceDropped : experienceDroppedFallback, TRBlockSettings.ore(name.startsWith("deepslate")));
 			this.industrial = industrial;
 			InitUtils.setup(block, name + "_ore");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "ores/" +
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ores/" +
 					(name.startsWith("deepslate_") ? name.substring(name.indexOf('_')+1): name)));
 			this.distribution = distribution;
 		}
@@ -557,7 +561,7 @@ public class TRContent {
 	 */
 	public static final String CHROME_TAG_NAME_BASE = "chromium";
 
-	public enum StorageBlocks implements ItemConvertible, TagConvertible<Item> {
+	public enum StorageBlocks implements ItemLike, TagConvertible<Item> {
 		ADVANCED_ALLOY(5f, 6f),
 		ALUMINUM(),
 		BRASS(),
@@ -593,7 +597,7 @@ public class TRContent {
 
 		private final String name;
 		private final Block block;
-		private final StairsBlock stairsBlock;
+		private final StairBlock stairsBlock;
 		private final SlabBlock slabBlock;
 		private final WallBlock wallBlock;
 		private final TagKey<Item> tag;
@@ -602,15 +606,15 @@ public class TRContent {
 			name = this.toString().toLowerCase(Locale.ROOT);
 			block = new BlockStorage(isHot, hardness, resistance);
 			InitUtils.setup(block, name + "_storage_block");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "storage_blocks/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + Objects.requireNonNullElse(tagNameBase, name)));
 
-			stairsBlock = new TechRebornStairsBlock(block.getDefaultState(), AbstractBlock.Settings.copy(block));
+			stairsBlock = new TechRebornStairsBlock(block.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(block));
 			InitUtils.setup(stairsBlock, name + "_storage_block_stairs");
 
-			slabBlock = new SlabBlock(AbstractBlock.Settings.copy(block));
+			slabBlock = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(block));
 			InitUtils.setup(slabBlock, name + "_storage_block_slab");
 
-			wallBlock = new WallBlock(AbstractBlock.Settings.copy(block));
+			wallBlock = new WallBlock(BlockBehaviour.Properties.ofFullCopy(block));
 			InitUtils.setup(wallBlock, name + "_storage_block_wall");
 		}
 
@@ -640,7 +644,7 @@ public class TRContent {
 			return block;
 		}
 
-		public StairsBlock getStairsBlock() {
+		public StairBlock getStairsBlock() {
 			return stairsBlock;
 		}
 
@@ -688,15 +692,15 @@ public class TRContent {
 			return casing;
 		}
 
-		public static ItemConvertible[] getCasings() {
+		public static ItemLike[] getCasings() {
 			return Arrays.stream(MachineBlocks.values())
-					.map((Function<MachineBlocks, ItemConvertible>) machineBlocks -> machineBlocks.casing)
-					.toArray(ItemConvertible[]::new);
+					.map((Function<MachineBlocks, ItemLike>) machineBlocks -> machineBlocks.casing)
+					.toArray(ItemLike[]::new);
 		}
 	}
 
 
-	public enum Machine implements ItemConvertible {
+	public enum Machine implements ItemLike {
 		ALLOY_SMELTER(new GenericMachineBlock(GuiType.ALLOY_SMELTER, AlloySmelterBlockEntity::new)),
 		ASSEMBLY_MACHINE(new GenericMachineBlock(GuiType.ASSEMBLING_MACHINE, AssemblingMachineBlockEntity::new)),
 		AUTO_CRAFTING_TABLE(new GenericMachineBlock(GuiType.AUTO_CRAFTING_TABLE, AutoCraftingTableBlockEntity::new)),
@@ -783,7 +787,7 @@ public class TRContent {
 		}
 	}
 
-	public enum Dusts implements ItemConvertible, TagConvertible<Item> {
+	public enum Dusts implements ItemLike, TagConvertible<Item> {
 		ALMANDINE, ALUMINUM, AMETHYST, ANDESITE, ANDRADITE, ASHES, BASALT, BAUXITE, BRASS, BRONZE, CALCITE, CHARCOAL, CHROME(CHROME_TAG_NAME_BASE),
 		CINNABAR, CLAY, COAL, DARK_ASHES, DIAMOND, DIORITE, ELECTRUM, EMERALD, ENDER_EYE, ENDER_PEARL, ENDSTONE,
 		FLINT, GALENA, GRANITE, GROSSULAR, INVAR, LAZURITE, MAGNESIUM, MANGANESE, MARBLE, NETHERRACK,
@@ -796,9 +800,9 @@ public class TRContent {
 
 		Dusts(String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			InitUtils.setup(item, name + "_dust");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		Dusts() {
@@ -824,7 +828,7 @@ public class TRContent {
 		}
 	}
 
-	public enum RawMetals implements ItemConvertible, TagConvertible<Item> {
+	public enum RawMetals implements ItemLike, TagConvertible<Item> {
 		IRIDIUM, LEAD, SILVER, TIN, TUNGSTEN;
 
 		private final String name;
@@ -835,7 +839,7 @@ public class TRContent {
 
 		RawMetals() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			Ores oreVariant = null;
 			try {
 				oreVariant = Ores.valueOf(this.toString());
@@ -855,7 +859,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, "raw_" + name);
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "raw_materials/" + name));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "raw_materials/" + name));
 		}
 
 		@Override
@@ -883,9 +887,9 @@ public class TRContent {
 		 */
 		public static @NotNull Map<RawMetals, StorageBlocks> getRM2SBMap() {
 			return Arrays.stream(values())
-					.map(rawMetal -> new Pair<>(rawMetal, rawMetal.getStorageBlock()))
-					.filter(entry -> entry.getRight() != null) // ensure storage block equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(rawMetal -> new Tuple<>(rawMetal, rawMetal.getStorageBlock()))
+					.filter(entry -> entry.getB() != null) // ensure storage block equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 
 		/**
@@ -895,13 +899,13 @@ public class TRContent {
 		 */
 		public static @NotNull Map<RawMetals, Ores> getRM2OBMap() {
 			return Arrays.stream(values())
-					.map(rawMetal -> new Pair<>(rawMetal, rawMetal.getOre()))
-					.filter(entry -> entry.getRight() != null) // ensure ore block equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(rawMetal -> new Tuple<>(rawMetal, rawMetal.getOre()))
+					.filter(entry -> entry.getB() != null) // ensure ore block equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 	}
 
-	public enum SmallDusts implements ItemConvertible, TagConvertible<Item> {
+	public enum SmallDusts implements ItemLike, TagConvertible<Item> {
 		ALMANDINE, ANDESITE, ANDRADITE, ASHES, BASALT, BAUXITE, CALCITE, CHARCOAL, CHROME(CHROME_TAG_NAME_BASE),
 		CINNABAR, CLAY, COAL, DARK_ASHES, DIAMOND, DIORITE, ELECTRUM, EMERALD, ENDER_EYE, ENDER_PEARL, ENDSTONE,
 		FLINT, GALENA, GLOWSTONE(Items.GLOWSTONE_DUST), GRANITE, GROSSULAR, INVAR, LAZURITE, MAGNESIUM, MANGANESE, MARBLE,
@@ -911,12 +915,12 @@ public class TRContent {
 
 		private final String name;
 		private final Item item;
-		private final ItemConvertible dust;
+		private final ItemLike dust;
 		private final TagKey<Item> tag;
 
-		SmallDusts(String tagNameBase, ItemConvertible dustVariant) {
+		SmallDusts(String tagNameBase, ItemLike dustVariant) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			if (dustVariant == null)
 				try {
 					dustVariant = Dusts.valueOf(this.toString());
@@ -927,14 +931,14 @@ public class TRContent {
 				}
 			dust = dustVariant;
 			InitUtils.setup(item, name + "_small_dust");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "small_dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "small_dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		SmallDusts(String tagNameBase) {
 			this(tagNameBase, null);
 		}
 
-		SmallDusts(ItemConvertible dustVariant) {
+		SmallDusts(ItemLike dustVariant) {
 			this(null, dustVariant);
 		}
 
@@ -960,7 +964,7 @@ public class TRContent {
 			return tag;
 		}
 
-		public ItemConvertible getDust() {
+		public ItemLike getDust() {
 			return dust;
 		}
 
@@ -972,15 +976,15 @@ public class TRContent {
 		 * @return A non {@code null} map mapping the small dusts to their dust equivalent.
 		 * If a dust equivalent doesn't exist, the small dust will not be in the keys of this map.
 		 */
-		public static @NotNull Map<SmallDusts, ItemConvertible> getSD2DMap() {
+		public static @NotNull Map<SmallDusts, ItemLike> getSD2DMap() {
 			return Arrays.stream(values())
-					.map(smallDust -> new Pair<>(smallDust, smallDust.getDust()))
-					.filter(entry -> entry.getRight() != null) // ensure dust equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(smallDust -> new Tuple<>(smallDust, smallDust.getDust()))
+					.filter(entry -> entry.getB() != null) // ensure dust equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 	}
 
-	public enum Gems implements ItemConvertible, TagConvertible<Item> {
+	public enum Gems implements ItemLike, TagConvertible<Item> {
 		PERIDOT, RED_GARNET, RUBY, SAPPHIRE, YELLOW_GARNET;
 
 		private final String name;
@@ -992,7 +996,7 @@ public class TRContent {
 
 		Gems() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			Dusts dustVariant = null;
 			try {
 				dustVariant = Dusts.valueOf(this.toString());
@@ -1020,7 +1024,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, name + "_gem");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "gems/" + name));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "gems/" + name));
 		}
 
 		public ItemStack getStack() {
@@ -1060,9 +1064,9 @@ public class TRContent {
 		 */
 		public static @NotNull Map<Gems, Dusts> getG2DMap() {
 			return Arrays.stream(values())
-					.map(gem -> new Pair<>(gem, gem.getDust()))
-					.filter(entry -> entry.getRight() != null) // ensure dust item equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(gem -> new Tuple<>(gem, gem.getDust()))
+					.filter(entry -> entry.getB() != null) // ensure dust item equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 
 		/**
@@ -1072,14 +1076,14 @@ public class TRContent {
 		 */
 		public static @NotNull Map<Gems, StorageBlocks> getG2SBMap() {
 			return Arrays.stream(values())
-					.map(gem -> new Pair<>(gem, gem.getStorageBlock()))
-					.filter(entry -> entry.getRight() != null) // ensure storage block equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(gem -> new Tuple<>(gem, gem.getStorageBlock()))
+					.filter(entry -> entry.getB() != null) // ensure storage block equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 	}
 
 
-	public enum Ingots implements ItemConvertible, TagConvertible<Item> {
+	public enum Ingots implements ItemLike, TagConvertible<Item> {
 		ADVANCED_ALLOY, ALUMINUM, BRASS, BRONZE, CHROME(CHROME_TAG_NAME_BASE), ELECTRUM, HOT_TUNGSTENSTEEL, INVAR, IRIDIUM_ALLOY, IRIDIUM,
 		LEAD, MIXED_METAL, NICKEL, PLATINUM, REFINED_IRON, SILVER, STEEL, TIN, TITANIUM, TUNGSTEN, TUNGSTENSTEEL, ZINC;
 
@@ -1091,7 +1095,7 @@ public class TRContent {
 
 		Ingots(String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			Dusts dustVariant = null;
 			try {
 				dustVariant = Dusts.valueOf(this.toString());
@@ -1118,7 +1122,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, name + "_ingot");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "ingots/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ingots/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		Ingots() {
@@ -1158,9 +1162,9 @@ public class TRContent {
 		 */
 		public static @NotNull Map<Ingots, Dusts> getI2DMap() {
 			return Arrays.stream(values())
-					.map(gem -> new Pair<>(gem, gem.getDust()))
-					.filter(entry -> entry.getRight() != null) // ensure dust item equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(gem -> new Tuple<>(gem, gem.getDust()))
+					.filter(entry -> entry.getB() != null) // ensure dust item equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 
 		/**
@@ -1168,15 +1172,15 @@ public class TRContent {
 		 * @return A non {@code null} map mapping the ingots to their storage block equivalent.
 		 * If a storage block equivalent doesn't exist, the raw metal will not be in the keys of this map.
 		 */
-		public static @NotNull Map<Ingots, ItemConvertible> getI2SBMap() {
+		public static @NotNull Map<Ingots, ItemLike> getI2SBMap() {
 			return Arrays.stream(values())
-					.map(ingot -> new Pair<>(ingot, ingot.getStorageBlock()))
-					.filter(entry -> entry.getRight() != null) // ensure storage block equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(ingot -> new Tuple<>(ingot, ingot.getStorageBlock()))
+					.filter(entry -> entry.getB() != null) // ensure storage block equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 	}
 
-	public enum Nuggets implements ItemConvertible, TagConvertible<Item> {
+	public enum Nuggets implements ItemLike, TagConvertible<Item> {
 		ALUMINUM, BRASS, BRONZE, CHROME(CHROME_TAG_NAME_BASE), COPPER(Items.COPPER_INGOT, false), DIAMOND(Items.DIAMOND, true),
 		ELECTRUM, EMERALD(Items.EMERALD, true), HOT_TUNGSTENSTEEL, INVAR, IRIDIUM, LEAD,
 		NETHERITE, /* We do NOT link to the netherite ingot here, because we want custom conversion recipes! */
@@ -1184,13 +1188,13 @@ public class TRContent {
 
 		private final String name;
 		private final Item item;
-		private final ItemConvertible ingot;
+		private final ItemLike ingot;
 		private final boolean ofGem;
 		private final TagKey<Item> tag;
 
-		Nuggets(String tagNameBase, ItemConvertible ingotVariant, boolean ofGem) {
+		Nuggets(String tagNameBase, ItemLike ingotVariant, boolean ofGem) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			if (ingotVariant == null)
 				try {
 					ingotVariant = Ingots.valueOf(this.toString());
@@ -1202,10 +1206,10 @@ public class TRContent {
 			ingot = ingotVariant;
 			this.ofGem = ofGem;
 			InitUtils.setup(item, name + "_nugget");
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "nuggets/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "nuggets/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
-		Nuggets(ItemConvertible ingotVariant, boolean ofGem) {
+		Nuggets(ItemLike ingotVariant, boolean ofGem) {
 			this(null, ingotVariant, ofGem);
 		}
 
@@ -1235,7 +1239,7 @@ public class TRContent {
 			return tag;
 		}
 
-		public ItemConvertible getIngot() {
+		public ItemLike getIngot() {
 			return ingot;
 		}
 
@@ -1250,15 +1254,15 @@ public class TRContent {
 		 * @return A non {@code null} map mapping the nuggets to their ingot equivalent.
 		 * If an ingot equivalent doesn't exist, the raw metal will not be in the keys of this map.
 		 */
-		public static @NotNull Map<Nuggets, ItemConvertible> getN2IMap() {
+		public static @NotNull Map<Nuggets, ItemLike> getN2IMap() {
 			return Arrays.stream(values())
-					.map(nugget -> new Pair<>(nugget, nugget.getIngot()))
-					.filter(entry -> entry.getRight() != null) // ensure ingot equivalent exists
-					.collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+					.map(nugget -> new Tuple<>(nugget, nugget.getIngot()))
+					.filter(entry -> entry.getB() != null) // ensure ingot equivalent exists
+					.collect(Collectors.toMap(Tuple::getA, Tuple::getB));
 		}
 	}
 
-	public enum Parts implements ItemConvertible {
+	public enum Parts implements ItemLike {
 		CARBON_FIBER,
 		CARBON_MESH,
 
@@ -1316,7 +1320,7 @@ public class TRContent {
 
 		Parts() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
+			item = new Item(new Item.Properties());
 			InitUtils.setup(item, name);
 		}
 
@@ -1334,7 +1338,7 @@ public class TRContent {
 		}
 	}
 
-	public enum Plates implements ItemConvertible, TagConvertible<Item> {
+	public enum Plates implements ItemLike, TagConvertible<Item> {
 		ADVANCED_ALLOY,
 		ALUMINUM,
 		BRASS,
@@ -1378,15 +1382,15 @@ public class TRContent {
 
 		private final String name;
 		private final Item item;
-		private final ItemConvertible source;
-		private final ItemConvertible sourceBlock;
+		private final ItemLike source;
+		private final ItemLike sourceBlock;
 		private final boolean industrial;
 		private final TagKey<Item> tag;
 
-		Plates(ItemConvertible source, ItemConvertible sourceBlock, boolean industrial, String tagNameBase) {
+		Plates(ItemLike source, ItemLike sourceBlock, boolean industrial, String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Settings());
-			ItemConvertible sourceVariant = null;
+			item = new Item(new Item.Properties());
+			ItemLike sourceVariant = null;
 			if (source != null) {
 				sourceVariant = source;
 			}
@@ -1429,18 +1433,18 @@ public class TRContent {
 				tagNameBase = name;
 			}
 
-			tag = TagKey.of(RegistryKeys.ITEM, Identifier.of("c", "plates/" + tagNameBase));
+			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/" + tagNameBase));
 		}
 
 		Plates(String tagNameBase) {
 			this(null, null, false, tagNameBase);
 		}
 
-		Plates(ItemConvertible source, ItemConvertible sourceBlock) {
+		Plates(ItemLike source, ItemLike sourceBlock) {
 			this(source, sourceBlock, false, null);
 		}
 
-		Plates(ItemConvertible source) {
+		Plates(ItemLike source) {
 			this(source, null, false, null);
 		}
 
@@ -1465,11 +1469,11 @@ public class TRContent {
 			return item;
 		}
 
-		public ItemConvertible getSource() {
+		public ItemLike getSource() {
 			return source;
 		}
 
-		public ItemConvertible getSourceBlock() {
+		public ItemLike getSourceBlock() {
 			return sourceBlock;
 		}
 
@@ -1483,7 +1487,7 @@ public class TRContent {
 		}
 	}
 
-	public enum Upgrades implements ItemConvertible {
+	public enum Upgrades implements ItemLike {
 		OVERCLOCKER((blockEntity, handler, stack) -> {
 			PowerAcceptorBlockEntity powerAcceptor = null;
 			if (blockEntity instanceof PowerAcceptorBlockEntity) {
@@ -1544,16 +1548,12 @@ public class TRContent {
 		}
 	}
 
-	public static final EntityType<EntityNukePrimed> ENTITY_NUKE = FabricEntityTypeBuilder.create()
-		.entityFactory((EntityType.EntityFactory<EntityNukePrimed>) EntityNukePrimed::new)
-		.dimensions(EntityDimensions.fixed(1f, 1f))
-		.trackRangeChunks(10)
-		.build();
+	public static final EntityType<EntityNukePrimed> ENTITY_NUKE = EntityTypeBridge.createNukeType();
 
 	public static void register() {
 		ModRegistry.register();
 		TRItemGroup.register();
 
-		Registry.register(Registries.ENTITY_TYPE, Identifier.of(TechReborn.MOD_ID, "nuke"), ENTITY_NUKE);
+		Registry.register(BuiltInRegistries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuke"), ENTITY_NUKE);
 	}
 }

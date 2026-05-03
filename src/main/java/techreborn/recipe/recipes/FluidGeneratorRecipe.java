@@ -26,16 +26,6 @@ package techreborn.recipe.recipes;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.util.dynamic.Codecs;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.SizedIngredient;
 import techreborn.init.ModRecipes;
@@ -43,19 +33,29 @@ import techreborn.init.TRContent;
 
 import java.util.List;
 import java.util.function.Function;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.material.Fluid;
 
 public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) implements RebornRecipe {
 	public static Function<RecipeType<FluidGeneratorRecipe>, MapCodec<FluidGeneratorRecipe>> CODEC = type -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Codecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
-		Registries.FLUID.getEntryCodec().fieldOf("fluid").forGetter(FluidGeneratorRecipe::fluidRegistryEntry)
+		ExtraCodecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
+		BuiltInRegistries.FLUID.holderByNameCodec().fieldOf("fluid").forGetter(FluidGeneratorRecipe::fluidRegistryEntry)
 	).apply(instance, (power, fluid) -> new FluidGeneratorRecipe(type, power, fluid)));
-	public static Function<RecipeType<FluidGeneratorRecipe>, PacketCodec<RegistryByteBuf, FluidGeneratorRecipe>> PACKET_CODEC = type -> PacketCodec.tuple(
-		PacketCodecs.INTEGER, RebornRecipe::power,
-		PacketCodecs.registryEntry(RegistryKeys.FLUID), FluidGeneratorRecipe::fluidRegistryEntry,
+	public static Function<RecipeType<FluidGeneratorRecipe>, StreamCodec<RegistryFriendlyByteBuf, FluidGeneratorRecipe>> PACKET_CODEC = type -> StreamCodec.composite(
+		ByteBufCodecs.INT, RebornRecipe::power,
+		ByteBufCodecs.holderRegistry(Registries.FLUID), FluidGeneratorRecipe::fluidRegistryEntry,
 		(power, fluid) -> new FluidGeneratorRecipe(type, power, fluid)
 	);
 
-	public FluidGeneratorRecipe(RecipeType<?> type, int power, RegistryEntry<Fluid> fluid) {
+	public FluidGeneratorRecipe(RecipeType<?> type, int power, Holder<Fluid> fluid) {
 		this(type, power, fluid.value());
 	}
 
@@ -74,9 +74,8 @@ public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) i
 		return 0;
 	}
 
-	@Override
-	public ItemStack createIcon() {
-		final RecipeType<?> type =getType();
+	public ItemStack getToastSymbol() {
+		final RecipeType<?> type = getType();
 
 		if (type == ModRecipes.THERMAL_GENERATOR) {
 			return new ItemStack(TRContent.Machine.THERMAL_GENERATOR);
@@ -90,14 +89,14 @@ public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) i
 			return new ItemStack(TRContent.Machine.PLASMA_GENERATOR);
 		}
 
-		return RebornRecipe.super.createIcon();
+		return ItemStack.EMPTY;
 	}
 
 	public Fluid getFluid() {
 		return fluid;
 	}
 
-	public RegistryEntry<Fluid> fluidRegistryEntry() {
-		return getFluid().getRegistryEntry();
+	public Holder<Fluid> fluidRegistryEntry() {
+		return getFluid().builtInRegistryHolder();
 	}
 }

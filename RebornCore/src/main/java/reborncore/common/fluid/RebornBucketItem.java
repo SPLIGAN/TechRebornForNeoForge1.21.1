@@ -24,11 +24,21 @@
 
 package reborncore.common.fluid;
 
-import net.minecraft.item.BucketItem;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.BlockHitResult;
+import org.jetbrains.annotations.Nullable;
 
 public class RebornBucketItem extends BucketItem {
 
-	public RebornBucketItem(RebornFluid fluid, Settings settings) {
+	public RebornBucketItem(RebornFluid fluid, Properties settings) {
 		super(fluid, settings);
+	}
+
+	public boolean placeFluid(@Nullable Player player, Level world, BlockPos pos, @Nullable BlockHitResult hit) {
+		return emptyContents(player, world, pos, hit, new ItemStack(this));
 	}
 }

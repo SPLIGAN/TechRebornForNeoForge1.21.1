@@ -24,22 +24,22 @@
 
 package techreborn.blocks.storage.energy;
 
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.state.StateManager;
-import net.minecraft.state.property.DirectionProperty;
-import net.minecraft.state.property.Properties;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.BlockRotation;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import reborncore.api.ToolManager;
 import reborncore.api.blockentity.IMachineGuiHandler;
 import reborncore.common.BaseBlockEntityProvider;
@@ -54,89 +54,87 @@ import techreborn.init.TRBlockSettings;
  * Created by Rushmead
  */
 public abstract class EnergyStorageBlock extends BaseBlockEntityProvider {
-	public static final DirectionProperty FACING = Properties.FACING;
+	public static final DirectionProperty FACING = BlockStateProperties.FACING;
 	public final String name;
 	public final IMachineGuiHandler gui;
 
 	public EnergyStorageBlock(String name, IMachineGuiHandler gui) {
 		super(TRBlockSettings.energyStorage());
-		this.setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH));
+		registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
 		this.name = name;
 		this.gui = gui;
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);
 	}
 
-	public void setFacing(Direction facing, World world, BlockPos pos) {
-		world.setBlockState(pos, world.getBlockState(pos).with(FACING, facing));
+	public void setFacing(Direction facing, Level world, BlockPos pos) {
+		world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(FACING, facing));
 	}
 
 	public Direction getFacing(BlockState state) {
-		return state.get(FACING);
+		return state.getValue(FACING);
 	}
 
-	// BaseBlockEntityProvider
 	@Override
-	public void onPlaced(World worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
-		super.onPlaced(worldIn, pos, state, placer, stack);
-		Direction facing = placer.getHorizontalFacing().getOpposite();
-		if (placer.getPitch() < -50) {
+	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+		super.setPlacedBy(worldIn, pos, state, placer, stack);
+		Direction facing = placer.getDirection().getOpposite();
+		if (placer.getXRot() < -50) {
 			facing = Direction.DOWN;
-		} else if (placer.getPitch() > 50) {
+		} else if (placer.getXRot() > 50) {
 			facing = Direction.UP;
 		}
 		setFacing(facing, worldIn, pos);
 	}
 
-	// Block
 	@Override
-	protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
+	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING);
 	}
 
 	@Override
-	public ActionResult onUse(BlockState state, World worldIn, BlockPos pos, PlayerEntity playerIn, BlockHitResult hitResult) {
-		ItemStack stack = playerIn.getStackInHand(Hand.MAIN_HAND);
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
+		ItemStack stack = playerIn.getItemInHand(InteractionHand.MAIN_HAND);
 		BlockEntity blockEntity = worldIn.getBlockEntity(pos);
 
 		// We extended BlockTileBase. Thus, we should always have blockEntity entity. I hope.
 		if (blockEntity == null) {
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		}
 
 		if (!stack.isEmpty() && ToolManager.INSTANCE.canHandleTool(stack)) {
-			if (WrenchUtils.handleWrench(stack, worldIn, pos, playerIn, hitResult.getSide())) {
-				return ActionResult.SUCCESS;
+			if (WrenchUtils.handleWrench(stack, worldIn, pos, playerIn, hitResult.getDirection())) {
+				return InteractionResult.SUCCESS;
 			}
 		}
 
-		if (!playerIn.isSneaking() && gui != null) {
+		if (!playerIn.isShiftKeyDown() && gui != null) {
 			gui.open(playerIn, pos, worldIn);
-			return ActionResult.SUCCESS;
+			return InteractionResult.SUCCESS;
 		}
 
-		return super.onUse(state, worldIn, pos, playerIn, hitResult);
+		return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 	}
 
 	@Override
-	public void onStateReplaced(BlockState state, World worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
+	protected void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
 		if (state.getBlock() != newState.getBlock()) {
 			ItemHandlerUtils.dropContainedItems(worldIn, pos);
-			super.onStateReplaced(state, worldIn, pos, newState, isMoving);
+			super.onRemove(state, worldIn, pos, newState, isMoving);
 		}
 	}
 
 	@Override
-	public boolean hasComparatorOutput(BlockState state) {
+	public boolean hasAnalogOutputSignal(BlockState state) {
 		return true;
 	}
 
 	@Override
-	public int getComparatorOutput(BlockState state, World world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
 		return PowerAcceptorBlockEntity.calculateComparatorOutputFromEnergy(world.getBlockEntity(pos));
 	}
 
 	@Override
-	public BlockState rotate(BlockState state, BlockRotation rotation) {
-		return state.with(FACING, rotation.rotate(state.get(FACING)));
+	public BlockState rotate(BlockState state, Rotation rotation) {
+		return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
 	}
 }

@@ -29,9 +29,9 @@ import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.CollectionUtils;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeHolder;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.fluid.container.FluidInstance;
 import techreborn.recipe.recipes.FluidReplicatorRecipe;
@@ -47,14 +47,14 @@ import java.util.Optional;
 public class FluidReplicatorRecipeDisplay implements Display {
 
 	private final FluidReplicatorRecipe recipe;
-	private final Identifier recipeId;
+	private final ResourceLocation recipeId;
 	private final List<EntryIngredient> inputs;
 	private final List<EntryIngredient> output;
 	private final FluidInstance fluidInstance;
 	private final int energy;
 	private final int time;
 
-	public FluidReplicatorRecipeDisplay(RecipeEntry<RebornRecipe> recipe) {
+	public FluidReplicatorRecipeDisplay(RecipeHolder<RebornRecipe> recipe) {
 		this.recipe = (FluidReplicatorRecipe) recipe.value();
 		this.recipeId = recipe.id();
 		this.inputs = CollectionUtils.map(this.recipe.ingredients(), ing -> EntryIngredients.ofItemStacks(ing.getPreviewStacks()));
@@ -88,11 +88,11 @@ public class FluidReplicatorRecipeDisplay implements Display {
 
 	@Override
 	public CategoryIdentifier<?> getCategoryIdentifier() {
-		return CategoryIdentifier.of(Objects.requireNonNull(Registries.RECIPE_TYPE.getId(recipe.getType())));
+		return CategoryIdentifier.of(Objects.requireNonNull(BuiltInRegistries.RECIPE_TYPE.getKey(recipe.getType())));
 	}
 
 	@Override
-	public Optional<Identifier> getDisplayLocation() {
+	public Optional<ResourceLocation> getDisplayLocation() {
 		return Optional.of(recipeId);
 	}
 }

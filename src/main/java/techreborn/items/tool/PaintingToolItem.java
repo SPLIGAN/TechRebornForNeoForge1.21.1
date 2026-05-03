@@ -24,20 +24,6 @@
 
 package techreborn.items.tool;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUsageContext;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import techreborn.blockentity.cable.CableBlockEntity;
 import techreborn.blocks.cable.CableBlock;
@@ -45,62 +31,76 @@ import techreborn.component.TRDataComponentTypes;
 import techreborn.init.TRContent;
 
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class PaintingToolItem extends Item {
 
 	public PaintingToolItem() {
-		super(new Item.Settings().maxDamage(64));
+		super(new Item.Properties().durability(64));
 	}
 
-	public ActionResult useOnBlock(ItemUsageContext context) {
-		PlayerEntity player = context.getPlayer();
+	public InteractionResult useOn(UseOnContext context) {
+		Player player = context.getPlayer();
 		if (player == null) {
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		}
 
-		BlockState blockState = context.getWorld().getBlockState(context.getBlockPos());
-		if (player.isSneaking()) {
-			boolean opaqueFullCube = blockState.isOpaqueFullCube(context.getWorld(), context.getBlockPos())
-				&& blockState.getBlock().getDefaultState().isOpaqueFullCube(context.getWorld(), context.getBlockPos());
+		BlockState blockState = context.getLevel().getBlockState(context.getClickedPos());
+		if (player.isShiftKeyDown()) {
+			boolean opaqueFullCube = blockState.isSolidRender(context.getLevel(), context.getClickedPos())
+				&& blockState.getBlock().defaultBlockState().isSolidRender(context.getLevel(), context.getClickedPos());
 
-			if (opaqueFullCube || blockState.isIn(TRContent.BlockTags.NONE_SOLID_COVERS)) {
-				context.getStack().set(TRDataComponentTypes.PAINTING_COVER, blockState);
-				context.getStack().set(TRDataComponentTypes.PAINTING_COVER, blockState);
-				return ActionResult.SUCCESS;
+			if (opaqueFullCube || blockState.is(TRContent.BlockTags.NONE_SOLID_COVERS)) {
+				context.getItemInHand().set(TRDataComponentTypes.PAINTING_COVER, blockState);
+				context.getItemInHand().set(TRDataComponentTypes.PAINTING_COVER, blockState);
+				return InteractionResult.SUCCESS;
 			}
-			return ActionResult.FAIL;
+			return InteractionResult.FAIL;
 		} else {
-			BlockState cover = getCover(context.getStack());
-			if (cover != null && blockState.getBlock() instanceof CableBlock && blockState.get(CableBlock.COVERED)) {
-				BlockEntity blockEntity = context.getWorld().getBlockEntity(context.getBlockPos());
+			BlockState cover = getCover(context.getItemInHand());
+			if (cover != null && blockState.getBlock() instanceof CableBlock && blockState.getValue(CableBlock.COVERED)) {
+				BlockEntity blockEntity = context.getLevel().getBlockEntity(context.getClickedPos());
 				if (blockEntity == null) {
-					return ActionResult.FAIL;
+					return InteractionResult.FAIL;
 				}
 				((CableBlockEntity) blockEntity).setCover(cover);
 
-				context.getWorld().playSound(player, context.getBlockPos(), SoundEvents.BLOCK_WOOL_PLACE, SoundCategory.BLOCKS, 0.6F, 1.0F);
-				if (!context.getWorld().isClient) {
-					context.getStack().damage(1, player, context.getHand() == Hand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+				context.getLevel().playSound(player, context.getClickedPos(), SoundEvents.WOOL_PLACE, SoundSource.BLOCKS, 0.6F, 1.0F);
+				if (!context.getLevel().isClientSide) {
+					context.getItemInHand().hurtAndBreak(1, player, context.getHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
 				}
 
-				return ActionResult.SUCCESS;
+				return InteractionResult.SUCCESS;
 			}
 		}
 
-		return ActionResult.FAIL;
+		return InteractionResult.FAIL;
 	}
 
 	public static BlockState getCover(ItemStack stack) {
 		return stack.getOrDefault(TRDataComponentTypes.PAINTING_COVER, null);
 	}
 
-	public void appendTooltip(ItemStack stack, @Nullable World world, List<Text> tooltip, TooltipContext context) {
+	public void appendTooltip(ItemStack stack, @Nullable Level world, List<Component> tooltip, TooltipContext context) {
 		BlockState blockState = getCover(stack);
 		if (blockState != null) {
-			tooltip.add((Text.translatable(blockState.getBlock().getTranslationKey())).formatted(Formatting.GRAY));
-			tooltip.add((Text.translatable("techreborn.tooltip.painting_tool.apply")).formatted(Formatting.GOLD));
+			tooltip.add((Component.translatable(blockState.getBlock().getDescriptionId())).withStyle(ChatFormatting.GRAY));
+			tooltip.add((Component.translatable("techreborn.tooltip.painting_tool.apply")).withStyle(ChatFormatting.GOLD));
 		} else {
-			tooltip.add((Text.translatable("techreborn.tooltip.painting_tool.select")).formatted(Formatting.GOLD));
+			tooltip.add((Component.translatable("techreborn.tooltip.painting_tool.select")).withStyle(ChatFormatting.GOLD));
 		}
 	}
 

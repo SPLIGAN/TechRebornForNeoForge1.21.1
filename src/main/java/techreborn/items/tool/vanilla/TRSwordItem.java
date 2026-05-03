@@ -24,9 +24,9 @@
 
 package techreborn.items.tool.vanilla;
 
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.SwordItem;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.SwordItem;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRToolTier;
 
@@ -39,15 +39,15 @@ public class TRSwordItem extends SwordItem {
 	}
 
 	public TRSwordItem(TRToolTier material, String repairOreDict) {
-		super(material, new Item.Settings().attributeModifiers(material.createAttributeModifiers(TRToolTier.ToolType.SWORD)));
+		super(material, new Item.Properties().attributes(material.createAttributeModifiers(TRToolTier.ToolType.SWORD)));
 		this.repairOreDict = repairOreDict;
 	}
 
 	@Override
-	public boolean canRepair(ItemStack toRepair, ItemStack repair) {
+	public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
 		if (toRepair.getItem() == this && !repairOreDict.isEmpty()) {
 			return ItemUtils.isInputEqual(repairOreDict, repair, false, true);
 		}
-		return super.canRepair(toRepair, repair);
+		return super.isValidRepairItem(toRepair, repair);
 	}
 }

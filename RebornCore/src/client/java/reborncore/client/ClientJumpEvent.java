@@ -24,11 +24,11 @@
 
 package reborncore.client;
 
-import net.fabricmc.fabric.api.event.Event;
-import net.fabricmc.fabric.api.event.EventFactory;
+import reborncore.api.events.internal.RcEvent;
+import reborncore.api.events.internal.RcEventFactory;
 
 public interface ClientJumpEvent {
-	Event<ClientJumpEvent> EVENT = EventFactory.createArrayBacked(ClientJumpEvent.class, (listeners) -> () -> {
+	RcEvent<ClientJumpEvent> EVENT = RcEventFactory.createArrayBacked(ClientJumpEvent.class, (listeners) -> () -> {
 		for (ClientJumpEvent callback : listeners) {
 			callback.jump();
 		}

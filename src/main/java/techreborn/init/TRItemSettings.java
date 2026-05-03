@@ -24,12 +24,12 @@
 
 package techreborn.init;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.UnbreakableComponent;
-import net.minecraft.item.Item;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.Unbreakable;
 
 public class TRItemSettings {
-	public static Item.Settings unbreakable() {
-		return new Item.Settings().component(DataComponentTypes.UNBREAKABLE, new UnbreakableComponent(false));
+	public static Item.Properties unbreakable() {
+		return new Item.Properties().component(DataComponents.UNBREAKABLE, new Unbreakable(false));
 	}
 }

@@ -24,17 +24,16 @@
 
 package techreborn.client.render.entitys;
 
-import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.block.BlockRenderManager;
-import net.minecraft.client.render.entity.EntityRenderer;
-import net.minecraft.client.render.entity.EntityRendererFactory;
-import net.minecraft.client.render.entity.TntMinecartEntityRenderer;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.RotationAxis;
-import org.jetbrains.annotations.Nullable;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.math.Axis;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.TntMinecartRenderer;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
 import techreborn.entities.EntityNukePrimed;
 import techreborn.init.TRContent;
 
@@ -42,37 +41,36 @@ import techreborn.init.TRContent;
  * Created by Mark on 13/03/2016.
  */
 public class NukeRenderer extends EntityRenderer<EntityNukePrimed> {
-	private final BlockRenderManager blockRenderManager;
+	private final BlockRenderDispatcher blockRenderManager;
 
-	public NukeRenderer(EntityRendererFactory.Context ctx) {
+	public NukeRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
 		this.shadowRadius = 0.5F;
-		this.blockRenderManager = ctx.getBlockRenderManager();
-	}
-
-	@Nullable
-	@Override
-	public Identifier getTexture(EntityNukePrimed entityNukePrimed) {
-		return PlayerScreenHandler.BLOCK_ATLAS_TEXTURE;
+		this.blockRenderManager = ctx.getBlockRenderDispatcher();
 	}
 
 	@Override
-	public void render(EntityNukePrimed entity, float f, float g, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
-		matrixStack.push();
+	public ResourceLocation getTextureLocation(EntityNukePrimed entityNukePrimed) {
+		return TextureAtlas.LOCATION_BLOCKS;
+	}
+
+	@Override
+	public void render(EntityNukePrimed entity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i) {
+		matrixStack.pushPose();
 		matrixStack.translate(1D, 0.5D, 0);
 		if ((float) entity.getFuse() - g + 1.0F < 10.0F) {
 			float h = 1.0F - ((float) entity.getFuse() - g + 1.0F) / 10.0F;
-			h = MathHelper.clamp(h, 0.0F, 1.0F);
+			h = Mth.clamp(h, 0.0F, 1.0F);
 			h *= h;
 			h *= h;
 			float j = 1.0F + h * 0.3F;
 			matrixStack.scale(j, j, j);
 		}
 
-		matrixStack.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-90.0F));
+		matrixStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
 		matrixStack.translate(-0.5D, -0.5D, 0.5D);
-		TntMinecartEntityRenderer.renderFlashingBlock(blockRenderManager, TRContent.NUKE.getDefaultState(), matrixStack, vertexConsumerProvider, i, entity.getFuse() / 5 % 2 == 0);
-		matrixStack.pop();
+		TntMinecartRenderer.renderWhiteSolidBlock(blockRenderManager, TRContent.NUKE.defaultBlockState(), matrixStack, vertexConsumerProvider, i, entity.getFuse() / 5 % 2 == 0);
+		matrixStack.popPose();
 		super.render(entity, f, g, matrixStack, vertexConsumerProvider, i);
 	}
 }

@@ -1,0 +1,7 @@
+{
+	"java.import.gradle.enabled": true,
+	"java.import.gradle.wrapper.enabled": true,
+	"java.import.gradle.version": "wrapper",
+	"java.configuration.updateBuildConfiguration": "automatic",
+	"java.server.launchMode": "Standard"
+}

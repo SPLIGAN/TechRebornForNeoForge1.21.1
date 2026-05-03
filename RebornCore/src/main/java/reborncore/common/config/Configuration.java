@@ -28,8 +28,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import net.fabricmc.loader.api.FabricLoader;
 import org.apache.commons.io.FileUtils;
+import reborncore.common.util.LoaderBridge;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,17 +43,17 @@ public class Configuration {
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
-	private final Class clazz;
+	private final Class<?> clazz;
 	private final String modId;
 
-	public Configuration(Class clazz, String modId) {
+	public Configuration(Class<?> clazz, String modId) {
 		this.clazz = clazz;
 		this.modId = modId;
 		setup();
 	}
 
 	private void setup() {
-		final File configDir = new File(FabricLoader.getInstance().getConfigDir().toFile(), modId);
+		final File configDir = new File(LoaderBridge.getConfigDir().toFile(), modId);
 
 		if (!configDir.exists()) {
 			configDir.mkdirs();

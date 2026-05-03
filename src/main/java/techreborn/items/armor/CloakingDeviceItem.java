@@ -24,8 +24,8 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.api.items.ArmorRemoveHandler;
 import reborncore.common.powerSystem.RcEnergyTier;
@@ -44,7 +44,7 @@ public class CloakingDeviceItem extends TREnergyArmourItem implements ArmorBlock
 
 	// ArmorBlockEntityTicker
 	@Override
-	public void tickArmor(ItemStack stack, boolean hasFullSuit, PlayerEntity playerEntity) {
+	public void tickArmor(ItemStack stack, boolean hasFullSuit, Player playerEntity) {
 		if (tryUseEnergy(stack, TechRebornConfig.cloakingDeviceCost)) {
 			playerEntity.setInvisible(true);
 		} else {
@@ -56,7 +56,7 @@ public class CloakingDeviceItem extends TREnergyArmourItem implements ArmorBlock
 
 	// ArmorRemoveHandler
 	@Override
-	public void onRemoved(PlayerEntity playerEntity) {
+	public void onRemoved(Player playerEntity) {
 		if (playerEntity.isInvisible()) {
 			playerEntity.setInvisible(false);
 		}

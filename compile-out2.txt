@@ -1,0 +1,1103 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :migration-tool
+Fabric Loom: 1.10.1
+
+> Task :RebornCore:neoFormListLibraries UP-TO-DATE
+> Task :RebornCore:cacheVersionManifest1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExecutableClient1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExecutableServer1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExtractedServer1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionMappingsClient1.21.1 UP-TO-DATE
+> Task :RebornCore:create1.21.1ClientExtraJar UP-TO-DATE
+> Task :RebornCore:selectRawArtifactNg_dummy_ng.net.minecraft_client_1.21.1_client-extra UP-TO-DATE
+> Task :RebornCore:neoFormListTransformLibraries UP-TO-DATE
+> Task :RebornCore:neoFormStripClient UP-TO-DATE
+> Task :RebornCore:neoFormStripServer UP-TO-DATE
+> Task :RebornCore:neoFormMerge UP-TO-DATE
+> Task :RebornCore:neoFormMergeMappings UP-TO-DATE
+> Task :RebornCore:neoFormRename UP-TO-DATE
+> Task :RebornCore:neoFormDecompile UP-TO-DATE
+> Task :RebornCore:neoFormInject UP-TO-DATE
+> Task :RebornCore:neoFormPatch UP-TO-DATE
+> Task :RebornCore:neoFormPatchUserDev UP-TO-DATE
+> Task :RebornCore:neoFormTransformSource UP-TO-DATE
+> Task :RebornCore:neoFormRecompile UP-TO-DATE
+> Task :RebornCore:supplyRawJarForneoFormJoined1.21.1-20240808.144430 UP-TO-DATE
+> Task :RebornCore:selectRawArtifactNg_dummy_ng.net.neoforged_neoforge_21.1.216 UP-TO-DATE
+> Task :RebornCore:compileJava UP-TO-DATE
+> Task :RebornCore:processResources UP-TO-DATE
+> Task :RebornCore:classes UP-TO-DATE
+> Task :RebornCore:jar UP-TO-DATE
+
+> Task :compileJava
+.\gradlew : C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\template\TechRe
+bornTemplates.java:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+発生場所 C:\Users\SPLIGAN\AppData\Local\Temp\ps-script-c2b9ad7d-0261-467f-9e9d-6050295f4ea6.ps1:73 文字:79
++ ... rge1.21.1"; .\gradlew compileJava --no-daemon --console=plain 2>&1 |  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\SPLIGA...Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+								.requires(source -> source.hasPermissionLevel(3))
+								                          ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ hasPermissionLevel(int)
+  蝣ｴ謇: 繧ｿ繧､繝佑ommandSourceStack縺ｮ螟画焚 source
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRDispenserBehavior.java:13
+3: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+					if (bucket.placeFluid(null, pointer.level(), blockPos, null)) {
+					          ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ placeFluid(<null>,ServerLevel,BlockPos,<null>)
+  蝣ｴ謇: 繧ｿ繧､繝由ebornBucketItem縺ｮ螟画焚 bucket
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRItemGroup.java:66: 繧ｨ繝ｩ繝ｼ
+: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			.displayName(Component.translatable("itemGroup.techreborn.item_group"))
+			^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ displayName(MutableComponent)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ Builder
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRVillager.java:146: 繧ｨ繝ｩ繝ｼ
+: templates縺ｯStructureTemplatePool縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・						pool.templates.add(StructurePoolElement.single(TechRebo
+rn.MOD_ID + ":village/" + type + "/houses/" + type + "_metallurgist").apply(StructureTemplatePool.Projection.RIGID));
+						    ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRVillager.java:149: 繧ｨ繝ｩ繝ｼ
+: templates縺ｯStructureTemplatePool縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・						pool.templates.add(StructurePoolElement.single(TechRebo
+rn.MOD_ID + ":village/" + type + "/houses/" + type + "_electrician").apply(StructureTemplatePool.Projection.RIGID));
+						    ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\JackhammerItem.java:1
+23: 繧ｨ繝ｩ繝ｼ: JackhammerItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\basic\RockCutterItem.
+java:125: 繧ｨ繝ｩ繝ｼ: RockCutterItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\ChainsawItem.java:113
+: 繧ｨ繝ｩ繝ｼ: ChainsawItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\DrillItem.java:105: 繧
+ｨ繝ｩ繝ｼ: DrillItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\NanosaberI
+tem.java:136: 繧ｨ繝ｩ繝ｼ: NanosaberItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\OmniToolIt
+em.java:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			return getTier().getSpeed();
+			                ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getSpeed()
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ RcEnergyTier
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\OmniToolIt
+em.java:145: 繧ｨ繝ｩ繝ｼ: OmniToolItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+	public RcEnergyTier getTier() {
+	                    ^
+  謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\ClientboundPacketHandle
+rs.java:40: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			MinecraftClient.getInstance().setScreen(new GuiManual())
+			^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 MinecraftClient
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ClientboundPacketHandlers
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\ClientGuiType.java:140:
+ 繧ｨ繝ｩ繝ｼ: <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｯMenuScreens縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・		MenuScreens.
+register(guiType.getScreenHandlerType(), guiFactory);
+		           ^
+  M,U縺悟梛螟画焚縺ｮ蝣ｴ蜷・
+    繝｡繧ｽ繝・ラ <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｧ螳｣險縺輔ｌ縺ｦ縺・ｋM extends AbstractContainerMenu
+    繝｡繧ｽ繝・ラ <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｧ螳｣險縺輔ｌ縺ｦ縺・ｋU extends Screen,MenuAccess<M>
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\GuiFactory.java:43: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		return create(builtScreenHandler.syncId, playerEntity, blockEntity);
+		                                ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 syncId
+  蝣ｴ謇: 繧ｿ繧､繝唯uiltScreenHandler縺ｮ螟画焚 builtScreenHandler
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\events\StackToolTipHand
+ler.java:99: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			BlockEntity blockEntity = cable.createBlockEntity(BlockPos.ZERO, block.defaultBlockState());
+			                               ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ createBlockEntity(BlockPos,BlockState)
+  蝣ｴ謇: 繧ｿ繧､繝佑ableBlock縺ｮ螟画焚 cable
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+		                                              ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+		                                                   ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+		                                                   ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+		                                                   ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:58: 繧ｨ
+繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:60: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:69: 繧ｨ
+繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:71: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:92: 繧ｨ
+繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		ClientNetworkingBridge.sendToServer(new AESUConfigPayload(blockEntity.getPos(), amount, hasShiftDown(), hasControlDow
+n()));
+		                                                                     ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+  蝣ｴ謇: 繧ｿ繧､繝輸djustableSUBlockEntity縺ｮ螟画焚 blockEntity
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.jav
+a:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.jav
+a:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, lastFrameDuration, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.jav
+a:57: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.jav
+a:59: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.jav
+a:44: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.jav
+a:46: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.jav
+a:56: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.jav
+a:58: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMachin
+e.java:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMachin
+e.java:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, partialTicks, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMachin
+e.java:58: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMachin
+e.java:60: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.jav
+a:52: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.jav
+a:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.jav
+a:61: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.jav
+a:63: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.jav
+a:88: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			ClientNetworkingBridge.sendToServer(new AutoCraftingLockPayload(blockEntityAutoCraftingTable.getPos(), !blockEntityA
+utoCraftingTable.locked));
+			                                                                                            ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+  蝣ｴ謇: 繧ｿ繧､繝輸utoCraftingTableBlockEntity縺ｮ螟画焚 blockEntityAutoCraftingTable
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:45: 
+繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:47: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:54: 
+繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:56: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.jav
+a:51: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.jav
+a:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.jav
+a:69: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.jav
+a:71: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.jav
+a:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.jav
+a:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.jav
+a:59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.jav
+a:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.java
+:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.java
+:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.java
+:59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.java
+:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.java:
+43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.java:
+45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.java:
+59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.java:
+61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.java
+:42: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.java
+:44: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.java
+:55: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.java
+:57: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReactor.
+java:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReactor.
+java:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReactor.
+java:55: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReactor.
+java:57: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawForeground(drawContext, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+		                                             ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+		                                                  ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+		                                                  ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+		                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+		                                                  ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+		^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			.position(x + 10, y + 70)
+			          ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			.position(x + 10, y + 70)
+			                  ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:59: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				ClientChunkManager.toggleLoadedChunks(blockEntity.getPos());
+				                                                 ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+  蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:75: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:77: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, partialTicks, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:89: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getPos(), amount, ClientChunkManager.hasChunks
+ForLoader(blockEntity.getPos())));
+		                                                                      ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+  蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.java
+:89: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getPos(), amount, ClientChunkManager.hasChunks
+ForLoader(blockEntity.getPos())));
+		                                                                                                                     
+                     ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+  蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.java:
+43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.java:
+45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		super.drawBackground(drawContext, f, mouseX, mouseY);
+		     ^
+  繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.java:
+54: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+繝弱・繝・ 荳驛ｨ縺ｮ蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｪ縺БPI繧剃ｽｿ逕ｨ縺ｾ縺溘・繧ｪ繝ｼ繝舌・繝ｩ繧､繝峨＠縺ｦ縺・∪縺吶・
+繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:deprecation繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+繝弱・繝・ 蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｮ謫堺ｽ懊・縺・■縲∵悴繝√ぉ繝・け縺ｾ縺溘・螳牙・縺ｧ縺ｯ縺ｪ縺・ｂ縺ｮ縺後≠繧翫∪縺吶・
+繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:unchecked繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+繝弱・繝・ 荳驛ｨ縺ｮ繝｡繝・そ繝ｼ繧ｸ縺ｯ邁｡逡･蛹悶＆繧後※縺・∪縺吶・Xdiags:verbose縺ｧ蜀阪さ繝ｳ繝代う繝ｫ縺励※螳悟・縺ｪ蜃ｺ蜉帙ｒ蜿門ｾ励＠縺ｦ縺上□縺輔＞
+繧ｨ繝ｩ繝ｼ100蛟・
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/SPLIGAN/Documents/GitHub/TechRebornForNeoForge1.21.1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:60: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:71: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.j
+ava:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, lastFrameDuration, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.j
+ava:59: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.j
+ava:46: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.j
+ava:58: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMach
+ine.java:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, partialTicks, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMach
+ine.java:60: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.j
+ava:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.j
+ava:63: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:47
+: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:56
+: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.j
+ava:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.j
+ava:71: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.j
+ava:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.j
+ava:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.ja
+va:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.ja
+va:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.jav
+a:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.jav
+a:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.ja
+va:44: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.ja
+va:57: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReacto
+r.java:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReacto
+r.java:57: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawForeground(drawContext, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawForeground(GuiGraphics,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:77: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, partialTicks, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.jav
+a:45: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		super.drawBackground(drawContext, f, mouseX, mouseY);
+  		     ^
+    繧ｷ繝ｳ繝懊Ν: 繝｡繧ｽ繝・ラ drawBackground(GuiGraphics,float,int,int)
+  繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:deprecation繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\JackhammerItem.java
+:123: 繧ｨ繝ｩ繝ｼ: JackhammerItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\basic\RockCutterIte
+m.java:125: 繧ｨ繝ｩ繝ｼ: RockCutterItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\ChainsawItem.java:1
+13: 繧ｨ繝ｩ繝ｼ: ChainsawItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\DrillItem.java:105:
+ 繧ｨ繝ｩ繝ｼ: DrillItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\Nanosabe
+rItem.java:136: 繧ｨ繝ｩ繝ｼ: NanosaberItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\OmniTool
+Item.java:145: 繧ｨ繝ｩ繝ｼ: OmniToolItem縺ｮgetTier()縺ｯTieredItem縺ｮgetTier()繧偵が繝ｼ繝舌・繝ｩ繧､繝峨〒縺阪∪縺帙ｓ
+  	public RcEnergyTier getTier() {
+  	                    ^
+    謌ｻ繧雁､縺ｮ蝙騎cEnergyTier縺ｯTier縺ｨ莠呈鋤諤ｧ縺後≠繧翫∪縺帙ｓ
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\ClientboundPacketHand
+lers.java:40: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			MinecraftClient.getInstance().setScreen(new GuiManual())
+  			^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 MinecraftClient
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ClientboundPacketHandlers
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\GuiFactory.java:43: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		return create(builtScreenHandler.syncId, playerEntity, blockEntity);
+  		                                ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 syncId
+    蝣ｴ謇: 繧ｿ繧､繝唯uiltScreenHandler縺ｮ螟画焚 builtScreenHandler
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+  		                                              ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+  		                                                   ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+  		                                                   ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+  		                                                   ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+  		                                             ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+  		                                                  ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+  		                                                  ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+  		                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+  		                                                  ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			.position(x + 10, y + 70)
+  			          ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 x
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			.position(x + 10, y + 70)
+  			                  ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 y
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRVillager.java:146: 繧ｨ繝ｩ
+繝ｼ: templates縺ｯStructureTemplatePool縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・  						pool.templates.add(StructurePoolElement.single(Tech
+Reborn.MOD_ID + ":village/" + type + "/houses/" + type + "_metallurgist").apply(StructureTemplatePool.Projection.RIGID)
+);
+  						    ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRVillager.java:149: 繧ｨ繝ｩ
+繝ｼ: templates縺ｯStructureTemplatePool縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・  						pool.templates.add(StructurePoolElement.single(Tech
+Reborn.MOD_ID + ":village/" + type + "/houses/" + type + "_electrician").apply(StructureTemplatePool.Projection.RIGID))
+;
+  						    ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\ClientGuiType.java:14
+0: 繧ｨ繝ｩ繝ｼ: <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｯMenuScreens縺ｧprivate繧｢繧ｯ繧ｻ繧ｹ縺輔ｌ縺ｾ縺・  		MenuScre
+ens.register(guiType.getScreenHandlerType(), guiFactory);
+  		           ^
+    M,U縺悟梛螟画焚縺ｮ蝣ｴ蜷・
+      繝｡繧ｽ繝・ラ <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｧ螳｣險縺輔ｌ縺ｦ縺・ｋM extends AbstractContainerMenu
+      繝｡繧ｽ繝・ラ <M,U>register(MenuType<? extends M>,ScreenConstructor<M,U>)縺ｧ螳｣險縺輔ｌ縺ｦ縺・ｋU extends Screen,MenuAccess<M>
+  繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:unchecked繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+  繝弱・繝・ 荳驛ｨ縺ｮ蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｪ縺БPI繧剃ｽｿ逕ｨ縺ｾ縺溘・繧ｪ繝ｼ繝舌・繝ｩ繧､繝峨＠縺ｦ縺・∪縺吶・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:58: 
+繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:69: 
+繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.j
+ava:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloyFurnace.j
+ava:57: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.j
+ava:44: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAlloySmelter.j
+ava:56: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMach
+ine.java:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAssemblingMach
+ine.java:58: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.j
+ava:52: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.j
+ava:61: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:45
+: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBatbox.java:54
+: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.j
+ava:51: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlastFurnace.j
+ava:69: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.j
+ava:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockBreaker.j
+ava:59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.ja
+va:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiBlockPlacer.ja
+va:59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.jav
+a:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCentrifuge.jav
+a:59: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.ja
+va:42: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChargeBench.ja
+va:55: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReacto
+r.java:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChemicalReacto
+r.java:55: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:75: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.jav
+a:43: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiCompressor.jav
+a:54: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  繝弱・繝・ 荳驛ｨ縺ｮ繝｡繝・そ繝ｼ繧ｸ縺ｯ邁｡逡･蛹悶＆繧後※縺・∪縺吶・Xdiags:verbose縺ｧ蜀阪さ繝ｳ繝代う繝ｫ縺励※螳悟・縺ｪ蜃ｺ蜉帙ｒ蜿門ｾ励＠縺ｦ縺上□縺輔＞
+  繝弱・繝・ 蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｮ謫堺ｽ懊・縺・■縲∵悴繝√ぉ繝・け縺ｾ縺溘・螳牙・縺ｧ縺ｯ縺ｪ縺・ｂ縺ｮ縺後≠繧翫∪縺吶・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\template\TechRebornTempla
+tes.java:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  								.requires(source -> source.hasPermissionLevel(3))
+  								                          ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ hasPermissionLevel(int)
+    蝣ｴ謇: 繧ｿ繧､繝佑ommandSourceStack縺ｮ螟画焚 source
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRDispenserBehavior.java:
+133: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  					if (bucket.placeFluid(null, pointer.level(), blockPos, null)) {
+  					          ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ placeFluid(<null>,ServerLevel,BlockPos,<null>)
+    蝣ｴ謇: 繧ｿ繧､繝由ebornBucketItem縺ｮ螟画焚 bucket
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\init\TRItemGroup.java:66: 繧ｨ繝ｩ
+繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			.displayName(Component.translatable("itemGroup.techreborn.item_group"))
+  			^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ displayName(MutableComponent)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ Builder
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\main\java\techreborn\items\tool\industrial\OmniTool
+Item.java:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			return getTier().getSpeed();
+  			                ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getSpeed()
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ RcEnergyTier
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\events\StackToolTipHa
+ndler.java:99: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			BlockEntity blockEntity = cable.createBlockEntity(BlockPos.ZERO, block.defaultBlockState());
+  			                               ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ createBlockEntity(BlockPos,BlockState)
+    蝣ｴ謇: 繧ｿ繧､繝佑ableBlock縺ｮ螟画焚 cable
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:52: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121, y + 79, this, b -> onClick(256), UpDownButtonType.FASTFORWARD));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:53: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 12, y + 79, this, b -> onClick(64), UpDownButtonType.FORWARD));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:54: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 24, y + 79, this, b -> onClick(-64), UpDownButtonType.REWIND));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:55: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 121 + 36, y + 79, this, b -> onClick(-256), UpDownButtonType.FASTREWIND));
+26 actionable tasks: 1 executed, 25 up-to-date
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiAESU
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAESU.java:92: 
+繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		ClientNetworkingBridge.sendToServer(new AESUConfigPayload(blockEntity.getPos(), amount, hasShiftDown(), hasControlD
+own()));
+  		                                                                     ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+    蝣ｴ謇: 繧ｿ繧､繝輸djustableSUBlockEntity縺ｮ螟画焚 blockEntity
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiAutoCrafting.j
+ava:88: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			ClientNetworkingBridge.sendToServer(new AutoCraftingLockPayload(blockEntityAutoCraftingTable.getPos(), !blockEntit
+yAutoCraftingTable.locked));
+  			                                                                                            ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+    蝣ｴ謇: 繧ｿ繧､繝輸utoCraftingTableBlockEntity縺ｮ螟画焚 blockEntityAutoCraftingTable
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:51: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64, y + 40, this, b -> onClick(5), UpDownButtonType.FASTFORWARD));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:52: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 12, y + 40, this, b -> onClick(1), UpDownButtonType.FORWARD));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:53: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 24, y + 40, this, b -> onClick(-1), UpDownButtonType.REWIND));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		addDrawableChild(new GuiButtonUpDown(x + 64 + 36, y + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
+  		^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ addDrawableChild(GuiButtonUpDown)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiChunkLoader
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:59: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				ClientChunkManager.toggleLoadedChunks(blockEntity.getPos());
+  				                                                 ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+    蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:89: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getPos(), amount, ClientChunkManager.hasChun
+ksForLoader(blockEntity.getPos())));
+  		                                                                      ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+    蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:89: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getPos(), amount, ClientChunkManager.hasChun
+ksForLoader(blockEntity.getPos())));
+  		                                                                                                                   
+                       ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getPos()
+    蝣ｴ謇: 繧ｿ繧､繝佑hunkLoaderBlockEntity縺ｮ螟画焚 blockEntity
+  繧ｨ繝ｩ繝ｼ100蛟・
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 16s

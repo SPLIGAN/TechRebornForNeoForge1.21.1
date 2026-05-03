@@ -24,10 +24,10 @@
 
 package reborncore.common.misc;
 
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.Registry;
-import net.minecraft.sound.SoundEvent;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
  * @author drcrazy
@@ -36,12 +36,12 @@ public class ModSounds {
 
 	public static SoundEvent BLOCK_DISMANTLE;
 
-	public static void setup() {
-		BLOCK_DISMANTLE = createSoundEvent(Identifier.of("reborncore", "block_dismantle"));
-
-	}
-
-	private static SoundEvent createSoundEvent(Identifier identifier) {
-		return Registry.register(Registries.SOUND_EVENT, identifier, SoundEvent.of(identifier));
+	public static void register(RegisterEvent event) {
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath("reborncore", "block_dismantle");
+		event.register(Registries.SOUND_EVENT, id, () -> {
+			SoundEvent sound = SoundEvent.createVariableRangeEvent(id);
+			BLOCK_DISMANTLE = sound;
+			return sound;
+		});
 	}
 }

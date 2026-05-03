@@ -1,0 +1,489 @@
+﻿To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/8.14.3/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+
+> Configure project :migration-tool
+Fabric Loom: 1.10.1
+
+> Task :RebornCore:neoFormListLibraries UP-TO-DATE
+> Task :RebornCore:cacheVersionManifest1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExecutableClient1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExecutableServer1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionExtractedServer1.21.1 UP-TO-DATE
+> Task :RebornCore:cacheVersionMappingsClient1.21.1 UP-TO-DATE
+> Task :RebornCore:create1.21.1ClientExtraJar UP-TO-DATE
+> Task :RebornCore:selectRawArtifactNg_dummy_ng.net.minecraft_client_1.21.1_client-extra UP-TO-DATE
+> Task :RebornCore:neoFormListTransformLibraries UP-TO-DATE
+> Task :RebornCore:neoFormStripClient UP-TO-DATE
+> Task :RebornCore:neoFormStripServer UP-TO-DATE
+> Task :RebornCore:neoFormMerge UP-TO-DATE
+> Task :RebornCore:neoFormMergeMappings UP-TO-DATE
+> Task :RebornCore:neoFormRename UP-TO-DATE
+> Task :RebornCore:neoFormDecompile UP-TO-DATE
+> Task :RebornCore:neoFormInject UP-TO-DATE
+> Task :RebornCore:neoFormPatch UP-TO-DATE
+> Task :RebornCore:neoFormPatchUserDev UP-TO-DATE
+> Task :RebornCore:neoFormTransformSource UP-TO-DATE
+> Task :RebornCore:neoFormRecompile UP-TO-DATE
+> Task :RebornCore:supplyRawJarForneoFormJoined1.21.1-20240808.144430 UP-TO-DATE
+> Task :RebornCore:selectRawArtifactNg_dummy_ng.net.neoforged_neoforge_21.1.216 UP-TO-DATE
+> Task :RebornCore:compileJava UP-TO-DATE
+> Task :RebornCore:processResources UP-TO-DATE
+> Task :RebornCore:classes UP-TO-DATE
+> Task :RebornCore:jar UP-TO-DATE
+
+> Task :compileJava
+.\gradlew : C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChun
+kLoader.java:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+発生場所 C:\Users\SPLIGAN\AppData\Local\Temp\ps-script-73b91364-f079-4223-ad8b-c0560e281750.ps1:73 文字:79
++ ... rge1.21.1"; .\gradlew compileJava --no-daemon --console=plain 2>&1 |  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\SPLIGA...Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+			.position(leftPos + 10, topPos + 70)
+			^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ position(int,int)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ Builder
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiFusionReactor.ja
+va:114: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		drawContext.drawString(this.textRenderer, Component.literal("Size: ").append(String.valueOf(blockEntity.size)), 83, 8
+1, 0xFFFFFF, true);
+		                           ^
+  繧ｷ繝ｳ繝懊Ν: 螟画焚 textRenderer
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiFusionReactor.ja
+va:115: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		drawContext.drawString(this.textRenderer, Component.literal(String.valueOf(blockEntity.getPowerMultiplier())).append(
+"x"), 10, 81, 0xFFFFFF, true);
+		                           ^
+  繧ｷ繝ｳ繝懊Ν: 螟画焚 textRenderer
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:70: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, Component.translatable("techreborn.tooltip.unit.empty"), 10, 20, theme.titleCol
+or().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.storage.store"), 10, 20, theme.titleColo
+r().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:73: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, storageEntity.getDisplayedStack().getName(), 10, 30, theme.titleColor().rgba(),
+ false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:73: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, storageEntity.getDisplayedStack().getName(), 10, 30, theme.titleColor().rgba(),
+ false);
+			                                                                      ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getName()
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ItemStack
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:75: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.storage.amount"), 10, 50, theme.titleCol
+or().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:76: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, String.valueOf(storedAmount), 10, 60, theme.titleColor().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:80: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.unit.used").append(percentFilled + "%"),
+ 10, 70, theme.titleColor().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.java
+:82: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.unit.wrenchtip"), 10, 80, theme.titleCol
+or().rgba(), false);
+			                       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFluid
+BakedModel.java:76: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+		bakedModelManager.getModel(getBaseModel()).emitItemQuads(stack, randomSupplier, context);
+		                                       ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFluid
+BakedModel.java:77: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+		bakedModelManager.getModel(getBackgroundModel()).emitItemQuads(stack, randomSupplier, context);
+		                                             ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFluid
+BakedModel.java:96: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+		BakedModel fluidModel = bakedModelManager.getModel(getFluidModel());
+		                                                                ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFluid
+BakedModel.java:105: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				quad.spriteBake(RenderUtil.getSprite(Identifier.of("minecraft", "missingno")), MutableQuadView.BAKE_LOCK_UV);
+				                                     ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 Identifier
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ BaseDynamicFluidBakedModel
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\DynamicCellBaked
+Model.java:50: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+		bakedModelManager.getModel(CELL_GLASS).emitItemQuads(stack, randomSupplier, context);
+		                           ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\entitys\CableCov
+erRenderer.java:48: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		if (!blockEntity.getCachedState().get(CableBlock.COVERED) || blockEntity.getLevel() == null) {
+		                ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getCachedState()
+  蝣ｴ謇: 繧ｿ繧､繝佑ableBlockEntity縺ｮ螟画焚 blockEntity
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\entitys\NukeRend
+erer.java:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		TntMinecartRenderer.renderWhiteSolidBlock(blockRenderManager, TRContent.NUKE.getDefaultState(), matrixStack, vertexCo
+nsumerProvider, i, entity.getFuse() / 5 % 2 == 0);
+		                                                                            ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getDefaultState()
+  蝣ｴ謇: 繧ｿ繧､繝唯lock縺ｮ螟画焚 NUKE
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingMod
+el.java:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		ResourceLocation model = BuiltInRegistries.BLOCK.getKey(block).withPrefixedPath(MODEL_PATH);
+		                                                              ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ withPrefixedPath(String)
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ResourceLocation
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingMod
+el.java:60: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		block.getStateManager().getStates().forEach(state -> {
+		     ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getStateManager()
+  蝣ｴ謇: 繧ｿ繧､繝唯lockMachineCasing縺ｮ螟画焚 block
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingMod
+el.java:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			Map<String, Either<SpriteIdentifier, String>> textures = new HashMap<>();
+			                   ^
+  繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ SpriteIdentifier
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ MachineCasingModel
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingMod
+el.java:64: 繧ｨ繝ｩ繝ｼ: 繝代ャ繧ｱ繝ｼ繧ｸDirection縺ｯ蟄伜惠縺励∪縺帙ｓ
+			for (Direction direction : Direction.Type.HORIZONTAL) {
+			                                    ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingMod
+el.java:64: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			for (Direction direction : Direction.Type.HORIZONTAL) {
+			     ^
+  繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Direction
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ MachineCasingModel
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\screen\builder\slot\Fur
+naceFuelSlot.java:39: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+	@Override
+	^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\TechRebornClientModBus.
+java:33: 隴ｦ蜻・ [removal] EventBusSubscriber縺ｮbus()縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｦ縺翫ｉ縺壹∝炎髯､逕ｨ縺ｫ繝槭・繧ｯ縺輔ｌ縺ｦ縺・∪縺・@EventBusSubscriber(modid = Te
+chReborn.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                               ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\TechRebornClientModBus.
+java:33: 隴ｦ蜻・ [removal] EventBusSubscriber縺ｮBus縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｦ縺翫ｉ縺壹∝炎髯､逕ｨ縺ｫ繝槭・繧ｯ縺輔ｌ縺ｦ縺・∪縺・@EventBusSubscriber(modid = Tech
+Reborn.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                                                       ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:104: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				final Identifier id = context.id();
+				      ^
+  繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Identifier
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:114: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+						return JsonUnbakedModel.deserialize("{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"techrebo
+rn:item/cell_background\"}}");
+						       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 JsonUnbakedModel
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+				^
+  繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Fluid
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧ｨ繝
+ｩ繝ｼ: 繝代ャ繧ｱ繝ｼ繧ｸRegistries縺ｯ蟄伜惠縺励∪縺帙ｓ
+				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+				                        ^
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+				                                   ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 Identifier
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:121: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+				if (path.endsWith("_bucket") && fluid != Fluids.EMPTY) {
+				                                         ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 Fluids
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:123: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+						return JsonUnbakedModel.deserialize("{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"minecraf
+t:item/bucket\"}}");
+						       ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 JsonUnbakedModel
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:136: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			while (KeyBindings.suitNightVision.wasPressed()) {
+			                                  ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ wasPressed()
+  蝣ｴ謇: 繧ｿ繧､繝揖eyMapping縺ｮ螟画焚 suitNightVision
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:142: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+			while (KeyBindings.quantumSuitSprint.wasPressed()) {
+			                                    ^
+  繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ wasPressed()
+  蝣ｴ謇: 繧ｿ繧､繝揖eyMapping縺ｮ螟画焚 quantumSuitSprint
+C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:153: 繧ｨ繝
+ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+		Arrays.stream(TRContent.Cables.values()).forEach(cable -> BlockRenderLayerMap.INSTANCE.putBlock(cable.block, RenderLa
+yer.getCutout()));
+		                                                                                                             ^
+  繧ｷ繝ｳ繝懊Ν:   螟画焚 RenderLayer
+  蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+繝弱・繝・ 荳驛ｨ縺ｮ蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｪ縺БPI繧剃ｽｿ逕ｨ縺ｾ縺溘・繧ｪ繝ｼ繝舌・繝ｩ繧､繝峨＠縺ｦ縺・∪縺吶・
+繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:deprecation繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+繝弱・繝・ 蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｮ謫堺ｽ懊・縺・■縲∵悴繝√ぉ繝・け縺ｾ縺溘・螳牙・縺ｧ縺ｯ縺ｪ縺・ｂ縺ｮ縺後≠繧翫∪縺吶・
+繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:unchecked繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+繝弱・繝・ 荳驛ｨ縺ｮ繝｡繝・そ繝ｼ繧ｸ縺ｯ邁｡逡･蛹悶＆繧後※縺・∪縺吶・Xdiags:verbose縺ｧ蜀阪さ繝ｳ繝代う繝ｫ縺励※螳悟・縺ｪ蜃ｺ蜉帙ｒ蜿門ｾ励＠縺ｦ縺上□縺輔＞
+繧ｨ繝ｩ繝ｼ34蛟・
+隴ｦ蜻・蛟・
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/Users/SPLIGAN/Documents/GitHub/TechRebornForNeoForge1.21.1/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:deprecation繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFlu
+idBakedModel.java:76: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+  		bakedModelManager.getModel(getBaseModel()).emitItemQuads(stack, randomSupplier, context);
+  		                                       ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFlu
+idBakedModel.java:77: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+  		bakedModelManager.getModel(getBackgroundModel()).emitItemQuads(stack, randomSupplier, context);
+  		                                             ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFlu
+idBakedModel.java:96: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+  		BakedModel fluidModel = bakedModelManager.getModel(getFluidModel());
+  		                                                                ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\DynamicCellBak
+edModel.java:50: 繧ｨ繝ｩ繝ｼ: 荳埼←蜷医↑蝙・ ResourceLocation繧樽odelResourceLocation縺ｫ螟画鋤縺ｧ縺阪∪縺帙ｓ:
+  		bakedModelManager.getModel(CELL_GLASS).emitItemQuads(stack, randomSupplier, context);
+  		                           ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:70: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, Component.translatable("techreborn.tooltip.unit.empty"), 10, 20, theme.titleC
+olor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.storage.store"), 10, 20, theme.titleCo
+lor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:73: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, storageEntity.getDisplayedStack().getName(), 10, 30, theme.titleColor().rgba(
+), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:75: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.storage.amount"), 10, 50, theme.titleC
+olor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:76: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, String.valueOf(storedAmount), 10, 60, theme.titleColor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:80: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.unit.used").append(percentFilled + "%"
+), 10, 70, theme.titleColor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:82: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, Component.translatable("gui.techreborn.unit.wrenchtip"), 10, 80, theme.titleC
+olor().rgba(), false);
+  			                       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 textRenderer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ GuiStorageUnit
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\BaseDynamicFlu
+idBakedModel.java:105: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				quad.spriteBake(RenderUtil.getSprite(Identifier.of("minecraft", "missingno")), MutableQuadView.BAKE_LOCK_UV);
+  				                                     ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 Identifier
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ BaseDynamicFluidBakedModel
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingM
+odel.java:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			Map<String, Either<SpriteIdentifier, String>> textures = new HashMap<>();
+  			                   ^
+    繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ SpriteIdentifier
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ MachineCasingModel
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingM
+odel.java:64: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			for (Direction direction : Direction.Type.HORIZONTAL) {
+  			     ^
+    繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Direction
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ MachineCasingModel
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:104: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				final Identifier id = context.id();
+  				      ^
+    繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Identifier
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:114: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  						return JsonUnbakedModel.deserialize("{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"techre
+born:item/cell_background\"}}");
+  						       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 JsonUnbakedModel
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+  				^
+    繧ｷ繝ｳ繝懊Ν:   繧ｯ繝ｩ繧ｹ Fluid
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+  				                                   ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 Identifier
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:121: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  				if (path.endsWith("_bucket") && fluid != Fluids.EMPTY) {
+  				                                         ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 Fluids
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:123: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  						return JsonUnbakedModel.deserialize("{\"parent\":\"minecraft:item/generated\",\"textures\":{\"layer0\":\"minecr
+aft:item/bucket\"}}");
+  						       ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 JsonUnbakedModel
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:153: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		Arrays.stream(TRContent.Cables.values()).forEach(cable -> BlockRenderLayerMap.INSTANCE.putBlock(cable.block, Render
+Layer.getCutout()));
+  		                                                                                                             ^
+    繧ｷ繝ｳ繝懊Ν:   螟画焚 RenderLayer
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ TechRebornClient
+  繝弱・繝・ 隧ｳ邏ｰ縺ｯ縲・Xlint:unchecked繧ｪ繝励す繝ｧ繝ｳ繧呈欠螳壹＠縺ｦ蜀阪さ繝ｳ繝代う繝ｫ縺励※縺上□縺輔＞縲・
+  繝弱・繝・ 荳驛ｨ縺ｮ蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｪ縺БPI繧剃ｽｿ逕ｨ縺ｾ縺溘・繧ｪ繝ｼ繝舌・繝ｩ繧､繝峨＠縺ｦ縺・∪縺吶・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\screen\builder\slot\F
+urnaceFuelSlot.java:39: 繧ｨ繝ｩ繝ｼ: 繝｡繧ｽ繝・ラ縺ｯ繧ｹ繝ｼ繝代・繧ｿ繧､繝励・繝｡繧ｽ繝・ラ繧偵が繝ｼ繝舌・繝ｩ繧､繝峨∪縺溘・螳溯｣・＠縺ｾ縺帙ｓ
+  	@Override
+  	^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\TechRebornClientModBu
+s.java:33: 隴ｦ蜻・ [removal] EventBusSubscriber縺ｮbus()縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｦ縺翫ｉ縺壹∝炎髯､逕ｨ縺ｫ繝槭・繧ｯ縺輔ｌ縺ｦ縺・∪縺・  @EventBusSubscriber(modid 
+= TechReborn.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                                 ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\TechRebornClientModBu
+s.java:33: 隴ｦ蜻・ [removal] EventBusSubscriber縺ｮBus縺ｯ謗ｨ螂ｨ縺輔ｌ縺ｦ縺翫ｉ縺壹∝炎髯､逕ｨ縺ｫ繝槭・繧ｯ縺輔ｌ縺ｦ縺・∪縺・  @EventBusSubscriber(modid = 
+TechReborn.MOD_ID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+                                                                         ^
+  繝弱・繝・ 荳驛ｨ縺ｮ繝｡繝・そ繝ｼ繧ｸ縺ｯ邁｡逡･蛹悶＆繧後※縺・∪縺吶・Xdiags:verbose縺ｧ蜀阪さ繝ｳ繝代う繝ｫ縺励※螳悟・縺ｪ蜃ｺ蜉帙ｒ蜿門ｾ励＠縺ｦ縺上□縺輔＞
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiFusionReactor.
+java:114: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		drawContext.drawString(this.textRenderer, Component.literal("Size: ").append(String.valueOf(blockEntity.size)), 83,
+ 81, 0xFFFFFF, true);
+  		                           ^
+    繧ｷ繝ｳ繝懊Ν: 螟画焚 textRenderer
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiFusionReactor.
+java:115: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		drawContext.drawString(this.textRenderer, Component.literal(String.valueOf(blockEntity.getPowerMultiplier())).appen
+d("x"), 10, 81, 0xFFFFFF, true);
+  		                           ^
+    繧ｷ繝ｳ繝懊Ν: 螟画焚 textRenderer
+  繝弱・繝・ 蜈･蜉帙ヵ繧｡繧､繝ｫ縺ｮ謫堺ｽ懊・縺・■縲∵悴繝√ぉ繝・け縺ｾ縺溘・螳牙・縺ｧ縺ｯ縺ｪ縺・ｂ縺ｮ縺後≠繧翫∪縺吶・
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingM
+odel.java:64: 繧ｨ繝ｩ繝ｼ: 繝代ャ繧ｱ繝ｼ繧ｸDirection縺ｯ蟄伜惠縺励∪縺帙ｓ
+  			for (Direction direction : Direction.Type.HORIZONTAL) {
+  			                                    ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:120: 繧
+ｨ繝ｩ繝ｼ: 繝代ャ繧ｱ繝ｼ繧ｸRegistries縺ｯ蟄伜惠縺励∪縺帙ｓ
+  				Fluid fluid = Registries.FLUID.get(Identifier.of(TechReborn.MOD_ID, path.split("_bucket")[0]));
+  				                        ^
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiChunkLoader.ja
+va:61: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			.position(leftPos + 10, topPos + 70)
+  			^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ position(int,int)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ Builder
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\gui\GuiStorageUnit.ja
+va:73: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			drawContext.drawString(textRenderer, storageEntity.getDisplayedStack().getName(), 10, 30, theme.titleColor().rgba(
+), false);
+  			                                                                      ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getName()
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ItemStack
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\entitys\CableC
+overRenderer.java:48: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		if (!blockEntity.getCachedState().get(CableBlock.COVERED) || blockEntity.getLevel() == null) {
+  		                ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getCachedState()
+    蝣ｴ謇: 繧ｿ繧､繝佑ableBlockEntity縺ｮ螟画焚 blockEntity
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\entitys\NukeRe
+nderer.java:72: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		TntMinecartRenderer.renderWhiteSolidBlock(blockRenderManager, TRContent.NUKE.getDefaultState(), matrixStack, vertex
+ConsumerProvider, i, entity.getFuse() / 5 % 2 == 0);
+  		                                                                            ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getDefaultState()
+    蝣ｴ謇: 繧ｿ繧､繝唯lock縺ｮ螟画焚 NUKE
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingM
+odel.java:54: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		ResourceLocation model = BuiltInRegistries.BLOCK.getKey(block).withPrefixedPath(MODEL_PATH);
+  		                                                              ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ withPrefixedPath(String)
+    蝣ｴ謇: 繧ｯ繝ｩ繧ｹ ResourceLocation
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\client\render\MachineCasingM
+odel.java:60: 繧ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  		block.getStateManager().getStates().forEach(state -> {
+  		     ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ getStateManager()
+    蝣ｴ謇: 繧ｿ繧､繝唯lockMachineCasing縺ｮ螟画焚 block
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:136: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			while (KeyBindings.suitNightVision.wasPressed()) {
+  			                                  ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ wasPressed()
+    蝣ｴ謇: 繧ｿ繧､繝揖eyMapping縺ｮ螟画焚 suitNightVision
+  C:\Users\SPLIGAN\Documents\GitHub\TechRebornForNeoForge1.21.1\src\client\java\techreborn\TechRebornClient.java:142: 繧
+ｨ繝ｩ繝ｼ: 繧ｷ繝ｳ繝懊Ν繧定ｦ九▽縺代ｉ繧後∪縺帙ｓ
+  			while (KeyBindings.quantumSuitSprint.wasPressed()) {
+  			                                    ^
+    繧ｷ繝ｳ繝懊Ν:   繝｡繧ｽ繝・ラ wasPressed()
+    蝣ｴ謇: 繧ｿ繧､繝揖eyMapping縺ｮ螟画焚 quantumSuitSprint
+  繧ｨ繝ｩ繝ｼ34蛟・
+  隴ｦ蜻・蛟・
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 19s
+26 actionable tasks: 1 executed, 25 up-to-date

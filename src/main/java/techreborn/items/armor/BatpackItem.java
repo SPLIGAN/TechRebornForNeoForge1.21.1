@@ -24,30 +24,44 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 
-public class BatpackItem extends TREnergyArmourItem implements RcEnergyItem {
+public class BatpackItem extends TREnergyArmourItem {
 
-	public BatpackItem(long maxCharge, RegistryEntry<ArmorMaterial> material, RcEnergyTier tier) {
+	public BatpackItem(long maxCharge, Holder<ArmorMaterial> material, RcEnergyTier tier) {
 		super(material, Type.CHESTPLATE, maxCharge, tier);
+	}
+
+	@Override
+	public long getEnergyCapacity(ItemStack stack) {
+		return maxCharge;
+	}
+
+	@Override
+	public long getEnergyMaxInput(ItemStack stack) {
+		return getEnergyTier().getMaxInput();
+	}
+
+	@Override
+	public long getEnergyMaxOutput(ItemStack stack) {
+		return getEnergyTier().getMaxOutput();
 	}
 
 	// Item
 	@Override
-	public void inventoryTick(ItemStack stack, World worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (worldIn.isClient) {
+	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+		if (worldIn.isClientSide) {
 			return;
 		}
-		if (entityIn instanceof PlayerEntity) {
-			ItemUtils.distributePowerToInventory((PlayerEntity) entityIn, stack, this.getTier().getMaxOutput());
+		if (entityIn instanceof Player) {
+			ItemUtils.distributePowerToInventory((Player) entityIn, stack, this.getEnergyTier().getMaxOutput());
 		}
 	}
 }

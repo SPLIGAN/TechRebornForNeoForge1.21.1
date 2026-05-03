@@ -24,60 +24,76 @@
 
 package reborncore.common.recipes;
 
-import net.minecraft.advancement.AdvancementEntry;
-import net.minecraft.advancement.AdvancementRequirements;
-import net.minecraft.advancement.AdvancementRewards;
-import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
-import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RawShapedRecipe;
-import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.util.Identifier;
-
 import java.util.Objects;
+import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.data.recipes.RecipeBuilder;
+import net.minecraft.data.recipes.RecipeCategory;
+import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.ShapedRecipeBuilder;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
+import net.minecraft.world.level.ItemLike;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Map;
 
-public class PaddedShapedRecipeJsonBuilder extends ShapedRecipeJsonBuilder {
+public class PaddedShapedRecipeJsonBuilder extends ShapedRecipeBuilder {
 
-	public PaddedShapedRecipeJsonBuilder(RecipeCategory category, ItemConvertible output, int outputCount) {
+	public PaddedShapedRecipeJsonBuilder(RecipeCategory category, ItemLike output, int outputCount) {
 		super(category, output, outputCount);
 	}
 
-	public static PaddedShapedRecipeJsonBuilder create(RecipeCategory category, ItemConvertible output) {
-		return create(category, output, 1);
+	public static PaddedShapedRecipeJsonBuilder shaped(RecipeCategory category, ItemLike output) {
+		return shaped(category, output, 1);
 	}
 
-	public static PaddedShapedRecipeJsonBuilder create(RecipeCategory category, ItemConvertible output, int outputCount) {
+	public static PaddedShapedRecipeJsonBuilder shaped(RecipeCategory category, ItemLike output, int outputCount) {
 		return new PaddedShapedRecipeJsonBuilder(category, output, outputCount);
 	}
 	@Override
-	public void offerTo(RecipeExporter exporter, Identifier recipeId) {
-		RawShapedRecipe raw = toRaw(recipeId);
+	public void save(RecipeOutput exporter, ResourceLocation recipeId) {
+		ShapedRecipePattern raw = toRaw(recipeId);
 
-		AdvancementEntry advancementEntry = exporter.getAdvancementBuilder()
-			.criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+		AdvancementHolder advancementEntry = exporter.advancement()
+			.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
 			.rewards(AdvancementRewards.Builder.recipe(recipeId))
-			.criteriaMerger(AdvancementRequirements.CriterionMerger.OR)
+			.requirements(AdvancementRequirements.Strategy.OR)
 			.build(recipeId);
 
 		PaddedShapedRecipe shapedRecipe = new PaddedShapedRecipe(
-			Objects.requireNonNullElse(this.group, ""),
-			CraftingRecipeJsonBuilder.toCraftingCategory(this.category),
+			Objects.requireNonNullElse(readField("group"), ""),
+			RecipeBuilder.determineBookCategory(readField("category")),
 			raw,
-			new ItemStack(this.output, this.count),
-			this.showNotification
+			new ItemStack((ItemLike) readField("result"), (Integer) readField("count")),
+			readField("showNotification")
 		);
 
 		exporter.accept(recipeId, shapedRecipe, advancementEntry);
 	}
 
-	private RawShapedRecipe toRaw(Identifier recipeId) {
-		if (this.criteria.isEmpty()) {
+	private ShapedRecipePattern toRaw(ResourceLocation recipeId) {
+		Map<?, ?> criteria = readField("criteria");
+		if (criteria.isEmpty()) {
 			throw new IllegalStateException("No way of obtaining recipe " + recipeId);
 		} else {
-			return PaddedShapedRecipe.create(this.inputs, this.pattern);
+			Map<?, ?> key = readField("key");
+			List<?> rows = readField("rows");
+			return PaddedShapedRecipe.create((Map) key, (List<String>) rows);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> T readField(String name) {
+		try {
+			Field f = ShapedRecipeBuilder.class.getDeclaredField(name);
+			f.setAccessible(true);
+			return (T) f.get(this);
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalStateException("Failed to access field " + name + " on ShapedRecipeBuilder", e);
 		}
 	}
 }

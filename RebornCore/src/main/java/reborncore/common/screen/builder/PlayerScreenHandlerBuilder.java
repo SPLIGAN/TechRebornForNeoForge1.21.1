@@ -24,10 +24,10 @@
 
 package reborncore.common.screen.builder;
 
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.util.Identifier;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ArmorItem;
 import org.apache.commons.lang3.Range;
 import reborncore.common.screen.ScreenIcons;
 import reborncore.common.screen.slot.PlayerInventorySlot;
@@ -35,13 +35,13 @@ import reborncore.common.screen.slot.SpriteSlot;
 
 public final class PlayerScreenHandlerBuilder {
 
-	private final PlayerInventory player;
+	private final Inventory player;
 	private final ScreenHandlerBuilder parent;
 	private Range<Integer> main;
 	private Range<Integer> hotbar;
 	private Range<Integer> armor;
 
-	PlayerScreenHandlerBuilder(final ScreenHandlerBuilder parent, final PlayerInventory player) {
+	PlayerScreenHandlerBuilder(final ScreenHandlerBuilder parent, final Inventory player) {
 		this.player = player;
 		this.parent = parent;
 	}
@@ -104,11 +104,11 @@ public final class PlayerScreenHandlerBuilder {
 		}
 
 		private PlayerArmorScreenHandlerBuilder armor(final int index, final int xStart, final int yStart,
-													final EquipmentSlot slotType, final Identifier sprite) {
+													final EquipmentSlot slotType, final ResourceLocation sprite) {
 			this.parent.parent.slots.add(new SpriteSlot(this.parent.player, index, xStart, yStart, sprite, 1)
 					.setFilter(stack -> {
 						if (stack.getItem() instanceof ArmorItem) {
-							return ((ArmorItem) stack.getItem()).getSlotType() == slotType;
+							return ((ArmorItem) stack.getItem()).getEquipmentSlot() == slotType;
 						}
 						return false;
 					}));
@@ -116,19 +116,19 @@ public final class PlayerScreenHandlerBuilder {
 		}
 
 		public PlayerArmorScreenHandlerBuilder helmet(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.size() - 2, xStart, yStart, EquipmentSlot.HEAD, ScreenIcons.HEAD);
+			return this.armor(this.parent.player.getContainerSize() - 2, xStart, yStart, EquipmentSlot.HEAD, ScreenIcons.HEAD);
 		}
 
 		public PlayerArmorScreenHandlerBuilder chestplate(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.size() - 3, xStart, yStart, EquipmentSlot.CHEST, ScreenIcons.CHEST);
+			return this.armor(this.parent.player.getContainerSize() - 3, xStart, yStart, EquipmentSlot.CHEST, ScreenIcons.CHEST);
 		}
 
 		public PlayerArmorScreenHandlerBuilder leggings(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.size() - 4, xStart, yStart, EquipmentSlot.LEGS, ScreenIcons.LEGS);
+			return this.armor(this.parent.player.getContainerSize() - 4, xStart, yStart, EquipmentSlot.LEGS, ScreenIcons.LEGS);
 		}
 
 		public PlayerArmorScreenHandlerBuilder boots(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.size() - 5, xStart, yStart, EquipmentSlot.FEET, ScreenIcons.FEET);
+			return this.armor(this.parent.player.getContainerSize() - 5, xStart, yStart, EquipmentSlot.FEET, ScreenIcons.FEET);
 		}
 
 		public PlayerArmorScreenHandlerBuilder complete(final int xStart, final int yStart) {

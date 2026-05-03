@@ -24,14 +24,14 @@
 
 package techreborn.blockentity.cable;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.util.math.Direction;
-import team.reborn.energy.api.EnergyStorage;
+import reborncore.common.compat.TransferApiBridge;
+import reborncore.common.event.ServerLifecycleBridge;
+import reborncore.common.energy.api.EnergyStorage;
 import techreborn.init.TRContent;
 
 import java.util.*;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 
 class CableTickManager {
 	private static final List<CableBlockEntity> cableList = new ArrayList<>();
@@ -40,11 +40,11 @@ class CableTickManager {
 	private static long tickCounter = 0;
 
 	static {
-		ServerTickEvents.START_SERVER_TICK.register(server -> tickCounter++);
+		ServerLifecycleBridge.onStartServerTick(server -> tickCounter++);
 	}
 
 	static void handleCableTick(CableBlockEntity startingCable) {
-		if (!(startingCable.getWorld() instanceof ServerWorld)) throw new IllegalStateException();
+		if (!(startingCable.getLevel() instanceof ServerLevel)) throw new IllegalStateException();
 
 		try {
 			gatherCables(startingCable);
@@ -82,7 +82,7 @@ class CableTickManager {
 				cable.energyContainer.amount = networkAmount / cableCount;
 				networkAmount -= cable.energyContainer.amount;
 				cableCount--;
-				cable.markDirty();
+				cable.setChanged();
 				cable.ioBlocked = false;
 			}
 		} finally {
@@ -96,7 +96,7 @@ class CableTickManager {
 		// Make sure we only gather and tick each cable once per tick.
 		if (current.lastTick == tickCounter) return false;
 		// Make sure we ignore cables in non-ticking chunks.
-		return current.getWorld() instanceof ServerWorld sw && sw.isChunkLoaded(current.getPos());
+		return current.getLevel() instanceof ServerLevel sw && sw.hasChunkAt(current.getBlockPos());
 	}
 
 	/**
@@ -127,51 +127,38 @@ class CableTickManager {
 	/**
 	 * Perform a transfer operation across a list of targets.
 	 */
-	private static long dispatchTransfer(TRContent.Cables cableType, TransferOperation operation, long maxAmount) {
-		// Build target list.
+	private static long dispatchTransfer(TRContent.Cables cableType, TransferApiBridge.EnergyTransferInOuterTx operation, long maxAmount) {
 		List<SortableStorage> sortedTargets = new ArrayList<>();
 		for (var storage : targetStorages) {
 			sortedTargets.add(new SortableStorage(operation, storage));
 		}
-		// Shuffle for better average transfer.
 		Collections.shuffle(sortedTargets);
-		// Sort by lowest simulation target.
 		sortedTargets.sort(Comparator.comparingLong(sortableStorage -> sortableStorage.simulationResult));
-		// Actually perform the transfer.
-		try (Transaction transaction = Transaction.openOuter()) {
+		return TransferApiBridge.runOuterCommitted(transaction -> {
 			long transferredAmount = 0;
 			for (int i = 0; i < sortedTargets.size(); ++i) {
 				SortableStorage target = sortedTargets.get(i);
 				int remainingTargets = sortedTargets.size() - i;
 				long remainingAmount = maxAmount - transferredAmount;
-				// Limit max amount to the cable transfer rate.
 				long targetMaxAmount = Math.min(remainingAmount / remainingTargets, cableType.transferRate);
 
 				long localTransferred = operation.transfer(target.storage.storage(), targetMaxAmount, transaction);
 				if (localTransferred > 0) {
 					transferredAmount += localTransferred;
-					// Block duplicate operations.
 					target.storage.afterTransfer();
 				}
 			}
-			transaction.commit();
 			return transferredAmount;
-		}
-	}
-
-	private interface TransferOperation {
-		long transfer(EnergyStorage storage, long maxAmount, Transaction transaction);
+		});
 	}
 
 	private static class SortableStorage {
 		private final OfferedEnergyStorage storage;
 		private final long simulationResult;
 
-		SortableStorage(TransferOperation operation, OfferedEnergyStorage storage) {
+		SortableStorage(TransferApiBridge.EnergyTransferInOuterTx operation, OfferedEnergyStorage storage) {
 			this.storage = storage;
-			try (Transaction tx = Transaction.openOuter()) {
-				this.simulationResult = operation.transfer(storage.storage(), Long.MAX_VALUE, tx);
-			}
+			this.simulationResult = TransferApiBridge.simulateOuter(tx -> operation.transfer(storage.storage(), Long.MAX_VALUE, tx));
 		}
 	}
 }

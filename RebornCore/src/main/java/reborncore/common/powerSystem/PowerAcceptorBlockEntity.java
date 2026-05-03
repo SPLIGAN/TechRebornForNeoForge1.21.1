@@ -24,31 +24,30 @@
 
 package reborncore.common.powerSystem;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
+import reborncore.common.compat.EnergyStorageBridge;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.RedstoneConfiguration;
 import reborncore.common.util.StringUtils;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.EnergyStorageUtil;
-import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.EnergyStorageUtil;
+import reborncore.common.energy.api.base.SimpleSidedEnergyContainer;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.util.Mth;
+import net.minecraft.world.Container;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
 
 public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity implements IListInfoProvider {
 	private final SimpleSidedEnergyContainer energyContainer = new SimpleSidedEnergyContainer() {
@@ -71,10 +70,9 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 		}
 
 		@Override
-		@SuppressWarnings("UnstableApiUsage")
-		protected void onFinalCommit() {
-			if (world != null) {
-				world.updateComparators(pos, PowerAcceptorBlockEntity.this.getCachedState().getBlock());
+		protected void onSnapshotCommitted() {
+			if (level != null) {
+				level.updateNeighborsAt(worldPosition, PowerAcceptorBlockEntity.this.getBlockState().getBlock());
 			}
 		}
 	};
@@ -151,10 +149,10 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	 * @param slot {@code int} Slot ID for battery slot
 	 */
 	public void charge(int slot) {
-		if (world == null) {
+		if (level == null) {
 			return;
 		}
-		if (world.isClient) {
+		if (level.isClientSide) {
 			return;
 		}
 
@@ -165,10 +163,10 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 		if (getOptionalInventory().isEmpty()) {
 			return;
 		}
-		Inventory inventory = getOptionalInventory().get();
+		Container inventory = getOptionalInventory().get();
 
 		EnergyStorageUtil.move(
-				ContainerItemContext.ofSingleSlot(InventoryStorage.of(inventory, null).getSlots().get(slot)).find(EnergyStorage.ITEM),
+				EnergyStorageBridge.itemEnergyStorageInInventorySlot(inventory, null, slot),
 				getSideEnergyStorage(null),
 				Long.MAX_VALUE,
 				null
@@ -181,11 +179,11 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	 * @param slot {@code int} Slot ID for battery slot
 	 */
 	public void discharge(int slot) {
-		if (world == null) {
+		if (level == null) {
 			return;
 		}
 
-		if (world.isClient) {
+		if (level.isClientSide) {
 			return;
 		}
 
@@ -193,11 +191,11 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 			return;
 		}
 
-		Inventory inventory = getOptionalInventory().get();
+		Container inventory = getOptionalInventory().get();
 
 		EnergyStorageUtil.move(
 				getSideEnergyStorage(null),
-				ContainerItemContext.ofSingleSlot(InventoryStorage.of(inventory, null).getSlots().get(slot)).find(EnergyStorage.ITEM),
+				EnergyStorageBridge.itemEnergyStorageInInventorySlot(inventory, null, slot),
 				Long.MAX_VALUE,
 				null
 		);
@@ -215,7 +213,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	 */
 	public static int calculateComparatorOutputFromEnergy(@Nullable BlockEntity blockEntity) {
 		if (blockEntity instanceof PowerAcceptorBlockEntity storage) {
-			return MathHelper.ceil(storage.getStored() * 15.0 / storage.getMaxStoredPower());
+			return Mth.ceil(storage.getStored() * 15.0 / storage.getMaxStoredPower());
 		} else {
 			return 0;
 		}
@@ -333,9 +331,9 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 
 	// MachineBaseBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity2) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity2) {
 		super.tick(world, pos, state, blockEntity2);
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 		if (getStored() <= 0) {
@@ -348,7 +346,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 		for (Direction side : Direction.values()) {
 			EnergyStorageUtil.move(
 					getSideEnergyStorage(side),
-					EnergyStorage.SIDED.find(world, pos.offset(side), side.getOpposite()),
+					EnergyStorage.findSided(world, pos.relative(side), side.getOpposite()),
 					Long.MAX_VALUE,
 					null
 			);
@@ -359,9 +357,9 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	}
 
 	@Override
-	public void readNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tag, registryLookup);
-		NbtCompound data = tag.getCompound("PowerAcceptor");
+	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tag, registryLookup);
+		CompoundTag data = tag.getCompound("PowerAcceptor");
 		if (shouldHandleEnergyNBT()) {
 			// Bypass overfill check in setStored() because upgrades have not yet been applied.
 			this.energyContainer.amount = data.getLong("energy");
@@ -369,9 +367,9 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tag, registryLookup);
-		NbtCompound data = new NbtCompound();
+	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tag, registryLookup);
+		CompoundTag data = new CompoundTag();
 		data.putLong("energy", getStored());
 		tag.put("PowerAcceptor", data);
 	}
@@ -400,7 +398,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 		if(checkOverfill){
 			energyContainer.amount = Math.max(Math.min(energyContainer.amount, getMaxStoredPower()), 0);
 		}
-		markDirty();
+		setChanged();
 	}
 
 	public long getMaxStoredPower() {
@@ -460,60 +458,60 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 
 	// IListInfoProvider
 	@Override
-	public void addInfo(List<Text> info, boolean isReal, boolean hasData) {
+	public void addInfo(List<Component> info, boolean isReal, boolean hasData) {
 		if (!isReal && hasData) {
 			info.add(
-					Text.translatable("reborncore.tooltip.energy")
-							.formatted(Formatting.GRAY)
+					Component.translatable("reborncore.tooltip.energy")
+							.withStyle(ChatFormatting.GRAY)
 							.append(": ")
 							.append(PowerSystem.getLocalizedPower(getStored()))
-							.formatted(Formatting.GOLD)
+							.withStyle(ChatFormatting.GOLD)
 			);
 		}
 
 		info.add(
-				Text.translatable("reborncore.tooltip.energy.maxEnergy")
-				.formatted(Formatting.GRAY)
+				Component.translatable("reborncore.tooltip.energy.maxEnergy")
+				.withStyle(ChatFormatting.GRAY)
 				.append(": ")
 				.append(PowerSystem.getLocalizedPower(getMaxStoredPower()))
-				.formatted(Formatting.GOLD)
+				.withStyle(ChatFormatting.GOLD)
 		);
 
 		if (getMaxInput(null) != 0) {
 			info.add(
-					Text.translatable("reborncore.tooltip.energy.inputRate")
-							.formatted(Formatting.GRAY)
+					Component.translatable("reborncore.tooltip.energy.inputRate")
+							.withStyle(ChatFormatting.GRAY)
 							.append(": ")
 							.append(PowerSystem.getLocalizedPower(getMaxInput(null)))
-							.formatted(Formatting.GOLD)
+							.withStyle(ChatFormatting.GOLD)
 			);
 		}
 		if (getMaxOutput(null) > 0) {
 			info.add(
-					Text.translatable("reborncore.tooltip.energy.outputRate")
-							.formatted(Formatting.GRAY)
+					Component.translatable("reborncore.tooltip.energy.outputRate")
+							.withStyle(ChatFormatting.GRAY)
 							.append(": ")
 							.append(PowerSystem.getLocalizedPower(getMaxOutput(null)))
-							.formatted(Formatting.GOLD)
+							.withStyle(ChatFormatting.GOLD)
 			);
 		}
 
 		info.add(
-				Text.translatable("reborncore.tooltip.energy.tier")
-						.formatted(Formatting.GRAY)
+				Component.translatable("reborncore.tooltip.energy.tier")
+						.withStyle(ChatFormatting.GRAY)
 						.append(": ")
 						.append(StringUtils.toFirstCapitalAllLowercase(getTier().toString()))
-						.formatted(Formatting.GOLD)
+						.withStyle(ChatFormatting.GOLD)
 		);
 
 		if (isReal) {
 			info.add(
-					Text.translatable("reborncore.tooltip.energy.change")
-							.formatted(Formatting.GRAY)
+					Component.translatable("reborncore.tooltip.energy.change")
+							.withStyle(ChatFormatting.GRAY)
 							.append(": ")
 							.append(PowerSystem.getLocalizedPower(powerChange))
 							.append("/t")
-							.formatted(Formatting.GOLD)
+							.withStyle(ChatFormatting.GOLD)
 			);
 		}
 

@@ -24,11 +24,11 @@
 
 package techreborn.items.tool;
 
-import net.minecraft.item.Item;
+import net.minecraft.world.item.Item;
 
 public class TreeTapItem extends Item {
 
 	public TreeTapItem() {
-		super(new Item.Settings().maxDamage(20));
+		super(new Item.Properties().durability(20));
 	}
 }

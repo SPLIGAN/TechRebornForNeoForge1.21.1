@@ -24,11 +24,6 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.resource.language.I18n;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.widget.GuiButtonExtended;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -37,19 +32,24 @@ import techreborn.blockentity.machine.tier1.GreenhouseControllerBlockEntity;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 
 public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
 
 	private final GreenhouseControllerBlockEntity blockEntity;
 
-	public GuiGreenhouseController(int syncID, final PlayerEntity player, final GreenhouseControllerBlockEntity blockEntity) {
+	public GuiGreenhouseController(int syncID, final Player player, final GreenhouseControllerBlockEntity blockEntity) {
 		super(player, blockEntity, blockEntity.createScreenHandler(syncID, player));
 		this.blockEntity = blockEntity;
 	}
 
 	@Override
-	protected void drawBackground(DrawContext drawContext, final float f, final int mouseX, final int mouseY) {
-		super.drawBackground(drawContext, f, mouseX, mouseY);
+	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
+		super.renderBg(drawContext, f, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		drawSlot(drawContext, 8, 72, layer);
@@ -63,22 +63,22 @@ public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
 		drawSlot(drawContext, 48, gridYPos + 36, layer);
 
 		if (!blockEntity.isMultiblockValid()) {
-			drawContext.drawTexture(Identifier.of("techreborn", "textures/item/part/digital_display.png"), x + 68, y + 22, 0, 0, 16, 16, 16, 16);
+			drawContext.blit(ResourceLocation.fromNamespaceAndPath("techreborn", "textures/item/part/digital_display.png"), leftPos + 68, topPos + 22, 0, 0, 16, 16, 16, 16);
 			if (isPointInRect(68, 22, 16, 16, mouseX, mouseY)) {
-				List<Text> list = Arrays.stream(I18n.translate("techreborn.tooltip.greenhouse.upgrade_available")
+				List<Component> list = Arrays.stream(I18n.get("techreborn.tooltip.greenhouse.upgrade_available")
 						.split("\\r?\\n"))
-						.map(Text::literal)
+						.map(Component::literal)
 						.collect(Collectors.toList());
 
-				drawContext.drawTooltip(getTextRenderer(), list, mouseX, mouseY);
+				drawContext.renderComponentTooltip(getTextRenderer(), list, mouseX, mouseY);
 			}
 		}
 
 	}
 
 	@Override
-	protected void drawForeground(DrawContext drawContext, final int mouseX, final int mouseY) {
-		super.drawForeground(drawContext, mouseX, mouseY);
+	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
+		super.renderLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		addHologramButton(90, 24, 212, layer).clickHandler(this::onClick);
@@ -86,12 +86,12 @@ public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
 
 		if (!blockEntity.isMultiblockValid()) {
 			if (isPointInRect(68, 22, 16, 16, mouseX, mouseY)) {
-				List<Text> list = Arrays.stream(I18n.translate("techreborn.tooltip.greenhouse.upgrade_available")
+				List<Component> list = Arrays.stream(I18n.get("techreborn.tooltip.greenhouse.upgrade_available")
 						.split("\\r?\\n"))
-						.map(Text::literal)
+						.map(Component::literal)
 						.collect(Collectors.toList());
 
-				drawContext.drawTooltip(getTextRenderer(), list, mouseX - getGuiLeft(), mouseY - getGuiTop());
+				drawContext.renderComponentTooltip(getTextRenderer(), list, mouseX - getGuiLeft(), mouseY - getGuiTop());
 			}
 		}
 

@@ -24,15 +24,15 @@
 
 package reborncore.common.blocks;
 
-import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
 import reborncore.api.ToolManager;
+import reborncore.common.event.EventBridge;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class BlockWrenchEventHandler {
 
@@ -40,19 +40,19 @@ public class BlockWrenchEventHandler {
 
 
 	public static void setup() {
-		UseBlockCallback.EVENT.register((playerEntity, world, hand, blockHitResult) -> {
-			if (hand == Hand.OFF_HAND) {
+		EventBridge.registerUseBlock((playerEntity, world, hand, blockHitResult) -> {
+			if (hand == InteractionHand.OFF_HAND) {
 				// Wrench should be in main hand
-				return ActionResult.PASS;
+				return InteractionResult.PASS;
 			}
-			if (ToolManager.INSTANCE.canHandleTool(playerEntity.getStackInHand(Hand.MAIN_HAND))) {
+			if (ToolManager.INSTANCE.canHandleTool(playerEntity.getItemInHand(InteractionHand.MAIN_HAND))) {
 				BlockState state = world.getBlockState(blockHitResult.getBlockPos());
 				if (wrenchableBlocks.contains(state.getBlock())) {
-					state.onUse(world, playerEntity, blockHitResult);
-					return ActionResult.SUCCESS;
+					state.useWithoutItem(world, playerEntity, blockHitResult);
+					return InteractionResult.SUCCESS;
 				}
 			}
-			return ActionResult.PASS;
+			return InteractionResult.PASS;
 		});
 	}
 

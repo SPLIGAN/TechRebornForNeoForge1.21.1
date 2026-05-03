@@ -6,6 +6,9 @@
     "MixinBucketItem",
     "MixinCraftingResultSlot",
     "MixinItemEntity",
+    "MixinItemRcEnergyContinueUsing",
+    "MixinItemRcEnergyBlockBreakReset",
+    "MixinItemRcEnergyReequipAnimation",
     "MixinLivingEntity",
     "MixinPlayerEntity"
   ],

@@ -24,31 +24,31 @@
 
 package reborncore.common.crafting;
 
-import net.minecraft.advancement.Advancement;
-import net.minecraft.advancement.AdvancementRequirements;
-import net.minecraft.advancement.AdvancementRewards;
-import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.util.Identifier;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
+import net.minecraft.advancements.Advancement;
+import net.minecraft.advancements.AdvancementRequirements;
+import net.minecraft.advancements.AdvancementRewards;
+import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 
 public class RecipeUtils {
-	public static <T extends RebornRecipe> List<T> getRecipes(World world, RecipeType<T> type) {
-		return streamRecipeEntries(world, type).map(RecipeEntry::value).toList();
+	public static <T extends RebornRecipe> List<T> getRecipes(Level world, RecipeType<T> type) {
+		return streamRecipeEntries(world, type).map(RecipeHolder::value).toList();
 	}
 
-	public static <T extends RebornRecipe> List<RecipeEntry<T>> getRecipeEntries(World world, RecipeType<T> type) {
+	public static <T extends RebornRecipe> List<RecipeHolder<T>> getRecipeEntries(Level world, RecipeType<T> type) {
 		return streamRecipeEntries(world, type).toList();
 	}
 
-	private static <T extends RebornRecipe> Stream<RecipeEntry<T>> streamRecipeEntries(World world, RecipeType<T> type) {
-		return world.getRecipeManager().getAllOfType(type).stream();
+	private static <T extends RebornRecipe> Stream<RecipeHolder<T>> streamRecipeEntries(Level world, RecipeType<T> type) {
+		return world.getRecipeManager().getAllRecipesFor(type).stream();
 	}
 
 	/**
@@ -62,13 +62,13 @@ public class RecipeUtils {
 	 * @param recipeId the ID of the recipe
 	 * @throws NullPointerException If any parameter refers to <code>null</code>.
 	 */
-	public static void addToastDefaults(@NotNull Advancement.Builder builder, @NotNull Identifier recipeId) {
+	public static void addToastDefaults(@NotNull Advancement.Builder builder, @NotNull ResourceLocation recipeId) {
 		Objects.requireNonNull(builder);
 		Objects.requireNonNull(recipeId);
 		builder
-			.criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId))
+			.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
 			.rewards(AdvancementRewards.Builder.recipe(recipeId))
-			.criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
+			.requirements(AdvancementRequirements.Strategy.OR);
 	}
 
 }

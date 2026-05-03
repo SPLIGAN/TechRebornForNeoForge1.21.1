@@ -24,22 +24,6 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.AttributeModifiersComponent;
-import net.minecraft.entity.EquipmentSlot;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.registry.entry.RegistryEntry;
-import net.minecraft.screen.ScreenTexts;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
 import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.api.items.ArmorRemoveHandler;
 import reborncore.common.powerSystem.RcEnergyTier;
@@ -48,14 +32,30 @@ import techreborn.utils.TRItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.level.Level;
 
 public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntityTicker, ArmorRemoveHandler {
-	private static final AttributeModifiersComponent FULL_SUIT = new AttributeModifierBuilder().armor(10).toughness(4).build();
-	private final AttributeModifiersComponent noPowerAttributes;
-	private final AttributeModifiersComponent hasPowerAttributes;
-	private final AttributeModifiersComponent fullSuitAttributes;
+	private static final ItemAttributeModifiers FULL_SUIT = new AttributeModifierBuilder().armor(10).toughness(4).build();
+	private final ItemAttributeModifiers noPowerAttributes;
+	private final ItemAttributeModifiers hasPowerAttributes;
+	private final ItemAttributeModifiers fullSuitAttributes;
 
-	public NanoSuitItem(RegistryEntry<ArmorMaterial> material, Type slot) {
+	public NanoSuitItem(Holder<ArmorMaterial> material, Type slot) {
 		super(material, slot, TechRebornConfig.nanoSuitCapacity, RcEnergyTier.HIGH);
 		switch (slot) {
 			case HELMET, BOOTS:
@@ -84,26 +84,26 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 
 	// ArmorBlockEntityTicker
 	@Override
-	public void tickArmor(ItemStack stack, boolean hasFullSuit, PlayerEntity playerEntity) {
+	public void tickArmor(ItemStack stack, boolean hasFullSuit, Player playerEntity) {
 		// Night Vision
-		if (this.getSlotType() == EquipmentSlot.HEAD) {
+		if (this.getEquipmentSlot() == EquipmentSlot.HEAD) {
 			if (TRItemUtils.isActive(stack) && tryUseEnergy(stack, TechRebornConfig.suitNightVisionCost)) {
-				playerEntity.addStatusEffect(new StatusEffectInstance(StatusEffects.NIGHT_VISION, 220, 1, false, false));
+				playerEntity.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 1, false, false));
 			} else {
-				playerEntity.removeStatusEffect(StatusEffects.NIGHT_VISION);
+				playerEntity.removeEffect(MobEffects.NIGHT_VISION);
 			}
 		}
 		applyModifier(stack, hasFullSuit);
 	}
 
-	private void applyModifier(ItemStack stack, AttributeModifiersComponent attributes, AttributeModifiersComponent target) {
+	private void applyModifier(ItemStack stack, ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
 		if (attributes != target) {
-			stack.set(DataComponentTypes.ATTRIBUTE_MODIFIERS, target);
+			stack.set(DataComponents.ATTRIBUTE_MODIFIERS, target);
 		}
 	}
 
 	public void applyModifier(ItemStack stack, boolean hasFullSuit) {
-		AttributeModifiersComponent attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+		ItemAttributeModifiers attributes = stack.get(DataComponents.ATTRIBUTE_MODIFIERS);
 		if (getStoredEnergy(stack) > 0) {
 			if (hasFullSuit) {
 				applyModifier(stack, attributes, fullSuitAttributes);
@@ -116,68 +116,68 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 	}
 
 	@Override
-	public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
-		ItemStack thisStack = user.getStackInHand(hand);
-		EquipmentSlot slotType = this.getSlotType();
-		if (user.isSneaking() && slotType == EquipmentSlot.HEAD) {
+	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+		ItemStack thisStack = user.getItemInHand(hand);
+		EquipmentSlot slotType = this.getEquipmentSlot();
+		if (user.isShiftKeyDown() && slotType == EquipmentSlot.HEAD) {
 			TRItemUtils.switchActive(thisStack, 1, user);
-			return TypedActionResult.success(thisStack);
+			return InteractionResultHolder.success(thisStack);
 		}
 		return super.use(world, user, hand);
 	}
 
 	@Override
-	public void onRemoved(PlayerEntity playerEntity) {
-		playerEntity.removeStatusEffect(StatusEffects.NIGHT_VISION);
-		ItemStack stack = playerEntity.playerScreenHandler.getCursorStack();
+	public void onRemoved(Player playerEntity) {
+		playerEntity.removeEffect(MobEffects.NIGHT_VISION);
+		ItemStack stack = playerEntity.inventoryMenu.getCarried();
 		if (stack.getItem() instanceof NanoSuitItem nanoSuitItem) {
 			nanoSuitItem.applyModifier(stack, false);
-			stack.remove(DataComponentTypes.CUSTOM_DATA);
+			stack.remove(DataComponents.CUSTOM_DATA);
 		} else {
-			playerEntity.getInventory().main.forEach(itemStack -> {
+			playerEntity.getInventory().items.forEach(itemStack -> {
 				if (itemStack.getItem() instanceof NanoSuitItem nanoSuitItem) {
 					nanoSuitItem.applyModifier(itemStack, false);
-					itemStack.remove(DataComponentTypes.CUSTOM_DATA);
+					itemStack.remove(DataComponents.CUSTOM_DATA);
 				}
 			});
 		}
 	}
 
 	@Override
-	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
 		if (this.type == Type.HELMET) {
 			TRItemUtils.buildActiveTooltip(stack, tooltip);
 		}
 	}
 
-	public void appendArmorTooltip(ItemStack stack, List<Text> tooltip, boolean shift) {
-		List<Text> buffer = new ArrayList<>();
-		AttributeModifiersComponent attributes = stack.get(DataComponentTypes.ATTRIBUTE_MODIFIERS);
+	public void appendArmorTooltip(ItemStack stack, List<Component> tooltip, boolean shift) {
+		List<Component> buffer = new ArrayList<>();
+		ItemAttributeModifiers attributes = stack.get(DataComponents.ATTRIBUTE_MODIFIERS);
 		if (AttributeModifierBuilder.equals(attributes, hasPowerAttributes)) {
 			if (shift) {
-				buffer.add(Text.translatable("item.modifiers.all_equipment").formatted(Formatting.GRAY));
-				AttributeModifierBuilder.appendText(buffer, FULL_SUIT, Formatting.BLUE);
+				buffer.add(Component.translatable("item.modifiers.all_equipment").withStyle(ChatFormatting.GRAY));
+				AttributeModifierBuilder.appendText(buffer, FULL_SUIT, ChatFormatting.BLUE);
 			}
 		} else if (AttributeModifierBuilder.equals(attributes, fullSuitAttributes)) {
-			buffer.add(ScreenTexts.EMPTY);
-			EquipmentSlot slotType = getSlotType();
-			buffer.add(AttributeModifierBuilder.text(slotType).formatted(Formatting.GRAY));
-			AttributeModifierBuilder.appendText(buffer, shift ? attributes : hasPowerAttributes, Formatting.BLUE);
-			AttributeModifierBuilder.appendEnchantmentText(buffer, stack, slotType, Formatting.BLUE);
-			AttributeModifierBuilder.appendArmorEnchantmentText(buffer, stack, Formatting.BLUE);
+			buffer.add(CommonComponents.EMPTY);
+			EquipmentSlot slotType = getEquipmentSlot();
+			buffer.add(AttributeModifierBuilder.text(slotType).withStyle(ChatFormatting.GRAY));
+			AttributeModifierBuilder.appendText(buffer, shift ? attributes : hasPowerAttributes, ChatFormatting.BLUE);
+			AttributeModifierBuilder.appendEnchantmentText(buffer, stack, slotType, ChatFormatting.BLUE);
+			AttributeModifierBuilder.appendArmorEnchantmentText(buffer, stack, ChatFormatting.BLUE);
 			if (!shift) {
-				buffer.add(ScreenTexts.EMPTY);
-				buffer.add(Text.translatable("item.modifiers.full_suit").formatted(Formatting.YELLOW));
-				AttributeModifierBuilder.appendText(buffer, FULL_SUIT, Formatting.YELLOW);
+				buffer.add(CommonComponents.EMPTY);
+				buffer.add(Component.translatable("item.modifiers.full_suit").withStyle(ChatFormatting.YELLOW));
+				AttributeModifierBuilder.appendText(buffer, FULL_SUIT, ChatFormatting.YELLOW);
 			}
 		} else {
-			if (!shift && stack.contains(DataComponentTypes.CUSTOM_DATA)) {
+			if (!shift && stack.has(DataComponents.CUSTOM_DATA)) {
 				return;
 			}
-			buffer.add(Text.translatable("item.modifiers.power").formatted(Formatting.GRAY));
-			AttributeModifierBuilder.appendDiffText(buffer, attributes, hasPowerAttributes, Formatting.BLUE);
-			buffer.add(Text.translatable("item.modifiers.all_equipment").formatted(Formatting.GRAY));
-			AttributeModifierBuilder.appendText(buffer, FULL_SUIT, Formatting.BLUE);
+			buffer.add(Component.translatable("item.modifiers.power").withStyle(ChatFormatting.GRAY));
+			AttributeModifierBuilder.appendDiffText(buffer, attributes, hasPowerAttributes, ChatFormatting.BLUE);
+			buffer.add(Component.translatable("item.modifiers.all_equipment").withStyle(ChatFormatting.GRAY));
+			AttributeModifierBuilder.appendText(buffer, FULL_SUIT, ChatFormatting.BLUE);
 		}
 		AttributeModifierBuilder.appendEnd(tooltip, buffer);
 	}

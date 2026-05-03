@@ -24,22 +24,21 @@
 
 package techreborn.blockentity.storage.energy.idsu;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.block.BlockState;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.Nullable;
+import reborncore.common.compat.EnergyStorageBridge;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.BuiltScreenHandlerProvider;
 import reborncore.common.screen.builder.ScreenHandlerBuilder;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.DelegatingEnergyStorage;
-import team.reborn.energy.api.base.SimpleEnergyStorage;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.base.SimpleEnergyStorage;
 import techreborn.blockentity.storage.energy.EnergyStorageBlockEntity;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRBlockEntities;
@@ -61,22 +60,15 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return EnergyStorage.EMPTY;
 		}
-		if (world.isClient) {
+		if (level.isClientSide) {
 			// Can't access the global storage, return a dummy. (Only for existence checks)
 			return new SimpleEnergyStorage(TechRebornConfig.idsuMaxEnergy, 0, 0);
 		}
-		EnergyStorage globalStorage = IDSUManager.getPlayer(world.getServer(), ownerUdid).getStorage();
-		return new DelegatingEnergyStorage(globalStorage, null) {
-			@Override
-			public long insert(long maxAmount, TransactionContext transaction) {
-				return backingStorage.get().insert(Math.min(maxAmount, getMaxInput(side)), transaction);
-			}
-
-			@Override
-			public long extract(long maxAmount, TransactionContext transaction) {
-				return backingStorage.get().extract(Math.min(maxAmount, getMaxOutput(side)), transaction);
-			}
-		};
+		EnergyStorage globalStorage = IDSUManager.getPlayer(level.getServer(), ownerUdid).getStorage();
+		final Direction boundSide = side;
+		return EnergyStorageBridge.delegatingWithCappedIo(globalStorage,
+				() -> getMaxInput(boundSide),
+				() -> getMaxOutput(boundSide));
 	}
 
 	@Override
@@ -84,10 +76,10 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return 0;
 		}
-		if (world.isClient) {
+		if (level.isClientSide) {
 			return clientEnergy;
 		}
-		return IDSUManager.getPlayer(world.getServer(), ownerUdid).getEnergy();
+		return IDSUManager.getPlayer(level.getServer(), ownerUdid).getEnergy();
 	}
 
 	@Override
@@ -95,10 +87,10 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return;
 		}
-		if (world.isClient) {
+		if (level.isClientSide) {
 			clientEnergy = energy;
 		} else {
-			IDSUManager.getPlayer(world.getServer(), ownerUdid).setEnergy(energy);
+			IDSUManager.getPlayer(level.getServer(), ownerUdid).setEnergy(energy);
 		}
 	}
 
@@ -107,10 +99,10 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return;
 		}
-		if (world.isClient) {
+		if (level.isClientSide) {
 			throw new UnsupportedOperationException("cannot set energy on the client!");
 		}
-		long energy = IDSUManager.getPlayer(world.getServer(), ownerUdid).getEnergy();
+		long energy = IDSUManager.getPlayer(level.getServer(), ownerUdid).getEnergy();
 		if (extract > energy) {
 			extract = energy;
 		}
@@ -124,14 +116,14 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 	}
 
 	@Override
-	public void readNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(nbtCompound, registryLookup);
+	public void loadAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(nbtCompound, registryLookup);
 		this.ownerUdid = nbtCompound.getString("ownerUdid");
 	}
 
 	@Override
-	public void writeNbt(NbtCompound nbtCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(nbtCompound, registryLookup);
+	public void saveAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(nbtCompound, registryLookup);
 		if (ownerUdid == null || StringUtils.isEmpty(ownerUdid)) {
 			return;
 		}
@@ -139,7 +131,7 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 	}
 
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("idsu").player(player.getInventory()).inventory().hotbar().armor()
 				.complete(8, 18).addArmor().addInventory().blockEntity(this).energySlot(0, 62, 45).energySlot(1, 98, 45)
 				.syncEnergyValue().addInventory().create(this, syncID);

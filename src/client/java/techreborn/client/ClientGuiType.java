@@ -24,8 +24,6 @@
 
 package techreborn.client;
 
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import techreborn.blockentity.GuiType;
 import techreborn.blockentity.generator.PlasmaGeneratorBlockEntity;
 import techreborn.blockentity.generator.SolarPanelBlockEntity;
@@ -130,10 +128,27 @@ import techreborn.client.gui.GuiThermalGenerator;
 import techreborn.client.gui.GuiVacuumFreezer;
 import techreborn.client.gui.GuiWireMill;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 @SuppressWarnings("unused")
 public record ClientGuiType<T extends BlockEntity>(GuiType<T> guiType, GuiFactory<T> guiFactory) {
+	private static final List<ClientGuiType<?>> REGISTERED = new ArrayList<>();
+
+	public ClientGuiType {
+		Objects.requireNonNull(guiType, "guiType");
+		Objects.requireNonNull(guiFactory, "guiFactory");
+	}
+
+	public static void registerMenuScreens(RegisterMenuScreensEvent event) {
+		for (ClientGuiType<?> t : REGISTERED) {
+			event.register(t.guiType().getScreenHandlerType(), t.guiFactory());
+		}
+	}
+
 	public static final ClientGuiType<AdjustableSUBlockEntity> AESU = register(GuiType.AESU, GuiAESU::new);
 	public static final ClientGuiType<IronAlloyFurnaceBlockEntity> ALLOY_FURNACE = register(GuiType.ALLOY_FURNACE, GuiAlloyFurnace::new);
 	public static final ClientGuiType<AlloySmelterBlockEntity> ALLOY_SMELTER = register(GuiType.ALLOY_SMELTER, GuiAlloySmelter::new);
@@ -187,13 +202,8 @@ public record ClientGuiType<T extends BlockEntity>(GuiType<T> guiType, GuiFactor
 	public static final ClientGuiType<PumpBlockEntity> PUMP = register(GuiType.PUMP, GuiPump::new);
 
 	public static <T extends BlockEntity> ClientGuiType<T> register(GuiType<T> type, GuiFactory<T> factory) {
-		return new ClientGuiType<>(type, factory);
-	}
-
-	public ClientGuiType(GuiType<T> guiType, GuiFactory<T> guiFactory) {
-		this.guiType = Objects.requireNonNull(guiType);
-		this.guiFactory = Objects.requireNonNull(guiFactory);
-
-		HandledScreens.register(guiType.getScreenHandlerType(), guiFactory());
+		ClientGuiType<T> t = new ClientGuiType<>(type, factory);
+		REGISTERED.add(t);
+		return t;
 	}
 }

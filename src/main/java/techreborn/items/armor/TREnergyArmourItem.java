@@ -24,39 +24,39 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.ArmorMaterial;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.entry.RegistryEntry;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.Holder;
+import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 
-public abstract class TREnergyArmourItem extends ArmorItem implements RcEnergyItem {
+public abstract class TREnergyArmourItem extends ArmorItem implements RcFabricEnergyItem {
 	public final long maxCharge;
 	private final RcEnergyTier energyTier;
 
-	public TREnergyArmourItem(RegistryEntry<ArmorMaterial> material, Type slot, long maxCharge, RcEnergyTier energyTier) {
-		super(material, slot, new Item.Settings().maxCount(1));
+	public TREnergyArmourItem(Holder<ArmorMaterial> material, Type slot, long maxCharge, RcEnergyTier energyTier) {
+		super(material, slot, new Item.Properties().stacksTo(1));
 		this.maxCharge = maxCharge;
 		this.energyTier = energyTier;
 	}
 
 	// ArmorItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
@@ -66,7 +66,7 @@ public abstract class TREnergyArmourItem extends ArmorItem implements RcEnergyIt
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -77,7 +77,17 @@ public abstract class TREnergyArmourItem extends ArmorItem implements RcEnergyIt
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return energyTier;
+	}
+
+	@Override
+	public long getEnergyMaxInput(ItemStack stack) {
+		return energyTier.getMaxInput();
+	}
+
+	@Override
+	public long getEnergyMaxOutput(ItemStack stack) {
+		return energyTier.getMaxOutput();
 	}
 }

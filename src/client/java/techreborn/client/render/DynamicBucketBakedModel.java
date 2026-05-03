@@ -24,36 +24,38 @@
 
 package techreborn.client.render;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.screen.PlayerScreenHandler;
-import net.minecraft.util.Identifier;
+import techreborn.client.render.DynamicFluidItemModelBase;
+
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.resources.ResourceLocation;
 import techreborn.TechReborn;
 
-public class DynamicBucketBakedModel extends BaseDynamicFluidBakedModel {
-	public static final Identifier BUCKET_BASE = Identifier.of(TechReborn.MOD_ID, "item/bucket_base");
-	public static final Identifier BUCKET_BACKGROUND = Identifier.of(TechReborn.MOD_ID, "item/bucket_background");
-	public static final Identifier BUCKET_FLUID = Identifier.of(TechReborn.MOD_ID, "item/bucket_fluid");
+public class DynamicBucketBakedModel extends DynamicFluidItemModelBase {
+	public static final ResourceLocation BUCKET_BASE = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/bucket_base");
+	public static final ResourceLocation BUCKET_BACKGROUND = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/bucket_background");
+	public static final ResourceLocation BUCKET_FLUID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "item/bucket_fluid");
 
 	@Override
-	public Sprite getParticleSprite() {
-		return MinecraftClient.getInstance()
-				.getSpriteAtlas(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE)
-				.apply(Identifier.of("minecraft:item/bucket"));
+	public TextureAtlasSprite getParticleIcon() {
+		return Minecraft.getInstance()
+				.getTextureAtlas(TextureAtlas.LOCATION_BLOCKS)
+				.apply(ResourceLocation.parse("minecraft:item/bucket"));
 	}
 
 	@Override
-	public Identifier getBaseModel() {
+	public ResourceLocation getBaseModel() {
 		return BUCKET_BASE;
 	}
 
 	@Override
-	public Identifier getBackgroundModel() {
+	public ResourceLocation getBackgroundModel() {
 		return BUCKET_BACKGROUND;
 	}
 
 	@Override
-	public Identifier getFluidModel() {
+	public ResourceLocation getFluidModel() {
 		return BUCKET_FLUID;
 	}
 }

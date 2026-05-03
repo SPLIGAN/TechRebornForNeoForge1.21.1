@@ -24,22 +24,22 @@
 
 package reborncore.client;
 
+import com.mojang.blaze3d.pipeline.RenderTarget;
+import com.mojang.blaze3d.pipeline.TextureTarget;
+import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.systems.VertexSorter;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gl.Framebuffer;
-import net.minecraft.client.gl.SimpleFramebuffer;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.render.DiffuseLighting;
-import net.minecraft.client.render.RenderTickCounter;
-import net.minecraft.client.texture.NativeImage;
-import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexSorting;
+import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import org.joml.Matrix4f;
+import reborncore.client.event.ClientLifecycleBridge;
+import reborncore.common.util.LoaderBridge;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,65 +49,65 @@ import java.nio.file.Path;
  * and then ported to 1.15
  * Thanks 2xsaiko for fixing the lighting + odd issues above
  */
-public class ItemStackRenderer implements HudRenderCallback {
+public class ItemStackRenderer implements ClientLifecycleBridge.HudRenderCallback {
 
 	private static final int SIZE = 512;
 
 	@Override
-	public void onHudRender(DrawContext drawContext, RenderTickCounter tickCounter) {
+	public void onHudRender(GuiGraphics drawContext, DeltaTracker tickCounter) {
 		if (!ItemStackRenderManager.RENDER_QUEUE.isEmpty()) {
 			ItemStack itemStack = ItemStackRenderManager.RENDER_QUEUE.remove();
-			Identifier id = Registries.ITEM.getId(itemStack.getItem());
-			drawContext.drawText(MinecraftClient.getInstance().textRenderer, "Rendering " + id, 5, 5, -1, false);
-			drawContext.drawText(MinecraftClient.getInstance().textRenderer, ItemStackRenderManager.RENDER_QUEUE.size() + " items left", 5, 15, -1, false);
+			ResourceLocation id = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+			drawContext.drawString(Minecraft.getInstance().font, "Rendering " + id, 5, 5, -1, false);
+			drawContext.drawString(Minecraft.getInstance().font, ItemStackRenderManager.RENDER_QUEUE.size() + " items left", 5, 15, -1, false);
 			export(id, itemStack);
 		}
 	}
 
-	private void export(Identifier identifier, ItemStack item) {
-		MinecraftClient client = MinecraftClient.getInstance();
+	private void export(ResourceLocation identifier, ItemStack item) {
+		Minecraft client = Minecraft.getInstance();
 
 		Matrix4f matrix4f = new Matrix4f().setOrtho(0, 16, 16, 0, 1000, 3000);
-		RenderSystem.setProjectionMatrix(matrix4f, VertexSorter.BY_Z);
-		MatrixStack stack = new MatrixStack();
-		stack.push();
-		stack.loadIdentity();
+		RenderSystem.setProjectionMatrix(matrix4f, VertexSorting.ORTHOGRAPHIC_Z);
+		PoseStack stack = new PoseStack();
+		stack.pushPose();
+		stack.setIdentity();
 		stack.translate(0, 0, -2000);
-		DiffuseLighting.enableGuiDepthLighting();
+		Lighting.setupFor3DItems();
 		RenderSystem.applyModelViewMatrix();
 
-		Framebuffer framebuffer = new SimpleFramebuffer(SIZE, SIZE, true, MinecraftClient.IS_SYSTEM_MAC);
+		RenderTarget framebuffer = new TextureTarget(SIZE, SIZE, true, Minecraft.ON_OSX);
 
 		try (NativeImage nativeImage = new NativeImage(SIZE, SIZE, true)) {
 			framebuffer.setClearColor(0, 0, 0, 0);
-			framebuffer.clear(MinecraftClient.IS_SYSTEM_MAC);
+			framebuffer.clear(Minecraft.ON_OSX);
 
 			{
-				framebuffer.beginWrite(true);
-				DrawContext drawContext = new DrawContext(client, client.getBufferBuilders().getEntityVertexConsumers());
-				drawContext.drawItem(item, 0, 0);
-				drawContext.draw();
-				framebuffer.endWrite();
+				framebuffer.bindWrite(true);
+				GuiGraphics drawContext = new GuiGraphics(client, client.renderBuffers().bufferSource());
+				drawContext.renderItem(item, 0, 0);
+				drawContext.flush();
+				framebuffer.unbindWrite();
 			}
 
 			{
-				framebuffer.beginRead();
-				nativeImage.loadFromTextureImage(0, false);
-				nativeImage.mirrorVertically();
-				framebuffer.endRead();
+				framebuffer.bindRead();
+				nativeImage.downloadTexture(0, false);
+				nativeImage.flipY();
+				framebuffer.unbindRead();
 			}
 
 			try {
-				Path path = FabricLoader.getInstance().getGameDir().resolve("item_renderer").resolve(identifier.getNamespace()).resolve(identifier.getPath() + ".png");
+				Path path = LoaderBridge.getGameDir().resolve("item_renderer").resolve(identifier.getNamespace()).resolve(identifier.getPath() + ".png");
 				Files.createDirectories(path.getParent());
-				nativeImage.writeTo(path);
+				nativeImage.writeToFile(path);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		}
 
-		framebuffer.delete();
-		stack.pop();
+		framebuffer.destroyBuffers();
+		stack.popPose();
 		RenderSystem.applyModelViewMatrix();
 	}
 }

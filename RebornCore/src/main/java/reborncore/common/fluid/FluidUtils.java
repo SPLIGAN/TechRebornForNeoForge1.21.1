@@ -24,38 +24,29 @@
 
 package reborncore.common.fluid;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.StorageUtil;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleSlotStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.Transaction;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
-import net.minecraft.block.Block;
-import net.minecraft.block.FluidBlock;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
+import reborncore.common.compat.TransferApiBridge;
 import reborncore.common.fluid.container.FluidInstance;
 import reborncore.common.util.Tank;
 
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 
 public class FluidUtils {
 
 	@NotNull
 	public static Fluid fluidFromBlock(Block block) {
-		if (block instanceof FluidBlock fluidBlock) {
+		if (block instanceof LiquidBlock fluidBlock) {
 			return fluidBlock.fluid;
 		}
 
@@ -63,71 +54,30 @@ public class FluidUtils {
 	}
 
 	public static List<Fluid> getAllFluids() {
-		return Registries.FLUID.stream().collect(Collectors.toList());
+		return BuiltInRegistries.FLUID.stream().collect(Collectors.toList());
 	}
 
-	public static boolean drainContainers(Tank tank, Inventory inventory, int inputSlot, int outputSlot) {
+	public static boolean drainContainers(Tank tank, Container inventory, int inputSlot, int outputSlot) {
 		return drainContainers(tank, inventory, inputSlot, outputSlot, false);
 	}
 
-	public static boolean drainContainers(Tank tank, Inventory inventory, int inputSlot, int outputSlot, boolean voidFluid) {
-		Storage<FluidVariant> itemStorage = getItemFluidStorage(inventory, inputSlot, outputSlot);
+	public static boolean drainContainers(Tank tank, Container inventory, int inputSlot, int outputSlot, boolean voidFluid) {
+		var itemStorage = TransferApiBridge.fluidStorageConnectingInventorySlots(inventory, inputSlot, outputSlot);
 
 		if (voidFluid) {
-			// Just extract as much as we can
-			try (Transaction tx = Transaction.openOuter()) {
-				boolean didSomething = false;
-				for (var view : itemStorage) {
-					if (view.isResourceBlank()) continue;
-
-					didSomething = didSomething | view.extract(view.getResource(), Long.MAX_VALUE, tx) > 0;
-				}
-				tx.commit();
-				return didSomething;
-			}
-		} else {
-			return StorageUtil.move(itemStorage, tank, fv -> true, Long.MAX_VALUE, null) > 0;
+			return TransferApiBridge.drainFluidStorageCompletelyCommitted(itemStorage);
 		}
+		return TransferApiBridge.moveFluids(itemStorage, tank, fv -> true, Long.MAX_VALUE, null) > 0;
 	}
 
-	public static boolean fillContainers(Tank source, Inventory inventory, int inputSlot, int outputSlot) {
-		return StorageUtil.move(
+	public static boolean fillContainers(Tank source, Container inventory, int inputSlot, int outputSlot) {
+		return TransferApiBridge.moveFluids(
 				source,
-				getItemFluidStorage(inventory, inputSlot, outputSlot),
+				TransferApiBridge.fluidStorageConnectingInventorySlots(inventory, inputSlot, outputSlot),
 				fv -> true,
 				Long.MAX_VALUE,
 				null
 		) > 0;
-	}
-
-	private static Storage<FluidVariant> getItemFluidStorage(Inventory inventory, int inputSlot, int outputSlot) {
-		var invWrapper = InventoryStorage.of(inventory, null);
-		var input = invWrapper.getSlot(inputSlot);
-		var output = invWrapper.getSlot(outputSlot);
-		var context = new ContainerItemContext() {
-			@Override
-			public SingleSlotStorage<ItemVariant> getMainSlot() {
-				return input;
-			}
-
-			@Override
-			public long insertOverflow(ItemVariant itemVariant, long maxAmount, TransactionContext transactionContext) {
-				return output.insert(itemVariant, maxAmount, transactionContext);
-			}
-
-			@Override
-			public long insert(ItemVariant itemVariant, long maxAmount, TransactionContext transaction) {
-				// Don't allow insertion in the input slot
-				return insertOverflow(itemVariant, maxAmount, transaction);
-			}
-
-			@Override
-			public List<SingleSlotStorage<ItemVariant>> getAdditionalSlots() {
-				return List.of();
-			}
-		};
-		var storage = context.find(FluidStorage.ITEM);
-		return storage != null ? storage : Storage.empty();
 	}
 
 	public static boolean fluidEquals(@NotNull Fluid fluid, @NotNull Fluid fluid1) {
@@ -135,43 +85,19 @@ public class FluidUtils {
 	}
 
 	public static boolean isContainer(ItemStack stack) {
-		return ContainerItemContext.withConstant(stack).find(FluidStorage.ITEM) != null;
+		return TransferApiBridge.itemStackProvidesFluidItemStorage(stack);
 	}
 
 	public static boolean isContainerEmpty(ItemStack stack) {
-		var fluidStorage = ContainerItemContext.withConstant(stack).find(FluidStorage.ITEM);
-		if (fluidStorage == null) return false;
-
-		// Use current transaction in case this check is nested in a transfer operation.
-		try (var tx = Transaction.openNested(Transaction.getCurrentUnsafe())) {
-			for (var view : fluidStorage) {
-				if (!view.isResourceBlank() && view.getAmount() > 0) {
-					return false;
-				}
-			}
-		}
-
-		return true;
+		return TransferApiBridge.fluidItemStorageEffectivelyEmpty(stack);
 	}
 
 	public static boolean containsMatchingFluid(ItemStack stack, Predicate<Fluid> predicate) {
-		var fluidStorage = ContainerItemContext.withConstant(stack).find(FluidStorage.ITEM);
-		if (fluidStorage == null) return false;
-
-		// Use current transaction in case this check is nested in a transfer operation.
-		try (var tx = Transaction.openNested(Transaction.getCurrentUnsafe())) {
-			for (var view : fluidStorage) {
-				if (!view.isResourceBlank() && view.getAmount() > 0 && predicate.test(view.getResource().getFluid())) {
-					return true;
-				}
-			}
-		}
-
-		return false;
+		return TransferApiBridge.fluidItemStorageMatchesFluid(stack, predicate);
 	}
 
 	@Deprecated
-	public static boolean interactWithFluidHandler(PlayerEntity playerIn, Tank tank) {
+	public static boolean interactWithFluidHandler(Player playerIn, Tank tank) {
 		// TODO
 		return false;
 	}
@@ -182,6 +108,6 @@ public class FluidUtils {
 	}
 
 	public static String getFluidName(@NotNull Fluid fluid) {
-		return Text.translatable(fluid.getDefaultState().getBlockState().getBlock().getTranslationKey()).getString();
+		return Component.translatable(fluid.defaultFluidState().createLegacyBlock().getBlock().getDescriptionId()).getString();
 	}
 }

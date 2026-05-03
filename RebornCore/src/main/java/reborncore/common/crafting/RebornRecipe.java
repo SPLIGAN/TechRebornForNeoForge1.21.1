@@ -27,22 +27,6 @@ package reborncore.common.crafting;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.dynamic.Codecs;
-import net.minecraft.world.World;
 import org.jetbrains.annotations.ApiStatus;
 import reborncore.RebornCore;
 import reborncore.api.recipe.IRecipeCrafterProvider;
@@ -51,19 +35,35 @@ import reborncore.common.util.DefaultedListCollector;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	Function<RecipeType<RebornRecipe>, MapCodec<RebornRecipe>> CODEC = type -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.list(SizedIngredient.CODEC.codec()).fieldOf("ingredients").forGetter(RebornRecipe::ingredients),
 		Codec.list(ItemStack.CODEC).fieldOf("outputs").forGetter(RebornRecipe::outputs),
-		Codecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
-		Codecs.POSITIVE_INT.fieldOf("time").forGetter(RebornRecipe::time)
+		ExtraCodecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
+		ExtraCodecs.POSITIVE_INT.fieldOf("time").forGetter(RebornRecipe::time)
 	).apply(instance, (ingredients, outputs, power, time) -> new Default(type, ingredients, outputs, power, time)));
-	Function<RecipeType<RebornRecipe>, PacketCodec<RegistryByteBuf, RebornRecipe>> PACKET_CODEC = type -> PacketCodec.tuple(
-		SizedIngredient.PACKET_CODEC.collect(PacketCodecs.toList()), RebornRecipe::ingredients,
-		ItemStack.PACKET_CODEC.collect(PacketCodecs.toList()), RebornRecipe::outputs,
-		PacketCodecs.INTEGER, RebornRecipe::power,
-		PacketCodecs.INTEGER, RebornRecipe::time,
+	Function<RecipeType<RebornRecipe>, StreamCodec<RegistryFriendlyByteBuf, RebornRecipe>> PACKET_CODEC = type -> StreamCodec.composite(
+		SizedIngredient.PACKET_CODEC.apply(ByteBufCodecs.list()), RebornRecipe::ingredients,
+		ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), RebornRecipe::outputs,
+		ByteBufCodecs.INT, RebornRecipe::power,
+		ByteBufCodecs.INT, RebornRecipe::time,
 		(ingredients, outputs, power, time) -> new Default(type, ingredients, outputs, power, time)
 	);
 
@@ -78,21 +78,21 @@ public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	int time();
 
 	@Override
-	default ItemStack createIcon() {
-		Identifier typeId = Registries.RECIPE_TYPE.getId(type());
-		Optional<Item> catalyst = Registries.ITEM.getOrEmpty(typeId);
+	default ItemStack getToastSymbol() {
+		ResourceLocation typeId = BuiltInRegistries.RECIPE_TYPE.getKey(type());
+		Optional<Item> catalyst = BuiltInRegistries.ITEM.getOptional(typeId);
 
 		if (catalyst.isPresent()) {
 			return new ItemStack(catalyst.get());
 		}
 
 		RebornCore.LOGGER.warn("Missing toast icon for {}!", typeId);
-		return Recipe.super.createIcon();
+		return Recipe.super.getToastSymbol();
 	}
 
 	@Override
 	default RecipeSerializer<?> getSerializer() {
-		return Registries.RECIPE_SERIALIZER.get(Registries.RECIPE_TYPE.getId(getType()));
+		return BuiltInRegistries.RECIPE_SERIALIZER.get(BuiltInRegistries.RECIPE_TYPE.getKey(getType()));
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	 */
 	@Deprecated
 	@Override
-	default DefaultedList<Ingredient> getIngredients() {
+	default NonNullList<Ingredient> getIngredients() {
 		return this.ingredients().stream().map(SizedIngredient::ingredient).collect(DefaultedListCollector.toList());
 	}
 
@@ -131,19 +131,19 @@ public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	// Done as our recipes do not support these functions, hopefully nothing blindly calls them
 	@Deprecated
 	@Override
-	default boolean matches(RebornRecipeInput inv, World worldIn) {
+	default boolean matches(RebornRecipeInput inv, Level worldIn) {
 		throw new UnsupportedOperationException();
 	}
 
 
 	@Override
-	default ItemStack craft(RebornRecipeInput inventory, RegistryWrapper.WrapperLookup lookup) {
+	default ItemStack assemble(RebornRecipeInput inventory, HolderLookup.Provider lookup) {
 		throw new UnsupportedOperationException();
 	}
 
 	@Deprecated
 	@Override
-	default boolean fits(int width, int height) {
+	default boolean canCraftInDimensions(int width, int height) {
 		throw new UnsupportedOperationException();
 	}
 
@@ -154,7 +154,7 @@ public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	 */
 	@Deprecated
 	@Override
-	default ItemStack getResult(RegistryWrapper.WrapperLookup registriesLookup) {
+	default ItemStack getResultItem(HolderLookup.Provider registriesLookup) {
 		if (outputs().isEmpty()) {
 			return ItemStack.EMPTY;
 		}
@@ -162,13 +162,13 @@ public interface RebornRecipe extends Recipe<RebornRecipeInput> {
 	}
 
 	@Override
-	default DefaultedList<ItemStack> getRemainder(RebornRecipeInput input) {
+	default NonNullList<ItemStack> getRemainingItems(RebornRecipeInput input) {
 		throw new UnsupportedOperationException();
 	}
 
 	// Done to try and stop the table from loading it
 	@Override
-	default boolean isIgnoredInRecipeBook() {
+	default boolean isSpecial() {
 		return true;
 	}
 }

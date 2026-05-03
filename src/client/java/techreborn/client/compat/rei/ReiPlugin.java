@@ -27,7 +27,6 @@ package techreborn.client.compat.rei;
 import dev.architectury.event.CompoundEventResult;
 import dev.architectury.fluid.FluidStack;
 import me.shedaniel.math.Rectangle;
-import me.shedaniel.rei.api.client.config.ConfigObject;
 import me.shedaniel.rei.api.client.entry.renderer.EntryRenderer;
 import me.shedaniel.rei.api.client.gui.Renderer;
 import me.shedaniel.rei.api.client.gui.widgets.Tooltip;
@@ -49,25 +48,21 @@ import me.shedaniel.rei.api.common.entry.type.EntryTypeRegistry;
 import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
 import me.shedaniel.rei.api.common.fluid.FluidSupportProvider;
 import me.shedaniel.rei.api.common.util.EntryStacks;
-import me.shedaniel.rei.impl.client.config.ConfigObjectImpl;
-import me.shedaniel.rei.impl.client.gui.config.options.AllREIConfigOptions;
 import me.shedaniel.rei.plugin.client.entry.ItemEntryDefinition;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandler;
-import net.fabricmc.fabric.api.client.render.fluid.v1.FluidRenderHandlerRegistry;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.texture.Sprite;
-import net.minecraft.fluid.Fluid;
-import net.minecraft.fluid.Fluids;
-import net.minecraft.item.ItemConvertible;
-import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.Mth;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import org.jetbrains.annotations.Nullable;
+import reborncore.client.compat.FluidVariantRenderingBridge;
 import reborncore.api.blockentity.IUpgradeable;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.GuiBuilder;
@@ -85,12 +80,12 @@ import techreborn.client.compat.rei.fluidreplicator.FluidReplicatorRecipeDisplay
 import techreborn.client.compat.rei.machine.*;
 import techreborn.client.compat.rei.rollingmachine.RollingMachineCategory;
 import techreborn.client.compat.rei.rollingmachine.RollingMachineDisplay;
+import techreborn.client.compat.TechRebornRecipeIcons;
 import techreborn.init.ModRecipes;
 import techreborn.init.TRContent;
 import techreborn.init.TRContent.Machine;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -100,32 +95,7 @@ import java.util.stream.Stream;
 import static reborncore.client.gui.GuiSprites.drawSpriteStretched;
 
 public class ReiPlugin implements REIClientPlugin {
-	public static final Map<RecipeType<?>, ItemConvertible> iconMap = new HashMap<>();
-
-	public ReiPlugin() {
-		iconMap.put(ModRecipes.ALLOY_SMELTER, Machine.ALLOY_SMELTER);
-		iconMap.put(ModRecipes.ASSEMBLING_MACHINE, Machine.ASSEMBLY_MACHINE);
-		iconMap.put(ModRecipes.BLAST_FURNACE, Machine.INDUSTRIAL_BLAST_FURNACE);
-		iconMap.put(ModRecipes.CENTRIFUGE, Machine.INDUSTRIAL_CENTRIFUGE);
-		iconMap.put(ModRecipes.CHEMICAL_REACTOR, Machine.CHEMICAL_REACTOR);
-		iconMap.put(ModRecipes.COMPRESSOR, Machine.COMPRESSOR);
-		iconMap.put(ModRecipes.DISTILLATION_TOWER, Machine.DISTILLATION_TOWER);
-		iconMap.put(ModRecipes.EXTRACTOR, Machine.EXTRACTOR);
-		iconMap.put(ModRecipes.FLUID_REPLICATOR, Machine.FLUID_REPLICATOR);
-		iconMap.put(ModRecipes.FUSION_REACTOR, Machine.FUSION_CONTROL_COMPUTER);
-		iconMap.put(ModRecipes.GRINDER, Machine.GRINDER);
-		iconMap.put(ModRecipes.IMPLOSION_COMPRESSOR, Machine.IMPLOSION_COMPRESSOR);
-		iconMap.put(ModRecipes.INDUSTRIAL_ELECTROLYZER, Machine.INDUSTRIAL_ELECTROLYZER);
-		iconMap.put(ModRecipes.INDUSTRIAL_GRINDER, Machine.INDUSTRIAL_GRINDER);
-		iconMap.put(ModRecipes.INDUSTRIAL_SAWMILL, Machine.INDUSTRIAL_SAWMILL);
-		iconMap.put(ModRecipes.ROLLING_MACHINE, Machine.ROLLING_MACHINE);
-		iconMap.put(ModRecipes.SCRAPBOX, () -> TRContent.SCRAP_BOX);
-		iconMap.put(ModRecipes.SOLID_CANNING_MACHINE, Machine.SOLID_CANNING_MACHINE);
-		iconMap.put(ModRecipes.VACUUM_FREEZER, Machine.VACUUM_FREEZER);
-		iconMap.put(ModRecipes.WIRE_MILL, Machine.WIRE_MILL);
-		// Fix cell equals bucket
-		AllREIConfigOptions.CACHED_DISPLAY_LOOKUP.getSave().accept((ConfigObjectImpl) ConfigObject.getInstance(), false);
-	}
+	public static final Map<RecipeType<?>, ItemLike> iconMap = TechRebornRecipeIcons.RECIPE_ICONS;
 
 	@Override
 	public void registerCategories(CategoryRegistry registry) {
@@ -182,7 +152,7 @@ public class ReiPlugin implements REIClientPlugin {
 		registry.addWorkstations(CategoryIdentifier.of(TechReborn.MOD_ID, Machine.PLASMA_GENERATOR.name), EntryStacks.of(Machine.PLASMA_GENERATOR));
 	}
 
-	private void addWorkstations(Identifier identifier, EntryStack<?>... stacks) {
+	private void addWorkstations(ResourceLocation identifier, EntryStack<?>... stacks) {
 		CategoryRegistry.getInstance().addWorkstations(CategoryIdentifier.of(identifier), stacks);
 	}
 
@@ -190,8 +160,8 @@ public class ReiPlugin implements REIClientPlugin {
 		CategoryRegistry.getInstance().addWorkstations(CategoryIdentifier.of(getTypeId(type)), stacks);
 	}
 
-	private static Identifier getTypeId(RecipeType<?> type) {
-		return Objects.requireNonNull(Registries.RECIPE_TYPE.getId(type));
+	private static ResourceLocation getTypeId(RecipeType<?> type) {
+		return Objects.requireNonNull(BuiltInRegistries.RECIPE_TYPE.getKey(type));
 	}
 
 	@Override
@@ -256,7 +226,7 @@ public class ReiPlugin implements REIClientPlugin {
 	}
 
 	private void registerFluidGeneratorDisplays(DisplayRegistry registry, RecipeType<FluidGeneratorRecipe> generator, Machine machine) {
-		Identifier identifier = Identifier.of(TechReborn.MOD_ID, machine.name);
+		ResourceLocation identifier = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, machine.name);
 		registry.registerRecipeFiller(FluidGeneratorRecipe.class, recipeType -> recipeType == generator, recipe -> new FluidGeneratorRecipeDisplay(recipe.value(), identifier));
 	}
 
@@ -265,7 +235,7 @@ public class ReiPlugin implements REIClientPlugin {
 			return;
 		}
 
-		Function<RecipeEntry<RebornRecipe>, Display> recipeDisplay = MachineRecipeDisplay::new;
+		Function<RecipeHolder<RebornRecipe>, Display> recipeDisplay = MachineRecipeDisplay::new;
 
 		if (recipeType == ModRecipes.ROLLING_MACHINE) {
 			recipeDisplay = RollingMachineDisplay::new;
@@ -319,10 +289,10 @@ public class ReiPlugin implements REIClientPlugin {
 			}
 
 			switch (direction) {
-				case RIGHT -> drawContext.drawTexture(GuiBuilder.GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, j, 10);
-				case LEFT -> drawContext.drawTexture(GuiBuilder.GUI_ELEMENTS, x + 16 - j, y, direction.xActive + 16 - j, direction.yActive, j, 10);
-				case UP -> drawContext.drawTexture(GuiBuilder.GUI_ELEMENTS, x, y + 16 - j, direction.xActive, direction.yActive + 16 - j, 10, j);
-				case DOWN -> drawContext.drawTexture(GuiBuilder.GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, 10, j);
+				case RIGHT -> drawContext.blit(GuiBuilder.GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, j, 10);
+				case LEFT -> drawContext.blit(GuiBuilder.GUI_ELEMENTS, x + 16 - j, y, direction.xActive + 16 - j, direction.yActive, j, 10);
+				case UP -> drawContext.blit(GuiBuilder.GUI_ELEMENTS, x, y + 16 - j, direction.xActive, direction.yActive + 16 - j, 10, j);
+				case DOWN -> drawContext.blit(GuiBuilder.GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, 10, j);
 			}
 		});
 	}
@@ -341,7 +311,7 @@ public class ReiPlugin implements REIClientPlugin {
 
 	private record EnergyEntryRenderer(EntryAnimation animation, Function<TooltipContext, Tooltip> tooltipBuilder) implements Renderer {
 		@Override
-			public void render(DrawContext drawContext, Rectangle bounds, int mouseX, int mouseY, float delta) {
+			public void render(GuiGraphics drawContext, Rectangle bounds, int mouseX, int mouseY, float delta) {
 				int width = bounds.width + 2;
 				int height = bounds.height + 2;
 				int innerHeight = height - 2;
@@ -349,7 +319,7 @@ public class ReiPlugin implements REIClientPlugin {
 				drawSpriteStretched(drawContext, GuiSprites.POWER_BAR_BASE, bounds.x - 1, bounds.y - 1, 14, 50);
 				int innerDisplayHeight;
 				if (animation.animationType != EntryAnimationType.NONE) {
-					innerDisplayHeight = MathHelper.ceil(System.currentTimeMillis() / (Math.round(animation.duration * 1000.0 / innerHeight) / 1000.0) % innerHeight);
+					innerDisplayHeight = Mth.ceil(System.currentTimeMillis() / (Math.round(animation.duration * 1000.0 / innerHeight) / 1000.0) % innerHeight);
 					if (animation.animationType == EntryAnimationType.DOWNWARDS)
 						innerDisplayHeight = innerHeight - innerDisplayHeight;
 				} else innerDisplayHeight = innerHeight;
@@ -365,14 +335,14 @@ public class ReiPlugin implements REIClientPlugin {
 
 	private record FluidStackRenderer(EntryAnimation animation, EntryRenderer<FluidStack> parent) implements EntryRenderer<FluidStack> {
 		@Override
-			public void render(EntryStack<FluidStack> entry, DrawContext drawContext, Rectangle bounds, int mouseX, int mouseY, float delta) {
+			public void render(EntryStack<FluidStack> entry, GuiGraphics drawContext, Rectangle bounds, int mouseX, int mouseY, float delta) {
 				int width = bounds.width;
 				int height = bounds.height;
 
 				drawSpriteStretched(drawContext, GuiSprites.TANK_BACKGROUND, bounds.x - 4, bounds.y - 4, 22, 56);
 				int innerDisplayHeight;
 				if (animation.animationType != EntryAnimationType.NONE) {
-					innerDisplayHeight = MathHelper.ceil(System.currentTimeMillis() / (Math.round(animation.duration * 1000.0 / height) / 1000.0) % height);
+					innerDisplayHeight = Mth.ceil(System.currentTimeMillis() / (Math.round(animation.duration * 1000.0 / height) / 1000.0) % height);
 					if (animation.animationType == EntryAnimationType.DOWNWARDS)
 						innerDisplayHeight = height - innerDisplayHeight;
 				} else innerDisplayHeight = height;
@@ -380,32 +350,25 @@ public class ReiPlugin implements REIClientPlugin {
 				drawSpriteStretched(drawContext, GuiSprites.TANK_FOREGROUND, bounds.x - 1, bounds.y - 1, 16, 50);
 			}
 
-			public void drawFluid(DrawContext drawContext, Fluid fluid, int drawHeight, int x, int y, int width, int height) {
+			public void drawFluid(GuiGraphics drawContext, Fluid fluid, int drawHeight, int x, int y, int width, int height) {
 				y += height - drawHeight;
 
-				FluidRenderHandler handler = FluidRenderHandlerRegistry.INSTANCE.get(fluid);
-
-				// If registry can't find it, don't render.
-				if (handler == null) {
-					return;
-				}
-
-				final Sprite sprite = handler.getFluidSprites(MinecraftClient.getInstance().world, BlockPos.ORIGIN, fluid.getDefaultState())[0];
-				int color = handler.getFluidColor(MinecraftClient.getInstance().world, BlockPos.ORIGIN, fluid.getDefaultState());
-				drawContext.setShaderColor((color >> 16 & 255) / 255.0F, (float) (color >> 8 & 255) / 255.0F, (float) (color & 255) / 255.0F, 1F);
+				final TextureAtlasSprite sprite = FluidVariantRenderingBridge.getSprite(fluid);
+				int color = FluidVariantRenderingBridge.getColor(fluid);
+				drawContext.setColor((color >> 16 & 255) / 255.0F, (float) (color >> 8 & 255) / 255.0F, (float) (color & 255) / 255.0F, 1F);
 
 				int count = drawHeight / width;
 				int remainder = drawHeight % width;
 				for (int i = 0; i < count; i++) {
-					drawContext.drawSprite(x, y, 0, width, width, sprite);
+					drawContext.blit(x, y, 0, width, width, sprite);
 					y += width;
 				}
 				if (remainder != 0) {
 					drawContext.enableScissor(x, y, x + width, y + remainder);
-					drawContext.drawSprite(x, y, 0, width, width, sprite);
+					drawContext.blit(x, y, 0, width, width, sprite);
 					drawContext.disableScissor();
 				}
-				drawContext.setShaderColor(1, 1, 1, 1);
+				drawContext.setColor(1, 1, 1, 1);
 			}
 
 			@Override

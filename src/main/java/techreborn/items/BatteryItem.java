@@ -24,78 +24,78 @@
 
 package techreborn.items;
 
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.utils.TRItemUtils;
 
 import java.util.List;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.Level;
 
-public class BatteryItem extends Item implements RcEnergyItem {
+public class BatteryItem extends Item implements RcFabricEnergyItem {
 
 	private final int maxEnergy;
 	private final RcEnergyTier tier;
 
 	public BatteryItem(int maxEnergy, RcEnergyTier tier) {
-		super(new Item.Settings().maxCount(1));
+		super(new Item.Properties().stacksTo(1));
 		this.maxEnergy = maxEnergy;
 		this.tier = tier;
 	}
 
 	// Item
 	@Override
-	public TypedActionResult<ItemStack> use(final World world, final PlayerEntity player, final Hand hand) {
-		final ItemStack stack = player.getStackInHand(hand);
-		if (player.isSneaking()) {
+	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+		final ItemStack stack = player.getItemInHand(hand);
+		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, 1, player);
-			return new TypedActionResult<>(ActionResult.SUCCESS, stack);
+			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
 		}
-		return new TypedActionResult<>(ActionResult.PASS, stack);
+		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, World world, Entity entity, int slot, boolean selected) {
+	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
 		TRItemUtils.checkActive(stack, 1, entity);
-		if (world.isClient) {
+		if (world.isClientSide) {
 			return;
 		}
 		if (!TRItemUtils.isActive(stack)){
 			return;
 		}
-		if (entity instanceof PlayerEntity) {
-			ItemUtils.distributePowerToInventory((PlayerEntity) entity, stack, tier.getMaxOutput(), (testStack) -> !(testStack.getItem() instanceof BatteryItem));
+		if (entity instanceof Player) {
+			ItemUtils.distributePowerToInventory((Player) entity, stack, tier.getMaxOutput(), (testStack) -> !(testStack.getItem() instanceof BatteryItem));
 		}
 	}
 
 	@Override
-	public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 
 
 	// ItemDurabilityExtensions
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -106,7 +106,7 @@ public class BatteryItem extends Item implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

@@ -24,55 +24,47 @@
 
 package techreborn.init;
 
-import net.fabricmc.fabric.api.event.registry.DynamicRegistrySetupCallback;
-import net.fabricmc.fabric.api.object.builder.v1.trade.TradeOfferHelper;
-import net.fabricmc.fabric.api.object.builder.v1.villager.VillagerProfessionBuilder;
-import net.fabricmc.fabric.api.object.builder.v1.world.poi.PointOfInterestHelper;
-import net.minecraft.item.Items;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.sound.SoundEvents;
-import net.minecraft.structure.pool.StructurePool;
-import net.minecraft.structure.pool.StructurePoolElement;
-import net.minecraft.util.Identifier;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.village.TradeOffers;
-import net.minecraft.village.VillagerProfession;
-import net.minecraft.world.poi.PointOfInterestType;
 import reborncore.common.util.TradeUtils;
 import techreborn.TechReborn;
-import techreborn.config.TechRebornConfig;
-
 import java.util.LinkedList;
 import java.util.List;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.entity.ai.village.poi.PoiType;
+import net.minecraft.world.entity.npc.VillagerProfession;
+import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.item.Items;
 
 public class TRVillager {
 
-	public static final Identifier METALLURGIST_ID = Identifier.of(TechReborn.MOD_ID, "metallurgist");
-	public static final Identifier ELECTRICIAN_ID = Identifier.of(TechReborn.MOD_ID, "electrician");
+	public static final ResourceLocation METALLURGIST_ID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "metallurgist");
+	public static final ResourceLocation ELECTRICIAN_ID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "electrician");
 
-	public static final PointOfInterestType METALLURGIST_POI = PointOfInterestHelper.register(
+	public static final PoiType METALLURGIST_POI = VillagerBridge.registerPoi(
 		METALLURGIST_ID, 1, 1, TRContent.Machine.IRON_ALLOY_FURNACE.block
 	);
-	public static final PointOfInterestType ELECTRICIAN_POI = PointOfInterestHelper.register(
+	public static final PoiType ELECTRICIAN_POI = VillagerBridge.registerPoi(
 		ELECTRICIAN_ID, 1, 1, TRContent.Machine.SOLID_FUEL_GENERATOR.block
 	);
 
-	public static final VillagerProfession METALLURGIST_PROFESSION = Registry.register(Registries.VILLAGER_PROFESSION, METALLURGIST_ID,
-		VillagerProfessionBuilder.create()
-			.id(METALLURGIST_ID)
-			.workstation(RegistryKey.of(RegistryKeys.POINT_OF_INTEREST_TYPE, METALLURGIST_ID))
-			.workSound(SoundEvents.ENTITY_VILLAGER_WORK_TOOLSMITH)
-			.build()
+	public static final VillagerProfession METALLURGIST_PROFESSION = Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, METALLURGIST_ID,
+		VillagerBridge.buildProfession(
+			METALLURGIST_ID,
+			ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, METALLURGIST_ID),
+			SoundEvents.VILLAGER_WORK_TOOLSMITH
+		)
 	);
 
-	public static final VillagerProfession ELECTRICIAN_PROFESSION = Registry.register(Registries.VILLAGER_PROFESSION, ELECTRICIAN_ID,
-		VillagerProfessionBuilder.create()
-			.id(ELECTRICIAN_ID)
-			.workstation(RegistryKey.of(RegistryKeys.POINT_OF_INTEREST_TYPE, ELECTRICIAN_ID))
-			.workSound(ModSounds.CABLE_SHOCK)
-			.build()
+	public static final VillagerProfession ELECTRICIAN_PROFESSION = Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, ELECTRICIAN_ID,
+		VillagerBridge.buildProfession(
+			ELECTRICIAN_ID,
+			ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, ELECTRICIAN_ID),
+			ModSounds.CABLE_SHOCK
+		)
 	);
 
 	private TRVillager() {/* No instantiation. */}
@@ -128,34 +120,22 @@ public class TRVillager {
 	}
 
 	public static void registerWanderingTraderTrades() {
-		List<TradeOffers.Factory> extraCommonTrades = new LinkedList<>();
-		List<TradeOffers.Factory> extraRareTrades = new LinkedList<>();
+		List<VillagerTrades.ItemListing> extraCommonTrades = new LinkedList<>();
+		List<VillagerTrades.ItemListing> extraRareTrades = new LinkedList<>();
 		// specify extra trades below here
 		extraCommonTrades.add(TradeUtils.createSell(TRContent.RUBBER_SAPLING, 5, 1, 8, 1));
 		// registration of the trades, no changes necessary for new trades
-		TradeOfferHelper.registerWanderingTraderOffers(1, allTradesList -> allTradesList.addAll(
+		VillagerBridge.registerWanderingTraderOffers(1, allTradesList -> allTradesList.addAll(
 			extraCommonTrades
 		));
-		TradeOfferHelper.registerWanderingTraderOffers(2, allTradesList -> allTradesList.addAll(
+		VillagerBridge.registerWanderingTraderOffers(2, allTradesList -> allTradesList.addAll(
 			extraRareTrades
 		));
 	}
 
 	public static void registerVillagerHouses() {
-		final String[] types = new String[] {"desert", "plains", "savanna", "snowy", "taiga"};
-		for (String type : types) {
-			DynamicRegistrySetupCallback.EVENT.register(registryManager ->
-				registryManager.registerEntryAdded(RegistryKeys.TEMPLATE_POOL, ((rawId, id, pool) -> {
-					if (id.equals(Identifier.of("minecraft", "village/"+type+"/houses"))) {
-						if (TechRebornConfig.enableMetallurgistGeneration) {
-							pool.elements.add(StructurePoolElement.ofSingle(TechReborn.MOD_ID + ":village/" + type + "/houses/" + type + "_metallurgist").apply(StructurePool.Projection.RIGID));
-						}
-						if (TechRebornConfig.enableElectricianGeneration) {
-							pool.elements.add(StructurePoolElement.ofSingle(TechReborn.MOD_ID + ":village/" + type + "/houses/" + type + "_electrician").apply(StructurePool.Projection.RIGID));
-						}
-					}
-				}))
-			);
-		}
+		// StructureTemplatePool#templates is private in 1.21; village house injection was done via Fabric registry
+		// callbacks. Re-enable via datapack template pool merges or a structure-pool helper when ported.
+		TechReborn.LOGGER.debug("TRVillager.registerVillagerHouses: structure pool append skipped on NeoForge (private pool templates).");
 	}
 }

@@ -24,10 +24,10 @@
 
 package techreborn.events;
 
-import net.minecraft.entity.damage.DamageSource;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import reborncore.api.events.ApplyArmorToDamageCallback;
 import techreborn.config.TechRebornConfig;
 import techreborn.items.armor.NanoSuitItem;
@@ -40,9 +40,9 @@ public class ApplyArmorToDamageHandler implements ApplyArmorToDamageCallback {
 	}
 
 	@Override
-	public float applyArmorToDamage(PlayerEntity player, DamageSource source, float amount) {
+	public float applyArmorToDamage(Player player, DamageSource source, float amount) {
 		double damageAbsorbed = 0.0d;
-		for (ItemStack stack : player.getArmorItems()) {
+		for (ItemStack stack : player.getArmorSlots()) {
 			Item stackItem = stack.getItem();
 			if (stackItem instanceof NanoSuitItem item) {
 				long energy = item.getStoredEnergy(stack);

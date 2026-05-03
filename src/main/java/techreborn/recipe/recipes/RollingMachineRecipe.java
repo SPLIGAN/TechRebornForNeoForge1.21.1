@@ -26,47 +26,46 @@ package techreborn.recipe.recipes;
 
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.ShapedRecipe;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.dynamic.Codecs;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.SizedIngredient;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.NonNullList;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 
 public record RollingMachineRecipe(RecipeType<?> type, int power, int time, ShapedRecipe shapedRecipe) implements RebornRecipe {
 	public static Function<RecipeType<RollingMachineRecipe>, MapCodec<RollingMachineRecipe>> CODEC = type -> RecordCodecBuilder.mapCodec(instance -> instance.group(
-		Codecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
-		Codecs.POSITIVE_INT.fieldOf("time").forGetter(RebornRecipe::time),
-		RecipeSerializer.SHAPED.codec().forGetter(RollingMachineRecipe::getShapedRecipe)
+		ExtraCodecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
+		ExtraCodecs.POSITIVE_INT.fieldOf("time").forGetter(RebornRecipe::time),
+		RecipeSerializer.SHAPED_RECIPE.codec().forGetter(RollingMachineRecipe::getShapedRecipe)
 	).apply(instance, (power, time, shaped) -> new RollingMachineRecipe(type, power, time, shaped)));
-	public static Function<RecipeType<RollingMachineRecipe>, PacketCodec<RegistryByteBuf, RollingMachineRecipe>> PACKET_CODEC = type -> PacketCodec.tuple(
-		SizedIngredient.PACKET_CODEC.collect(PacketCodecs.toList()), RebornRecipe::ingredients,
-		ItemStack.PACKET_CODEC.collect(PacketCodecs.toList()), RebornRecipe::outputs,
-		PacketCodecs.INTEGER, RebornRecipe::power,
-		PacketCodecs.INTEGER, RebornRecipe::time,
-		RecipeSerializer.SHAPED.packetCodec(), RollingMachineRecipe::getShapedRecipe,
-		(ingredients, outputs, power, time, shaped) -> new RollingMachineRecipe(type, power, time, shaped)
+	public static Function<RecipeType<RollingMachineRecipe>, StreamCodec<RegistryFriendlyByteBuf, RollingMachineRecipe>> PACKET_CODEC = type -> StreamCodec.composite(
+		ByteBufCodecs.INT, RebornRecipe::power,
+		ByteBufCodecs.INT, RebornRecipe::time,
+		RecipeSerializer.SHAPED_RECIPE.streamCodec(), RollingMachineRecipe::getShapedRecipe,
+		(power, time, shaped) -> new RollingMachineRecipe(type, power, time, shaped)
 	);
 
 	@Override
 	public List<ItemStack> outputs() {
-		return Collections.singletonList(shapedRecipe.getResult(null));
+		return Collections.singletonList(shapedRecipe.getResultItem(RegistryAccess.EMPTY));
 	}
 
 	@Override
-	public ItemStack getResult(RegistryWrapper.WrapperLookup lookup) {
-		return shapedRecipe.getResult(lookup);
+	public ItemStack getResultItem(HolderLookup.Provider lookup) {
+		return shapedRecipe.getResultItem(lookup);
 	}
 
 	@Override
@@ -75,13 +74,13 @@ public record RollingMachineRecipe(RecipeType<?> type, int power, int time, Shap
 	}
 
 	@Override
-	public DefaultedList<Ingredient> getIngredients() {
+	public NonNullList<Ingredient> getIngredients() {
 		return shapedRecipe.getIngredients();
 	}
 
 	@Override
-	public boolean fits(int width, int height) {
-		return shapedRecipe.fits(width, height);
+	public boolean canCraftInDimensions(int width, int height) {
+		return shapedRecipe.canCraftInDimensions(width, height);
 	}
 
 	public ShapedRecipe getShapedRecipe() {

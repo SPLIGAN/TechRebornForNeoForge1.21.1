@@ -24,75 +24,75 @@
 
 package techreborn.items.tool.basic;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.enchantment.Enchantment;
-import net.minecraft.enchantment.Enchantments;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.item.PickaxeItem;
-import net.minecraft.registry.RegistryKeys;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-import reborncore.common.powerSystem.RcEnergyItem;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PickaxeItem;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import reborncore.common.powerSystem.RcFabricEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRItemSettings;
 import techreborn.init.TRToolMaterials;
 
-public class RockCutterItem extends PickaxeItem implements RcEnergyItem {
+public class RockCutterItem extends PickaxeItem implements RcFabricEnergyItem {
 	// 10k Energy with 128 E\t charge rate
 	public RockCutterItem() {
 		// combat stats same as for diamond pickaxe. Fix for #2468
 		super(TRToolMaterials.ROCK_CUTTER, TRItemSettings.unbreakable()
-			.attributeModifiers(PickaxeItem.createAttributeModifiers(TRToolMaterials.ROCK_CUTTER, 1.0f, -2.8f)
+			.attributes(PickaxeItem.createAttributes(TRToolMaterials.ROCK_CUTTER, 1.0f, -2.8f)
 		));
 	}
 
 	// PickaxeItem
 	@Override
-	public boolean isCorrectForDrops(ItemStack stack, BlockState state) {
-		return Items.DIAMOND_PICKAXE.isCorrectForDrops(stack, state);
+	public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+		return Items.DIAMOND_PICKAXE.isCorrectToolForDrops(stack, state);
 	}
 
 	@Override
-	public float getMiningSpeed(ItemStack stack, BlockState state) {
+	public float getDestroySpeed(ItemStack stack, BlockState state) {
 		if (getStoredEnergy(stack) < TechRebornConfig.rockCutterCost) {
 			return 1.0f;
 		} else {
-			return Items.DIAMOND_PICKAXE.getMiningSpeed(stack, state);
+			return Items.DIAMOND_PICKAXE.getDestroySpeed(stack, state);
 		}
 	}
 
 	// MiningToolItem
 	@Override
-	public boolean postMine(ItemStack stack, World worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
+	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, TechRebornConfig.rockCutterCost);
 		return true;
 	}
 
 	@Override
-	public boolean postHit(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
 		return true;
 	}
 
 	// ToolItem
 	@Override
-	public boolean canRepair(ItemStack stack, ItemStack ingredient) {
+	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
 		return false;
 	}
 
 	// Item
 	@Override
-	public void onCraft(ItemStack stack, World world) {
-		if (!stack.hasEnchantments()) {
-			RegistryWrapper.Impl<Enchantment> registry = world.getRegistryManager().getWrapperOrThrow(RegistryKeys.ENCHANTMENT);
-			stack.addEnchantment(registry.getOrThrow(Enchantments.SILK_TOUCH), 1);
+	public void onCraftedPostProcess(ItemStack stack, Level world) {
+		if (!stack.isEnchanted()) {
+			HolderLookup.RegistryLookup<Enchantment> registry = world.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+			stack.enchant(registry.getOrThrow(Enchantments.SILK_TOUCH), 1);
 		}
 
-		super.onCraft(stack, world);
+		super.onCraftedPostProcess(stack, world);
 	}
 
 	@Override
@@ -101,17 +101,17 @@ public class RockCutterItem extends PickaxeItem implements RcEnergyItem {
 	}
 
 	@Override
-	public int getItemBarStep(ItemStack stack) {
+	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
 
 	@Override
-	public boolean isItemBarVisible(ItemStack stack) {
+	public boolean isBarVisible(ItemStack stack) {
 		return true;
 	}
 
 	@Override
-	public int getItemBarColor(ItemStack stack) {
+	public int getBarColor(ItemStack stack) {
 		return ItemUtils.getColorForDurabilityBar(stack);
 	}
 
@@ -122,7 +122,7 @@ public class RockCutterItem extends PickaxeItem implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return RcEnergyTier.MEDIUM;
 	}
 

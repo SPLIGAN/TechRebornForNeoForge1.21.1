@@ -24,17 +24,22 @@
 
 package techreborn.events;
 
-import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationConnectionEvents;
-import net.fabricmc.fabric.api.networking.v1.ServerConfigurationNetworking;
-import net.minecraft.block.Block;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.network.codec.PacketCodec;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.network.ServerCommonPacketListenerImpl;
+import net.minecraft.server.network.ConfigurationTask;
+import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.extensions.ICommonPacketListener;
+import net.neoforged.neoforge.network.configuration.ICustomConfigurationTask;
+import net.neoforged.neoforge.network.event.RegisterConfigurationTasksEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import techreborn.TechReborn;
@@ -43,6 +48,7 @@ import techreborn.world.OreDepth;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,25 +59,19 @@ public final class OreDepthSyncHandler {
 	private OreDepthSyncHandler() {
 	}
 
-	public static void setup() {
-		PayloadTypeRegistry.configurationS2C().register(OreDepthPayload.ID, OreDepthPayload.PACKET_CODEC);
+	public static void registerConfigurationPayload(PayloadRegistrar reg) {
+		reg.configurationToClient(OreDepthPayload.ID, OreDepthPayload.PACKET_CODEC, (payload, context) ->
+			OreDepthSyncHandler.updateDepths(payload.oreDepths()));
+	}
 
-		ServerConfigurationConnectionEvents.CONFIGURE.register((handler, server) -> {
-			if (ServerConfigurationNetworking.canSend(handler, OreDepthPayload.ID)) {
-				List<OreDepth> oreDepths = OreDepth.create(server);
-				var packet = ServerConfigurationNetworking.createS2CPacket(new OreDepthPayload(oreDepths));
-				handler.send(packet, null);
-			} else {
-				LOGGER.error("Client cannot receive ore depth packet. This may mean that TechReborn is not installed on the client.");
-				handler.disconnect(Text.literal("The TechReborn mod must be installed to play on this server."));
-			}
-		});
+	public static void registerConfigurationTasks(RegisterConfigurationTasksEvent event) {
+		event.register(new OreDepthConfigurationTask(event.getListener()));
 	}
 
 	public static void updateDepths(List<OreDepth> list) {
 		synchronized (OreDepthSyncHandler.class) {
 			oreDepthMap = list.stream()
-				.collect(Collectors.toMap(oreDepth -> Registries.BLOCK.get(oreDepth.identifier()), Function.identity()));
+				.collect(Collectors.toMap(oreDepth -> BuiltInRegistries.BLOCK.get(oreDepth.identifier()), Function.identity()));
 		}
 	}
 
@@ -81,15 +81,41 @@ public final class OreDepthSyncHandler {
 		}
 	}
 
-	public record OreDepthPayload(List<OreDepth> oreDepths) implements CustomPayload {
-		public static final CustomPayload.Id<OreDepthPayload> ID = new CustomPayload.Id<>(Identifier.of(TechReborn.MOD_ID, "ore_depth"));
-		public static final PacketCodec<PacketByteBuf, OreDepthPayload> PACKET_CODEC = PacketCodec.tuple(
-			OreDepth.PACKET_CODEC.collect(PacketCodecs.toList()), OreDepthPayload::oreDepths,
+	private record OreDepthConfigurationTask(net.minecraft.network.protocol.configuration.ServerConfigurationPacketListener listener) implements ICustomConfigurationTask {
+		private static final ConfigurationTask.Type TASK_TYPE = new ConfigurationTask.Type(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth_sync"));
+
+		@Override
+		public void run(Consumer<CustomPacketPayload> sender) {
+			var common = (ICommonPacketListener) listener;
+			if (!common.hasChannel(OreDepthPayload.ID)) {
+				LOGGER.error("Client cannot receive ore depth packet. This may mean that TechReborn is not installed on the client.");
+				((ServerCommonPacketListenerImpl) listener).disconnect(Component.literal("The TechReborn mod must be installed to play on this server."));
+				return;
+			}
+			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+			if (server == null) {
+				((ServerCommonPacketListenerImpl) listener).disconnect(Component.literal("Server not ready."));
+				return;
+			}
+			sender.accept(new OreDepthPayload(OreDepth.create(server)));
+			listener.finishCurrentTask(TASK_TYPE);
+		}
+
+		@Override
+		public ConfigurationTask.Type type() {
+			return TASK_TYPE;
+		}
+	}
+
+	public record OreDepthPayload(List<OreDepth> oreDepths) implements CustomPacketPayload {
+		public static final CustomPacketPayload.Type<OreDepthPayload> ID = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth"));
+		public static final StreamCodec<FriendlyByteBuf, OreDepthPayload> PACKET_CODEC = StreamCodec.composite(
+			OreDepth.PACKET_CODEC.apply(ByteBufCodecs.list()), OreDepthPayload::oreDepths,
 			OreDepthPayload::new
 		);
 
 		@Override
-		public Id<? extends CustomPayload> getId() {
+		public Type<? extends CustomPacketPayload> type() {
 			return ID;
 		}
 	}

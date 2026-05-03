@@ -24,33 +24,31 @@
 
 package techreborn.blockentity.storage.item;
 
-import net.fabricmc.fabric.api.transfer.v1.item.InventoryStorage;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.base.SingleStackStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.SlottedStorage;
-import net.fabricmc.fabric.api.transfer.v1.storage.Storage;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.CombinedSlottedStorage;
-import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.PlayerHeadItem;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Pair;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Direction;
-import net.minecraft.world.World;
+import reborncore.common.transfer.RcItemVariant;
+import reborncore.common.transfer.RcStorage;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.Tuple;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.PlayerHeadItem;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
+import reborncore.common.blockentity.SlotConfiguration;
+import reborncore.common.compat.TransferApiBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.BuiltScreenHandlerProvider;
 import reborncore.common.screen.builder.ScreenHandlerBuilder;
@@ -62,7 +60,7 @@ import techreborn.init.TRContent;
 
 import java.util.List;
 
-public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implements InventoryProvider, IToolDrop, IListInfoProvider, BuiltScreenHandlerProvider {
+public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implements InventoryProvider, SlotConfiguration.SlotFilter, IToolDrop, IListInfoProvider, BuiltScreenHandlerProvider {
 
 	// Inventory constants
 	public static final int INPUT_SLOT = 0;
@@ -77,7 +75,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	private ItemStack storeItemStack;
 	// Fabric transfer API support for the internal stack (one per direction);
-	private final SingleStackStorage[] internalStoreStorage = new SingleStackStorage[6];
+	private final TransferApiBridge.SingleStackStorageHandle[] internalStoreStorage = new TransferApiBridge.SingleStackStorageHandle[6];
 
 	private TRContent.StorageUnit type;
 
@@ -134,36 +132,36 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		// Set to storeItemStack to get the stack type
 		ItemStack output = storeItemStack.copy();
 
-		int outputSlotCount = inventory.getStack(OUTPUT_SLOT).getCount();
+		int outputSlotCount = inventory.getItem(OUTPUT_SLOT).getCount();
 
 		// Set to current outputSlot count
 		output.setCount(outputSlotCount);
 
 		// Calculate amount needed to fill stack in output slot
-		int amountToFill = getStoredStack().getMaxCount() - outputSlotCount;
+		int amountToFill = getStoredStack().getMaxStackSize() - outputSlotCount;
 
 		if (storeItemStack.getCount() >= amountToFill) {
-			storeItemStack.decrement(amountToFill);
+			storeItemStack.shrink(amountToFill);
 
 			if (storeItemStack.isEmpty()) {
 				storeItemStack = ItemStack.EMPTY;
 			}
 
-			output.increment(amountToFill);
+			output.grow(amountToFill);
 		} else {
-			output.increment(storeItemStack.getCount());
+			output.grow(storeItemStack.getCount());
 			storeItemStack = ItemStack.EMPTY;
 		}
 
-		inventory.setStack(OUTPUT_SLOT, output);
+		inventory.setItem(OUTPUT_SLOT, output);
 	}
 
 	private void addStoredItemCount(int amount) {
-		storeItemStack.increment(amount);
+		storeItemStack.grow(amount);
 	}
 
 	public ItemStack getStoredStack() {
-		return storeItemStack.isEmpty() ? inventory.getStack(OUTPUT_SLOT) : storeItemStack;
+		return storeItemStack.isEmpty() ? inventory.getItem(OUTPUT_SLOT) : storeItemStack;
 	}
 
 	// Returns the ItemStack to be displayed to the player via UI / model
@@ -188,23 +186,23 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	}
 
 	public ItemStack processInput(ItemStack inputStack) {
-		if (!isValid(INPUT_SLOT, inputStack)){
+		if (!isStackValid(INPUT_SLOT, inputStack)){
 			return inputStack;
 		}
 
 		// Amount of items that can be added before reaching capacity
 		int reminder = maxCapacity - getCurrentCapacity();
-		DefaultedList<ItemStack> optionalShulkerStack = ItemUtils.getBlockEntityStacks(inputStack);
+		NonNullList<ItemStack> optionalShulkerStack = ItemUtils.getBlockEntityStacks(inputStack);
 		if (isLocked() && ItemUtils.canExtractFromCachedShulker(optionalShulkerStack, lockedItemStack) > 0 ) {
-			Pair<Integer, ItemStack> pair = ItemUtils.extractFromShulker(inputStack, optionalShulkerStack, lockedItemStack, reminder);
-			if (pair.getLeft() != 0) {
-				int amount = pair.getLeft();
+			Tuple<Integer, ItemStack> pair = ItemUtils.extractFromShulker(inputStack, optionalShulkerStack, lockedItemStack, reminder);
+			if (pair.getA() != 0) {
+				int amount = pair.getA();
 				if (storeItemStack.isEmpty()) {
 					storeItemStack = lockedItemStack.copy();
 					amount = amount -1;
 				}
 				addStoredItemCount(amount);
-				inputStack = pair.getRight().copy();
+				inputStack = pair.getB().copy();
 				inventory.setHashChanged();
 			}
 			return inputStack;
@@ -228,7 +226,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 			} else {
 				addStoredItemCount(reminder);
 			}
-			inputStack.decrement(reminder);
+			inputStack.shrink(reminder);
 		}
 
 		inventory.setHashChanged();
@@ -240,7 +238,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		storeItemStack = getStoredStack();
 		storeItemStack.setCount(maxCapacity);
 
-		inventory.setStack(OUTPUT_SLOT, ItemStack.EMPTY);
+		inventory.setItem(OUTPUT_SLOT, ItemStack.EMPTY);
 	}
 
 	public boolean isFull() {
@@ -248,23 +246,23 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	}
 
 	public int getCurrentCapacity() {
-		return storeItemStack.getCount() + inventory.getStack(OUTPUT_SLOT).getCount();
+		return storeItemStack.getCount() + inventory.getItem(OUTPUT_SLOT).getCount();
 	}
 
 	// MachineBaseBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClient) {
+		if (world == null || world.isClientSide) {
 			return;
 		}
 		// If there is an item in the input AND stored is less than max capacity
-		if (!inventory.getStack(INPUT_SLOT).isEmpty() && !isFull()) {
-			inventory.setStack(INPUT_SLOT, processInput(inventory.getStack(INPUT_SLOT)));
+		if (!inventory.getItem(INPUT_SLOT).isEmpty() && !isFull()) {
+			inventory.setItem(INPUT_SLOT, processInput(inventory.getItem(INPUT_SLOT)));
 		}
 
 		// Fill output slot with goodies when stored has items and output count is less than max stack size
-		if (storeItemStack.getCount() > 0 && inventory.getStack(OUTPUT_SLOT).getCount() < getStoredStack().getMaxCount()) {
+		if (storeItemStack.getCount() > 0 && inventory.getItem(OUTPUT_SLOT).getCount() < getStoredStack().getMaxStackSize()) {
 			populateOutput();
 		}
 
@@ -273,8 +271,8 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 				fillToCapacity();
 			}
 			// void input items for creative storage (#2205)
-			if (!inventory.getStack(INPUT_SLOT).isEmpty()){
-				inventory.setStack(INPUT_SLOT, ItemStack.EMPTY);
+			if (!inventory.getItem(INPUT_SLOT).isEmpty()){
+				inventory.setItem(INPUT_SLOT, ItemStack.EMPTY);
 			}
 		}
 
@@ -290,13 +288,24 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	}
 
 	@Override
-	public boolean canInsert(int index, ItemStack stack, @Nullable Direction direction) {
-		return super.canInsert(index, stack, direction) && isValid(INPUT_SLOT, stack);
+	public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
+		if (!super.canPlaceItemThroughFace(index, stack, direction)) {
+			return false;
+		}
+		if (index == INPUT_SLOT) {
+			return isStackValid(INPUT_SLOT, stack);
+		}
+		return true;
 	}
 
 	@Override
-	public void readNbt(NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tagCompound, registryLookup);
+	public int[] getInputSlots() {
+		return new int[] { INPUT_SLOT };
+	}
+
+	@Override
+	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tagCompound, registryLookup);
 
 		if (tagCompound.contains("unitType")) {
 			this.type = TRContent.StorageUnit.valueOf(tagCompound.getString("unitType"));
@@ -308,7 +317,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		storeItemStack = ItemStack.EMPTY;
 
 		if (tagCompound.contains("storedStack")) {
-			storeItemStack = ItemStack.fromNbt(registryLookup, tagCompound.getCompound("storedStack")).orElseThrow();
+			storeItemStack = ItemStack.parse(registryLookup, tagCompound.getCompound("storedStack")).orElseThrow();
 		}
 
 		if (!storeItemStack.isEmpty()) {
@@ -321,22 +330,22 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		}
 
 		if (tagCompound.contains("lockedItem")) {
-			lockedItemStack = ItemStack.fromNbt(registryLookup, tagCompound.getCompound("lockedItem")).orElseThrow();
+			lockedItemStack = ItemStack.parse(registryLookup, tagCompound.getCompound("lockedItem")).orElseThrow();
 		}
 	}
 
 	@Override
-	public void writeNbt(NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tagCompound, registryLookup);
+	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tagCompound, registryLookup);
 
 		tagCompound.putString("unitType", this.type.name());
 
 		if (!storeItemStack.isEmpty()) {
 			ItemStack temp = storeItemStack.copy();
-			if (storeItemStack.getCount() > storeItemStack.getMaxCount()) {
-				temp.setCount(storeItemStack.getMaxCount());
+			if (storeItemStack.getCount() > storeItemStack.getMaxStackSize()) {
+				temp.setCount(storeItemStack.getMaxStackSize());
 			}
-			tagCompound.put("storedStack", temp.encode(registryLookup, new NbtCompound()));
+			tagCompound.put("storedStack", temp.save(registryLookup, new CompoundTag()));
 			tagCompound.putInt("storedQuantity", Math.min(storeItemStack.getCount(), maxCapacity));
 		} else {
 			tagCompound.putInt("storedQuantity", 0);
@@ -346,37 +355,37 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		tagCompound.putInt("totalStoredAmount", getCurrentCapacity());
 
 		if (isLocked()) {
-			tagCompound.put("lockedItem", lockedItemStack.encode(registryLookup));
+			tagCompound.put("lockedItem", lockedItemStack.save(registryLookup));
 		}
 	}
 
 	@Override
-	public void onBreak(World world, PlayerEntity playerEntity, BlockPos blockPos, BlockState blockState) {
+	public void onBreak(Level world, Player playerEntity, BlockPos blockPos, BlockState blockState) {
 		super.onBreak(world, playerEntity, blockPos, blockState);
 
 		// No need to drop anything for creative peeps
 		if (type == TRContent.StorageUnit.CREATIVE) {
-			this.inventory.clear();
+			this.inventory.clearContent();
 			return;
 		}
 
 		if (storeItemStack != ItemStack.EMPTY) {
-			if (storeItemStack.getMaxCount() == 64) {
+			if (storeItemStack.getMaxStackSize() == 64) {
 				// Drop stacks (In one clump, reduce lag)
-				WorldUtils.dropItem(storeItemStack, world, pos);
+				WorldUtils.dropItem(storeItemStack, world, blockPos);
 			} else {
-				int size = storeItemStack.getMaxCount();
+				int size = storeItemStack.getMaxStackSize();
 
 				for (int i = 0; i < storeItemStack.getCount() / size; i++) {
 					ItemStack toDrop = storeItemStack.copy();
 					toDrop.setCount(size);
-					WorldUtils.dropItem(toDrop, world, pos);
+					WorldUtils.dropItem(toDrop, world, blockPos);
 				}
 
 				if (storeItemStack.getCount() % size != 0) {
 					ItemStack toDrop = storeItemStack.copy();
 					toDrop.setCount(storeItemStack.getCount() % size);
-					WorldUtils.dropItem(toDrop, world, pos);
+					WorldUtils.dropItem(toDrop, world, blockPos);
 				}
 
 			}
@@ -386,7 +395,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	}
 
 	@Override
-	public boolean isValid(int slot, ItemStack inputStack) {
+	public boolean isStackValid(int slot, ItemStack inputStack) {
 		if (slot != INPUT_SLOT) {
 			return false;
 		}
@@ -398,7 +407,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 			return false;
 		}
 		// do not allow other storage units to avoid NBT overflow. Fix #2580
-		if (inputStack.isIn(TRContent.ItemTags.STORAGE_UNITS)) {
+		if (inputStack.is(TRContent.ItemTags.STORAGE_UNITS)) {
 			return false;
 		}
 
@@ -424,18 +433,18 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	// InventoryProvider
 	@Override
-	public RebornInventory<StorageUnitBaseBlockEntity> getInventory() {
+	public net.minecraft.world.Container getInventory() {
 		return inventory;
 	}
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(PlayerEntity entityPlayer) {
+	public ItemStack getToolDrop(Player entityPlayer) {
 		ItemStack dropStack = new ItemStack(getBlockType(), 1);
-		final NbtCompound nbt = new NbtCompound();
-		if (world != null){
-			writeNbt(nbt, world.getRegistryManager());
-			dropStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, NbtComponent.of(nbt));
+		final CompoundTag nbt = new CompoundTag();
+		if (level != null){
+			saveAdditional(nbt, level.registryAccess());
+			dropStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
 		}
 
 		return dropStack;
@@ -443,31 +452,31 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	// IListInfoProvider
 	@Override
-	public void addInfo(final List<Text> info, final boolean isReal, boolean hasData) {
+	public void addInfo(final List<Component> info, final boolean isReal, boolean hasData) {
 		if (isReal || hasData) {
 			if (!this.isEmpty()) {
 				info.add(
-						Text.literal(String.valueOf(this.getCurrentCapacity()))
-								.append(Text.translatable("techreborn.tooltip.unit.divider"))
-								.append(this.getStoredStack().getName())
+						Component.literal(String.valueOf(this.getCurrentCapacity()))
+								.append(Component.translatable("techreborn.tooltip.unit.divider"))
+								.append(this.getStoredStack().getHoverName())
 				);
 			} else {
-				info.add(Text.translatable("techreborn.tooltip.unit.empty"));
+				info.add(Component.translatable("techreborn.tooltip.unit.empty"));
 			}
 		}
 
 		info.add(
-				Text.translatable("techreborn.tooltip.unit.capacity")
-						.formatted(Formatting.GRAY)
+				Component.translatable("techreborn.tooltip.unit.capacity")
+						.withStyle(ChatFormatting.GRAY)
 						.append(
-								Text.literal(String.valueOf(this.getMaxCapacity()))
-										.formatted(Formatting.GOLD)
+								Component.literal(String.valueOf(this.getMaxCapacity()))
+										.withStyle(ChatFormatting.GOLD)
 										.append(" ")
-										.append(Text.translatable("techreborn.tooltip.unit.items"))
+										.append(Component.translatable("techreborn.tooltip.unit.items"))
 										.append(" (")
 										.append(String.valueOf(this.getMaxCapacity() / 64))
 										.append(" ")
-										.append(Text.translatable("techreborn.tooltip.unit.stacks"))
+										.append(Component.translatable("techreborn.tooltip.unit.stacks"))
 										.append(")")
 						)
 		);
@@ -475,15 +484,15 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	// BuiltScreenHandlerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity playerEntity) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player playerEntity) {
 		return new ScreenHandlerBuilder("chest").player(playerEntity.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(this)
 				.slot(INPUT_SLOT, 100, 53)
 				.outputSlot(OUTPUT_SLOT, 140, 53)
-				.sync(PacketCodecs.INTEGER, this::isLockedInt, this::setLockedInt)
-				.sync(PacketCodecs.NBT_COMPOUND, this::getStoredStackNBT, this::setStoredStackFromNBT)
-				.sync(PacketCodecs.INTEGER, this::getStoredAmount, this::setStoredAmount)
-				.sync(PacketCodecs.INTEGER, this::getMaxCapacity, this::setMaxCapacity)
+				.sync(ByteBufCodecs.INT, this::isLockedInt, this::setLockedInt)
+				.sync(ByteBufCodecs.COMPOUND_TAG, this::getStoredStackNBT, this::setStoredStackFromNBT)
+				.sync(ByteBufCodecs.INT, this::getStoredAmount, this::setStoredAmount)
+				.sync(ByteBufCodecs.INT, this::getMaxCapacity, this::setMaxCapacity)
 				.addInventory().create(this, syncID);
 
 		// Note that inventory is synced, and it gets the stack from that
@@ -516,8 +525,8 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		this.serverCapacity = maxCapacity;
 	}
 
-	public NbtCompound getStoredStackNBT() {
-		NbtCompound tag = new NbtCompound();
+	public CompoundTag getStoredStackNBT() {
+		CompoundTag tag = new CompoundTag();
 		ItemStack stack = getStoredStack();
 
 		tag.putInt("count", stack.getCount());
@@ -526,37 +535,37 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 			// We are not allowed to serialize empty or large stacks
 			ItemStack singleStack = stack.copy();
 			singleStack.setCount(1);
-			tag.put("item", singleStack.encode(world.getRegistryManager(), new NbtCompound()));
+			tag.put("item", singleStack.save(level.registryAccess(), new CompoundTag()));
 		}
 
 		return tag;
 	}
 
-	public void setStoredStackFromNBT(NbtCompound tag) {
+	public void setStoredStackFromNBT(CompoundTag tag) {
 		if (!tag.contains("item")) {
 			storeItemStack = ItemStack.EMPTY;
 		} else {
-			storeItemStack = ItemStack.fromNbt(world.getRegistryManager(), tag.getCompound("item")).orElseThrow();
+			storeItemStack = ItemStack.parse(level.registryAccess(), tag.getCompound("item")).orElseThrow();
 		}
 
 		storeItemStack.setCount(tag.getInt("count"));
 	}
 
-	private SlottedStorage<ItemVariant> getInternalStoreStorage(@Nullable Direction direction) {
+	private TransferApiBridge.SingleStackStorageHandle getInternalStoreStorage(@Nullable Direction direction) {
 		// Quick fix to handle null sides. https://github.com/TechReborn/TechReborn/issues/3175
 		final Direction side = direction != null ? direction : Direction.DOWN;
 
-		if (internalStoreStorage[side.getId()] == null) {
-			internalStoreStorage[side.getId()] = new SingleStackStorage() {
+		if (internalStoreStorage[side.get3DDataValue()] == null) {
+			final Direction boundSide = side;
+			internalStoreStorage[side.get3DDataValue()] = TransferApiBridge.createSingleStackStorage(new TransferApiBridge.SingleStackHooks() {
 				@Override
-				protected ItemStack getStack() {
+				public ItemStack getStack() {
 					return storeItemStack;
 				}
 
 				@Override
-				protected void setStack(ItemStack stack) {
+				public void setStack(ItemStack stack) {
 					if (stack.isEmpty()) {
-						// Ensure we maintain reference equality to EMPTY
 						storeItemStack = ItemStack.EMPTY;
 					} else {
 						storeItemStack = stack;
@@ -564,36 +573,33 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 				}
 
 				@Override
-				protected int getCapacity(ItemVariant itemVariant) {
-					// subtract capacity of output slot (super capacity is the default capacity)
-					return maxCapacity - super.getCapacity(itemVariant);
+				public int getCapacity(RcItemVariant itemVariant) {
+					return maxCapacity - TransferApiBridge.itemVariantMaxStackSize(itemVariant);
 				}
 
 				@Override
-				protected boolean canInsert(ItemVariant itemVariant) {
-					// Check insertion with the same rules as the input slot
-					return StorageUnitBaseBlockEntity.this.canInsert(INPUT_SLOT, itemVariant.toStack(), side);
+				public boolean canInsert(RcItemVariant itemVariant) {
+					return StorageUnitBaseBlockEntity.this.canPlaceItemThroughFace(INPUT_SLOT, itemVariant.toStack(1), boundSide);
 				}
 
 				@Override
-				protected boolean canExtract(ItemVariant itemVariant) {
-					// Check extraction with the same rules as the output slot
-					return StorageUnitBaseBlockEntity.this.canExtract(OUTPUT_SLOT, itemVariant.toStack(), side);
+				public boolean canExtract(RcItemVariant itemVariant) {
+					return StorageUnitBaseBlockEntity.this.canTakeItemThroughFace(OUTPUT_SLOT, itemVariant.toStack(1), boundSide);
 				}
 
 				@Override
-				protected void onFinalCommit() {
+				public void onFinalCommit() {
 					inventory.setHashChanged();
 				}
-			};
+			});
 		}
-		return internalStoreStorage[side.getId()];
+		return internalStoreStorage[side.get3DDataValue()];
 	}
 
-	public Storage<ItemVariant> getExposedStorage(Direction side) {
-		return new CombinedSlottedStorage<>(List.of(
+	public RcStorage<RcItemVariant> getExposedStorage(Direction side) {
+		return TransferApiBridge.combineSlottedItemStorages(List.of(
 				getInternalStoreStorage(side),
-				InventoryStorage.of(this, side)
+				TransferApiBridge.inventoryStorageOf(this, side)
 		));
 	}
 }

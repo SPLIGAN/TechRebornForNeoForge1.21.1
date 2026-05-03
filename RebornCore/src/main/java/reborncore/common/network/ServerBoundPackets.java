@@ -24,10 +24,6 @@
 
 package reborncore.common.network;
 
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.server.world.ServerWorld;
-import net.minecraft.world.World;
 import org.apache.commons.lang3.Validate;
 import reborncore.common.blockentity.FluidConfiguration;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -35,36 +31,45 @@ import reborncore.common.blockentity.SlotConfiguration;
 import reborncore.common.chunkloading.ChunkLoaderManager;
 import reborncore.common.network.clientbound.FluidConfigSyncPayload;
 import reborncore.common.network.clientbound.SlotSyncPayload;
-import reborncore.common.network.serverbound.*;
+import reborncore.common.network.serverbound.ChunkLoaderRequestPayload;
+import reborncore.common.network.serverbound.FluidConfigSavePayload;
+import reborncore.common.network.serverbound.FluidIoSavePayload;
+import reborncore.common.network.serverbound.IoSavePayload;
+import reborncore.common.network.serverbound.SetRedstoneStatePayload;
+import reborncore.common.network.serverbound.SlotConfigSavePayload;
+import reborncore.common.network.serverbound.SlotSavePayload;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 public class ServerBoundPackets {
 
-	public static void init() {
-		ServerPlayNetworking.registerGlobalReceiver(FluidConfigSavePayload.ID, (payload, context) -> {
+	public static void register(PayloadRegistrar reg) {
+		reg.playToServer(FluidConfigSavePayload.ID, FluidConfigSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			machine.fluidConfiguration.updateFluidConfig(payload.fluidConfiguration());
-			machine.markDirty();
+			machine.setChanged();
 
 			NetworkManager.sendToTracking(new FluidConfigSyncPayload(payload.pos(), machine.fluidConfiguration), machine);
 
-			// We update the block to allow pipes that are connecting to detect the update and change their
-			// connection status if needed
-			World world = machine.getWorld();
-			BlockState blockState = world.getBlockState(machine.getPos());
-			world.updateNeighborsAlways(machine.getPos(), blockState.getBlock());
+			Level world = machine.getLevel();
+			BlockState blockState = world.getBlockState(machine.getBlockPos());
+			world.updateNeighborsAt(machine.getBlockPos(), blockState.getBlock());
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(SlotConfigSavePayload.ID, (payload, context) -> {
+		reg.playToServer(SlotConfigSavePayload.ID, SlotConfigSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			for (SlotConfiguration.SlotConfigHolder slotDetail : payload.slotConfig().getSlotDetails()) {
 				machine.getSlotConfiguration().updateSlotDetails(slotDetail);
 			}
-			machine.markDirty();
+			machine.setChanged();
 
-			NetworkManager.sendToWorld(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), (ServerWorld) machine.getWorld());
+			NetworkManager.sendToWorld(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), (ServerLevel) machine.getLevel());
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(FluidIoSavePayload.ID, (payload, context) -> {
+		reg.playToServer(FluidIoSavePayload.ID, FluidIoSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			FluidConfiguration config = machine.fluidConfiguration;
 			if (config == null) {
@@ -73,11 +78,10 @@ public class ServerBoundPackets {
 			config.setInput(payload.input());
 			config.setOutput(payload.output());
 
-			// Syncs back to the client
 			NetworkManager.sendToTracking(new FluidConfigSyncPayload(payload.pos(), machine.fluidConfiguration), machine);
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(IoSavePayload.ID, (payload, context) -> {
+		reg.playToServer(IoSavePayload.ID, IoSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			Validate.notNull(machine, "machine cannot be null");
 			SlotConfiguration.SlotConfigHolder holder = machine.getSlotConfiguration().getSlotDetails(payload.slotID());
@@ -90,25 +94,25 @@ public class ServerBoundPackets {
 			holder.setFilter(payload.filter());
 			holder.setPriority(payload.priority());
 
-			//Syncs back to the client
 			NetworkManager.sendToAll(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), context.player().getServer());
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(SlotSavePayload.ID, (payload, context) -> {
+		reg.playToServer(SlotSavePayload.ID, SlotSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			machine.getSlotConfiguration().getSlotDetails(payload.slotConfig().getSlotID()).updateSlotConfig(payload.slotConfig());
-			machine.markDirty();
+			machine.setChanged();
 
-			NetworkManager.sendToWorld(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), (ServerWorld) machine.getWorld());
+			NetworkManager.sendToWorld(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), (ServerLevel) machine.getLevel());
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(ChunkLoaderRequestPayload.ID, (payload, context) -> {
-			payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
-			ChunkLoaderManager chunkLoaderManager = ChunkLoaderManager.get(context.player().getWorld());
-			chunkLoaderManager.syncChunkLoaderToClient(context.player(), payload.pos());
+		reg.playToServer(ChunkLoaderRequestPayload.ID, ChunkLoaderRequestPayload.PACKET_CODEC, (payload, context) -> {
+			var player = (ServerPlayer) context.player();
+			payload.getBlockEntity(MachineBaseBlockEntity.class, player);
+			ChunkLoaderManager chunkLoaderManager = ChunkLoaderManager.get(player.level());
+			chunkLoaderManager.syncChunkLoaderToClient(player, payload.pos());
 		});
 
-		ServerPlayNetworking.registerGlobalReceiver(SetRedstoneStatePayload.ID, (payload, context) -> {
+		reg.playToServer(SetRedstoneStatePayload.ID, SetRedstoneStatePayload.CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			machine.setRedstoneConfiguration(machine.getRedstoneConfiguration().withState(payload.element(), payload.state()));
 		});

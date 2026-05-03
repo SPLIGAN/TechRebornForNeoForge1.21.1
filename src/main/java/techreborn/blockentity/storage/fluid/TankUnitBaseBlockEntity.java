@@ -24,20 +24,6 @@
 
 package techreborn.blockentity.storage.fluid;
 
-import net.minecraft.block.BlockState;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodecs;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.World;
-
-
 import org.apache.commons.lang3.text.WordUtils;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
@@ -56,6 +42,18 @@ import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
 
 import java.util.List;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 
 public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements InventoryProvider, IToolDrop, IListInfoProvider, BuiltScreenHandlerProvider {
 	protected Tank tank;
@@ -80,35 +78,35 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 	}
 
 	protected boolean canDrainTransfer(){
-		if (inventory == null || inventory.size() < 2){
+		if (inventory == null || inventory.getContainerSize() < 2){
 			return false;
 		}
-		ItemStack firstStack = inventory.getStack(0);
+		ItemStack firstStack = inventory.getItem(0);
 		if (firstStack.isEmpty()){
 			return false;
 		}
-		ItemStack secondStack = inventory.getStack(1);
-		return secondStack.getCount() < secondStack.getMaxCount();
+		ItemStack secondStack = inventory.getItem(1);
+		return secondStack.getCount() < secondStack.getMaxStackSize();
 	}
 
 	// MachineBaseBlockEntity
 	@Override
-	public void tick(World world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
 
-		if (world == null || world.isClient()){
+		if (world == null || world.isClientSide()){
 			return;
 		}
 
-		if (canDrainTransfer() && FluidUtils.isContainer(inventory.getStack(0))) {
+		if (canDrainTransfer() && FluidUtils.isContainer(inventory.getItem(0))) {
 			boolean didSomething = FluidUtils.drainContainers(tank, inventory, 0, 1);
 			if(!didSomething && FluidUtils.fillContainers(tank, inventory, 0, 1)){
 				didSomething = true;
 			}
 			if(didSomething){
-				if(inventory.getStack(1).isEmpty() && !inventory.getStack(0).isEmpty() && inventory.getStack(0).getCount() == 1){
-					inventory.setStack(1, inventory.getStack(0));
-					inventory.setStack(0, ItemStack.EMPTY);
+				if(inventory.getItem(1).isEmpty() && !inventory.getItem(0).isEmpty() && inventory.getItem(0).getCount() == 1){
+					inventory.setItem(1, inventory.getItem(0));
+					inventory.setItem(0, ItemStack.EMPTY);
 				}
 				syncWithAll();
 			}
@@ -131,8 +129,8 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 	}
 
 	@Override
-	public void readNbt(final NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.readNbt(tagCompound, registryLookup);
+	public void loadAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.loadAdditional(tagCompound, registryLookup);
 		if (tagCompound.contains("unitType")) {
 			this.type = TRContent.TankUnit.valueOf(tagCompound.getString("unitType"));
 			configureEntity(type);
@@ -141,8 +139,8 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 	}
 
 	@Override
-	public void writeNbt(final NbtCompound tagCompound, RegistryWrapper.WrapperLookup registryLookup) {
-		super.writeNbt(tagCompound, registryLookup);
+	public void saveAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
+		super.saveAdditional(tagCompound, registryLookup);
 		tagCompound.putString("unitType", this.type.name());
 		tank.write(tagCompound, registryLookup);
 	}
@@ -161,12 +159,12 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 
 	// IToolDrop
 	@Override
-	public ItemStack getToolDrop(PlayerEntity playerEntity) {
+	public ItemStack getToolDrop(Player playerEntity) {
 		ItemStack dropStack = new ItemStack(getBlockType(), 1);
-		final NbtCompound nbt = new NbtCompound();
-		if (world != null){
-			writeNbt(nbt, world.getRegistryManager());
-			dropStack.set(DataComponentTypes.BLOCK_ENTITY_DATA, NbtComponent.of(nbt));
+		final CompoundTag nbt = new CompoundTag();
+		if (level != null){
+			saveAdditional(nbt, level.registryAccess());
+			dropStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
 		}
 
 		return dropStack;
@@ -174,33 +172,33 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 
 	// IListInfoProvider
 	@Override
-	public void addInfo(final List<Text> info, final boolean isReal, boolean hasData) {
+	public void addInfo(final List<Component> info, final boolean isReal, boolean hasData) {
 		if (isReal || hasData) {
 			if (!this.tank.getFluidInstance().isEmpty()) {
 				info.add(
-						Text.literal(String.valueOf(this.tank.getFluidAmount()))
-								.append(Text.translatable("techreborn.tooltip.unit.divider"))
+						Component.literal(String.valueOf(this.tank.getFluidAmount()))
+								.append(Component.translatable("techreborn.tooltip.unit.divider"))
 								.append(WordUtils.capitalize(FluidUtils.getFluidName(this.tank.getFluid())))
 				);
 			} else {
-				info.add(Text.translatable("techreborn.tooltip.unit.empty"));
+				info.add(Component.translatable("techreborn.tooltip.unit.empty"));
 			}
 		}
 		info.add(
-				Text.translatable("techreborn.tooltip.unit.capacity")
-						.formatted(Formatting.GRAY)
-						.append(Text.literal(String.valueOf(this.tank.getFluidValueCapacity()))
-								.formatted(Formatting.GOLD))
+				Component.translatable("techreborn.tooltip.unit.capacity")
+						.withStyle(ChatFormatting.GRAY)
+						.append(Component.literal(String.valueOf(this.tank.getFluidValueCapacity()))
+								.withStyle(ChatFormatting.GOLD))
 		);
 	}
 
 	// BuiltScreenHandlerProvider
 	@Override
-	public BuiltScreenHandler createScreenHandler(int syncID, final PlayerEntity player) {
+	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("tank").player(player.getInventory()).inventory().hotbar()
 				.addInventory().blockEntity(this).fluidSlot(0, 100, 53).outputSlot(1, 140, 53)
 				.sync(tank)
-				.sync(PacketCodecs.VAR_LONG, this::getMaxCapacity, this::setMaxCapacity)
+				.sync(ByteBufCodecs.VAR_LONG, this::getMaxCapacity, this::setMaxCapacity)
 
 				.addInventory().create(this, syncID);
 	}
