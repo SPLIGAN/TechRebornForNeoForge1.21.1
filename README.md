@@ -11,7 +11,7 @@
 *Remember to always backup your worlds before adding or updating mods!*
 
 ### Recommended Releases
-Versions we determine are stable enough can always be found on our CurseForge page. The top file on [this list](http://minecraft.curseforge.com/projects/techreborn/files?sort=releasetype) should always be the latest recommended release of Tech Reborn.
+Versions we determine are stable enough can always be found on our CurseForge page. The top file on [this list](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge/files?sort=releasetype) should always be the latest recommended release of Tech Reborn.
 
 [![](http://cf.way2muchnoise.eu/versions/233564_latest.svg)](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge)
 
