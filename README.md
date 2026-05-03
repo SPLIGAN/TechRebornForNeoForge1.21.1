@@ -13,7 +13,7 @@
 ### Recommended Releases
 Versions we determine are stable enough can always be found on our CurseForge page. The top file on [this list](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge/files?sort=releasetype) should always be the latest recommended release of Tech Reborn.
 
-[![](http://cf.way2muchnoise.eu/versions/233564_latest.svg)](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge)
+[![](http://cf.way2muchnoise.eu/versions/techreborn-for-neoforge_latest.svg)](https://legacy.curseforge.com/minecraft/mc-mods/techreborn-for-neoforge)
 
 # Issues and Suggestions
 
