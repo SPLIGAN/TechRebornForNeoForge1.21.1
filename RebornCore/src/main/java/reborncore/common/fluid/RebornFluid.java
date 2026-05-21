@@ -29,7 +29,6 @@ import java.util.function.Supplier;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -43,24 +42,33 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.material.FlowingFluid;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
+import net.neoforged.neoforge.common.SoundActions;
+import net.neoforged.neoforge.fluids.FluidType;
 
 public abstract class RebornFluid extends FlowingFluid {
 
 	private final boolean still;
 
 	private final FluidSettings fluidSettings;
+	private final Supplier<FluidType> fluidTypeSupplier;
 	private final Supplier<RebornFluidBlock> fluidBlockSupplier;
 	private final Supplier<RebornBucketItem> bucketItemSuppler;
 	private final Supplier<RebornFluid> flowingSuppler;
 	private final Supplier<RebornFluid> stillSuppler;
 
-	public RebornFluid(boolean still, FluidSettings fluidSettings, Supplier<RebornFluidBlock> fluidBlockSupplier, Supplier<RebornBucketItem> bucketItemSuppler, Supplier<RebornFluid> flowingSuppler, Supplier<RebornFluid> stillSuppler) {
+	public RebornFluid(boolean still, FluidSettings fluidSettings, Supplier<FluidType> fluidTypeSupplier, Supplier<RebornFluidBlock> fluidBlockSupplier, Supplier<RebornBucketItem> bucketItemSuppler, Supplier<RebornFluid> flowingSuppler, Supplier<RebornFluid> stillSuppler) {
 		this.still = still;
 		this.fluidSettings = fluidSettings;
+		this.fluidTypeSupplier = fluidTypeSupplier;
 		this.fluidBlockSupplier = fluidBlockSupplier;
 		this.bucketItemSuppler = bucketItemSuppler;
 		this.flowingSuppler = flowingSuppler;
 		this.stillSuppler = stillSuppler;
+	}
+
+	@Override
+	public FluidType getFluidType() {
+		return fluidTypeSupplier.get();
 	}
 
 	public FluidSettings getFluidSettings() {
@@ -149,7 +157,7 @@ public abstract class RebornFluid extends FlowingFluid {
 	}
 	@Override
 	public Optional<SoundEvent> getPickupSound() {
-		return Optional.of(SoundEvents.BUCKET_FILL);
+		return Optional.ofNullable(getFluidType().getSound(SoundActions.BUCKET_FILL));
 	}
 
 }

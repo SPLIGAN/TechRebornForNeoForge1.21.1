@@ -44,7 +44,7 @@ import net.minecraft.world.item.crafting.Ingredient;
 public record SizedIngredient(int count, Ingredient ingredient) implements Predicate<ItemStack> {
 	public static MapCodec<SizedIngredient> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
 		Codec.INT.optionalFieldOf("count", 1).forGetter(SizedIngredient::count),
-		MapCodec.assumeMapUnsafe(Ingredient.CODEC_NONEMPTY).forGetter(SizedIngredient::ingredient)
+		MapCodec.assumeMapUnsafe(RecipeIngredientCompat.CODEC).forGetter(SizedIngredient::ingredient)
 	).apply(instance, SizedIngredient::new));
 	public static StreamCodec<RegistryFriendlyByteBuf, SizedIngredient> PACKET_CODEC = StreamCodec.composite(
 		ByteBufCodecs.INT, SizedIngredient::count,

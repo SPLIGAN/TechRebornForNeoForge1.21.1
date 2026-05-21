@@ -44,6 +44,10 @@ public final class VillagerApiBridge {
 		return NeoForgeVillagerBridge.registerPoi(id, ticketCount, searchDistance, block);
 	}
 
+	public static PoiType createPoi(ResourceLocation id, int ticketCount, int searchDistance, Block block) {
+		return NeoForgeVillagerBridge.createPoiType(id, ticketCount, searchDistance, block);
+	}
+
 	public static VillagerProfession buildProfession(ResourceLocation id, ResourceKey<PoiType> workstation, SoundEvent workSound) {
 		return NeoForgeVillagerBridge.buildProfession(id, workstation, workSound);
 	}

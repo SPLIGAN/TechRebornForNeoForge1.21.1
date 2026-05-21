@@ -44,6 +44,13 @@ public record FluidValue(long rawValue) {
 	public static final Codec<FluidValue> CODEC = RecordCodecBuilder.create(instance -> instance.group(
 		Codec.LONG.fieldOf("value").forGetter(FluidValue::getRawValue)
 	).apply(instance, FluidValue::fromRaw));
+	/**
+	 * For recipe JSON: accepts {@code {"value": droplets}} or a plain long (interpreted as millibuckets, Fabric/legacy export).
+	 */
+	public static final Codec<FluidValue> RECIPE_AMOUNT_CODEC = Codec.withAlternative(
+		CODEC,
+		Codec.LONG.xmap(FluidValue::fromMillibuckets, fv -> Math.max(1L, fv.getRawValue() / 81))
+	);
 	public static final StreamCodec<ByteBuf, FluidValue> PACKET_CODEC = StreamCodec.composite(
 		ByteBufCodecs.VAR_LONG, FluidValue::getRawValue,
 		FluidValue::new

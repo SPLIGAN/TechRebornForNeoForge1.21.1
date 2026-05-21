@@ -46,6 +46,10 @@ public final class VillagerBridge {
 		return VillagerApiBridge.registerPoi(id, ticketCount, searchDistance, block);
 	}
 
+	public static PoiType createPoi(ResourceLocation id, int ticketCount, int searchDistance, Block block) {
+		return VillagerApiBridge.createPoi(id, ticketCount, searchDistance, block);
+	}
+
 	public static VillagerProfession buildProfession(ResourceLocation id, ResourceKey<PoiType> workstation, SoundEvent workSound) {
 		return VillagerApiBridge.buildProfession(id, workstation, workSound);
 	}

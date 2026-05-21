@@ -28,8 +28,6 @@ import reborncore.common.util.TradeUtils;
 import techreborn.TechReborn;
 import java.util.LinkedList;
 import java.util.List;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -38,34 +36,48 @@ import net.minecraft.world.entity.ai.village.poi.PoiType;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.npc.VillagerTrades;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 public class TRVillager {
 
 	public static final ResourceLocation METALLURGIST_ID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "metallurgist");
 	public static final ResourceLocation ELECTRICIAN_ID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "electrician");
 
-	public static final PoiType METALLURGIST_POI = VillagerBridge.registerPoi(
-		METALLURGIST_ID, 1, 1, TRContent.Machine.IRON_ALLOY_FURNACE.block
-	);
-	public static final PoiType ELECTRICIAN_POI = VillagerBridge.registerPoi(
-		ELECTRICIAN_ID, 1, 1, TRContent.Machine.SOLID_FUEL_GENERATOR.block
-	);
+	public static PoiType METALLURGIST_POI;
+	public static PoiType ELECTRICIAN_POI;
 
-	public static final VillagerProfession METALLURGIST_PROFESSION = Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, METALLURGIST_ID,
-		VillagerBridge.buildProfession(
-			METALLURGIST_ID,
-			ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, METALLURGIST_ID),
-			SoundEvents.VILLAGER_WORK_TOOLSMITH
-		)
-	);
+	public static VillagerProfession METALLURGIST_PROFESSION;
+	public static VillagerProfession ELECTRICIAN_PROFESSION;
 
-	public static final VillagerProfession ELECTRICIAN_PROFESSION = Registry.register(BuiltInRegistries.VILLAGER_PROFESSION, ELECTRICIAN_ID,
-		VillagerBridge.buildProfession(
-			ELECTRICIAN_ID,
-			ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, ELECTRICIAN_ID),
-			ModSounds.CABLE_SHOCK
-		)
-	);
+	public static void registerPoiTypes(RegisterEvent event) {
+		event.register(Registries.POINT_OF_INTEREST_TYPE, METALLURGIST_ID, () -> {
+			METALLURGIST_POI = VillagerBridge.createPoi(METALLURGIST_ID, 1, 1, TRContent.Machine.IRON_ALLOY_FURNACE.block);
+			return METALLURGIST_POI;
+		});
+		event.register(Registries.POINT_OF_INTEREST_TYPE, ELECTRICIAN_ID, () -> {
+			ELECTRICIAN_POI = VillagerBridge.createPoi(ELECTRICIAN_ID, 1, 1, TRContent.Machine.SOLID_FUEL_GENERATOR.block);
+			return ELECTRICIAN_POI;
+		});
+	}
+
+	public static void registerProfessions(RegisterEvent event) {
+		event.register(Registries.VILLAGER_PROFESSION, METALLURGIST_ID, () -> {
+			METALLURGIST_PROFESSION = VillagerBridge.buildProfession(
+				METALLURGIST_ID,
+				ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, METALLURGIST_ID),
+				SoundEvents.VILLAGER_WORK_TOOLSMITH
+			);
+			return METALLURGIST_PROFESSION;
+		});
+		event.register(Registries.VILLAGER_PROFESSION, ELECTRICIAN_ID, () -> {
+			ELECTRICIAN_PROFESSION = VillagerBridge.buildProfession(
+				ELECTRICIAN_ID,
+				ResourceKey.create(Registries.POINT_OF_INTEREST_TYPE, ELECTRICIAN_ID),
+				ModSounds.CABLE_SHOCK
+			);
+			return ELECTRICIAN_PROFESSION;
+		});
+	}
 
 	private TRVillager() {/* No instantiation. */}
 

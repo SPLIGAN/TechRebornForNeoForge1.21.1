@@ -71,102 +71,272 @@ import java.util.List;
 import java.util.function.BiFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 public class TRBlockEntities {
 	private static final List<BlockEntityType<?>> TYPES = new ArrayList<>();
+	private static volatile boolean prepared;
 
 	public static List<BlockEntityType<?>> allRegisteredTypes() {
 		return List.copyOf(TYPES);
 	}
 
-	public static final BlockEntityType<StorageUnitBaseBlockEntity> STORAGE_UNIT = register(StorageUnitBaseBlockEntity::new, "storage_unit", TRContent.StorageUnit.values());
-	public static final BlockEntityType<TankUnitBaseBlockEntity> TANK_UNIT = register(TankUnitBaseBlockEntity::new, "tank_unit", TRContent.TankUnit.values());
-	public static final BlockEntityType<DrainBlockEntity> DRAIN = register(DrainBlockEntity::new, "drain", TRContent.Machine.DRAIN);
-	public static final BlockEntityType<ThermalGeneratorBlockEntity> THERMAL_GEN = register(ThermalGeneratorBlockEntity::new, "thermal_generator", TRContent.Machine.THERMAL_GENERATOR);
-	public static final BlockEntityType<IndustrialCentrifugeBlockEntity> INDUSTRIAL_CENTRIFUGE = register(IndustrialCentrifugeBlockEntity::new, "industrial_centrifuge", TRContent.Machine.INDUSTRIAL_CENTRIFUGE);
-	public static final BlockEntityType<RollingMachineBlockEntity> ROLLING_MACHINE = register(RollingMachineBlockEntity::new, "rolling_machine", TRContent.Machine.ROLLING_MACHINE);
-	public static final BlockEntityType<IndustrialBlastFurnaceBlockEntity> INDUSTRIAL_BLAST_FURNACE = register(IndustrialBlastFurnaceBlockEntity::new, "industrial_blast_furnace", TRContent.Machine.INDUSTRIAL_BLAST_FURNACE);
-	public static final BlockEntityType<AlloySmelterBlockEntity> ALLOY_SMELTER = register(AlloySmelterBlockEntity::new, "alloy_smelter", TRContent.Machine.ALLOY_SMELTER);
-	public static final BlockEntityType<IndustrialGrinderBlockEntity> INDUSTRIAL_GRINDER = register(IndustrialGrinderBlockEntity::new, "industrial_grinder", TRContent.Machine.INDUSTRIAL_GRINDER);
-	public static final BlockEntityType<ImplosionCompressorBlockEntity> IMPLOSION_COMPRESSOR = register(ImplosionCompressorBlockEntity::new, "implosion_compressor", TRContent.Machine.IMPLOSION_COMPRESSOR);
-	public static final BlockEntityType<MatterFabricatorBlockEntity> MATTER_FABRICATOR = register(MatterFabricatorBlockEntity::new, "matter_fabricator", TRContent.Machine.MATTER_FABRICATOR);
-	public static final BlockEntityType<ChunkLoaderBlockEntity> CHUNK_LOADER = register(ChunkLoaderBlockEntity::new, "chunk_loader", TRContent.Machine.CHUNK_LOADER);
-	public static final BlockEntityType<ChargeOMatBlockEntity> CHARGE_O_MAT = register(ChargeOMatBlockEntity::new, "charge_o_mat", TRContent.Machine.CHARGE_O_MAT);
-	public static final BlockEntityType<PlayerDetectorBlockEntity> PLAYER_DETECTOR = register(PlayerDetectorBlockEntity::new, "player_detector", TRContent.Machine.PLAYER_DETECTOR);
-	public static final BlockEntityType<CableBlockEntity> CABLE = register(CableBlockEntity::new, "cable", TRContent.Cables.values());
-	public static final BlockEntityType<MachineCasingBlockEntity> MACHINE_CASINGS = register(MachineCasingBlockEntity::new, "machine_casing", TRContent.MachineBlocks.getCasings());
-	public static final BlockEntityType<DragonEggSyphonBlockEntity> DRAGON_EGG_SYPHON = register(DragonEggSyphonBlockEntity::new, "dragon_egg_syphon", TRContent.Machine.DRAGON_EGG_SYPHON);
-	public static final BlockEntityType<AssemblingMachineBlockEntity> ASSEMBLY_MACHINE = register(AssemblingMachineBlockEntity::new, "assembly_machine", TRContent.Machine.ASSEMBLY_MACHINE);
-	public static final BlockEntityType<DieselGeneratorBlockEntity> DIESEL_GENERATOR = register(DieselGeneratorBlockEntity::new, "diesel_generator", TRContent.Machine.DIESEL_GENERATOR);
-	public static final BlockEntityType<IndustrialElectrolyzerBlockEntity> INDUSTRIAL_ELECTROLYZER = register(IndustrialElectrolyzerBlockEntity::new, "industrial_electrolyzer", TRContent.Machine.INDUSTRIAL_ELECTROLYZER);
-	public static final BlockEntityType<SemiFluidGeneratorBlockEntity> SEMI_FLUID_GENERATOR = register(SemiFluidGeneratorBlockEntity::new, "semi_fluid_generator", TRContent.Machine.SEMI_FLUID_GENERATOR);
-	public static final BlockEntityType<GasTurbineBlockEntity> GAS_TURBINE = register(GasTurbineBlockEntity::new, "gas_turbine", TRContent.Machine.GAS_TURBINE);
-	public static final BlockEntityType<IronAlloyFurnaceBlockEntity> IRON_ALLOY_FURNACE = register(IronAlloyFurnaceBlockEntity::new, "iron_alloy_furnace", TRContent.Machine.IRON_ALLOY_FURNACE);
-	public static final BlockEntityType<ChemicalReactorBlockEntity> CHEMICAL_REACTOR = register(ChemicalReactorBlockEntity::new, "chemical_reactor", TRContent.Machine.CHEMICAL_REACTOR);
-	public static final BlockEntityType<InterdimensionalSUBlockEntity> INTERDIMENSIONAL_SU = register(InterdimensionalSUBlockEntity::new, "interdimensional_su", TRContent.Machine.INTERDIMENSIONAL_SU);
-	public static final BlockEntityType<AdjustableSUBlockEntity> ADJUSTABLE_SU = register(AdjustableSUBlockEntity::new, "adjustable_su", TRContent.Machine.ADJUSTABLE_SU);
-	public static final BlockEntityType<LapotronicSUBlockEntity> LAPOTRONIC_SU = register(LapotronicSUBlockEntity::new, "lapotronic_su", TRContent.Machine.LAPOTRONIC_SU);
-	public static final BlockEntityType<LSUStorageBlockEntity> LSU_STORAGE = register(LSUStorageBlockEntity::new, "lsu_storage", TRContent.Machine.LSU_STORAGE);
-	public static final BlockEntityType<DistillationTowerBlockEntity> DISTILLATION_TOWER = register(DistillationTowerBlockEntity::new, "distillation_tower", TRContent.Machine.DISTILLATION_TOWER);
-	public static final BlockEntityType<VacuumFreezerBlockEntity> VACUUM_FREEZER = register(VacuumFreezerBlockEntity::new, "vacuum_freezer", TRContent.Machine.VACUUM_FREEZER);
-	public static final BlockEntityType<FusionControlComputerBlockEntity> FUSION_CONTROL_COMPUTER = register(FusionControlComputerBlockEntity::new, "fusion_control_computer", TRContent.Machine.FUSION_CONTROL_COMPUTER);
-	public static final BlockEntityType<LightningRodBlockEntity> LIGHTNING_ROD = register(LightningRodBlockEntity::new, "lightning_rod", TRContent.Machine.LIGHTNING_ROD);
-	public static final BlockEntityType<IndustrialSawmillBlockEntity> INDUSTRIAL_SAWMILL = register(IndustrialSawmillBlockEntity::new, "industrial_sawmill", TRContent.Machine.INDUSTRIAL_SAWMILL);
-	public static final BlockEntityType<GrinderBlockEntity> GRINDER = register(GrinderBlockEntity::new, "grinder", TRContent.Machine.GRINDER);
-	public static final BlockEntityType<SolidFuelGeneratorBlockEntity> SOLID_FUEL_GENERATOR = register(SolidFuelGeneratorBlockEntity::new, "solid_fuel_generator", TRContent.Machine.SOLID_FUEL_GENERATOR);
-	public static final BlockEntityType<ExtractorBlockEntity> EXTRACTOR = register(ExtractorBlockEntity::new, "extractor", TRContent.Machine.EXTRACTOR);
-	public static final BlockEntityType<ResinBasinBlockEntity> RESIN_BASIN = register(ResinBasinBlockEntity::new, "resin_basin", TRContent.Machine.RESIN_BASIN);
-	public static final BlockEntityType<CompressorBlockEntity> COMPRESSOR = register(CompressorBlockEntity::new, "compressor", TRContent.Machine.COMPRESSOR);
-	public static final BlockEntityType<ElectricFurnaceBlockEntity> ELECTRIC_FURNACE = register(ElectricFurnaceBlockEntity::new, "electric_furnace", TRContent.Machine.ELECTRIC_FURNACE);
-	public static final BlockEntityType<SolarPanelBlockEntity> SOLAR_PANEL = register(SolarPanelBlockEntity::new, "solar_panel", TRContent.SolarPanels.values());
-	public static final BlockEntityType<WaterMillBlockEntity> WATER_MILL = register(WaterMillBlockEntity::new, "water_mill", TRContent.Machine.WATER_MILL);
-	public static final BlockEntityType<WindMillBlockEntity> WIND_MILL = register(WindMillBlockEntity::new, "wind_mill", TRContent.Machine.WIND_MILL);
-	public static final BlockEntityType<RecyclerBlockEntity> RECYCLER = register(RecyclerBlockEntity::new, "recycler", TRContent.Machine.RECYCLER);
-	public static final BlockEntityType<LowVoltageSUBlockEntity> LOW_VOLTAGE_SU = register(LowVoltageSUBlockEntity::new, "low_voltage_su", TRContent.Machine.LOW_VOLTAGE_SU);
-	public static final BlockEntityType<MediumVoltageSUBlockEntity> MEDIUM_VOLTAGE_SU = register(MediumVoltageSUBlockEntity::new, "medium_voltage_su", TRContent.Machine.MEDIUM_VOLTAGE_SU);
-	public static final BlockEntityType<HighVoltageSUBlockEntity> HIGH_VOLTAGE_SU = register(HighVoltageSUBlockEntity::new, "high_voltage_su", TRContent.Machine.HIGH_VOLTAGE_SU);
-	public static final BlockEntityType<LVTransformerBlockEntity> LV_TRANSFORMER = register(LVTransformerBlockEntity::new, "lv_transformer", TRContent.Machine.LV_TRANSFORMER);
-	public static final BlockEntityType<MVTransformerBlockEntity> MV_TRANSFORMER = register(MVTransformerBlockEntity::new, "mv_transformer", TRContent.Machine.MV_TRANSFORMER);
-	public static final BlockEntityType<HVTransformerBlockEntity> HV_TRANSFORMER = register(HVTransformerBlockEntity::new, "hv_transformer", TRContent.Machine.HV_TRANSFORMER);
-	public static final BlockEntityType<EVTransformerBlockEntity> EV_TRANSFORMER = register(EVTransformerBlockEntity::new, "ev_transformer", TRContent.Machine.EV_TRANSFORMER);
-	public static final BlockEntityType<AutoCraftingTableBlockEntity> AUTO_CRAFTING_TABLE = register(AutoCraftingTableBlockEntity::new, "auto_crafting_table", TRContent.Machine.AUTO_CRAFTING_TABLE);
-	public static final BlockEntityType<IronFurnaceBlockEntity> IRON_FURNACE = register(IronFurnaceBlockEntity::new, "iron_furnace", TRContent.Machine.IRON_FURNACE);
-	public static final BlockEntityType<ScrapboxinatorBlockEntity> SCRAPBOXINATOR = register(ScrapboxinatorBlockEntity::new, "scrapboxinator", TRContent.Machine.SCRAPBOXINATOR);
-	public static final BlockEntityType<PlasmaGeneratorBlockEntity> PLASMA_GENERATOR = register(PlasmaGeneratorBlockEntity::new, "plasma_generator", TRContent.Machine.PLASMA_GENERATOR);
-	public static final BlockEntityType<LampBlockEntity> LAMP = register(LampBlockEntity::new, "lamp", TRContent.Machine.LAMP_INCANDESCENT, TRContent.Machine.LAMP_LED);
-	public static final BlockEntityType<AlarmBlockEntity> ALARM = register(AlarmBlockEntity::new, "alarm", TRContent.Machine.ALARM);
-	public static final BlockEntityType<FluidReplicatorBlockEntity> FLUID_REPLICATOR = register(FluidReplicatorBlockEntity::new, "fluid_replicator", TRContent.Machine.FLUID_REPLICATOR);
-	public static final BlockEntityType<SolidCanningMachineBlockEntity> SOLID_CANNING_MACHINE = register(SolidCanningMachineBlockEntity::new, "solid_canning_machine", TRContent.Machine.SOLID_CANNING_MACHINE);
-	public static final BlockEntityType<WireMillBlockEntity> WIRE_MILL = register(WireMillBlockEntity::new, "wire_mill", TRContent.Machine.WIRE_MILL);
-	public static final BlockEntityType<GreenhouseControllerBlockEntity> GREENHOUSE_CONTROLLER = register(GreenhouseControllerBlockEntity::new, "greenhouse_controller", TRContent.Machine.GREENHOUSE_CONTROLLER);
-	public static final BlockEntityType<BlockBreakerBlockEntity> BLOCK_BREAKER = register(BlockBreakerBlockEntity::new, "block_breaker", TRContent.Machine.BLOCK_BREAKER);
-	public static final BlockEntityType<BlockPlacerBlockEntity> BLOCK_PLACER = register(BlockPlacerBlockEntity::new, "block_placer", TRContent.Machine.BLOCK_PLACER);
-	public static final BlockEntityType<LaunchpadBlockEntity> LAUNCHPAD = register(LaunchpadBlockEntity::new, "launchpad", TRContent.Machine.LAUNCHPAD);
-	public static final BlockEntityType<ElevatorBlockEntity> ELEVATOR = register(ElevatorBlockEntity::new, "elevator", TRContent.Machine.ELEVATOR);
-	public static final BlockEntityType<FishingStationBlockEntity> FISHING_STATION = register(FishingStationBlockEntity::new, "fishing_station", TRContent.Machine.FISHING_STATION);
-	public static final BlockEntityType<PumpBlockEntity> PUMP = register(PumpBlockEntity::new, "pump", TRContent.Machine.PUMP);
+	public static BlockEntityType<StorageUnitBaseBlockEntity> STORAGE_UNIT;
+	public static BlockEntityType<TankUnitBaseBlockEntity> TANK_UNIT;
+	public static BlockEntityType<DrainBlockEntity> DRAIN;
+	public static BlockEntityType<ThermalGeneratorBlockEntity> THERMAL_GEN;
+	public static BlockEntityType<IndustrialCentrifugeBlockEntity> INDUSTRIAL_CENTRIFUGE;
+	public static BlockEntityType<RollingMachineBlockEntity> ROLLING_MACHINE;
+	public static BlockEntityType<IndustrialBlastFurnaceBlockEntity> INDUSTRIAL_BLAST_FURNACE;
+	public static BlockEntityType<AlloySmelterBlockEntity> ALLOY_SMELTER;
+	public static BlockEntityType<IndustrialGrinderBlockEntity> INDUSTRIAL_GRINDER;
+	public static BlockEntityType<ImplosionCompressorBlockEntity> IMPLOSION_COMPRESSOR;
+	public static BlockEntityType<MatterFabricatorBlockEntity> MATTER_FABRICATOR;
+	public static BlockEntityType<ChunkLoaderBlockEntity> CHUNK_LOADER;
+	public static BlockEntityType<ChargeOMatBlockEntity> CHARGE_O_MAT;
+	public static BlockEntityType<PlayerDetectorBlockEntity> PLAYER_DETECTOR;
+	public static BlockEntityType<CableBlockEntity> CABLE;
+	public static BlockEntityType<MachineCasingBlockEntity> MACHINE_CASINGS;
+	public static BlockEntityType<DragonEggSyphonBlockEntity> DRAGON_EGG_SYPHON;
+	public static BlockEntityType<AssemblingMachineBlockEntity> ASSEMBLY_MACHINE;
+	public static BlockEntityType<DieselGeneratorBlockEntity> DIESEL_GENERATOR;
+	public static BlockEntityType<IndustrialElectrolyzerBlockEntity> INDUSTRIAL_ELECTROLYZER;
+	public static BlockEntityType<SemiFluidGeneratorBlockEntity> SEMI_FLUID_GENERATOR;
+	public static BlockEntityType<GasTurbineBlockEntity> GAS_TURBINE;
+	public static BlockEntityType<IronAlloyFurnaceBlockEntity> IRON_ALLOY_FURNACE;
+	public static BlockEntityType<ChemicalReactorBlockEntity> CHEMICAL_REACTOR;
+	public static BlockEntityType<InterdimensionalSUBlockEntity> INTERDIMENSIONAL_SU;
+	public static BlockEntityType<AdjustableSUBlockEntity> ADJUSTABLE_SU;
+	public static BlockEntityType<LapotronicSUBlockEntity> LAPOTRONIC_SU;
+	public static BlockEntityType<LSUStorageBlockEntity> LSU_STORAGE;
+	public static BlockEntityType<DistillationTowerBlockEntity> DISTILLATION_TOWER;
+	public static BlockEntityType<VacuumFreezerBlockEntity> VACUUM_FREEZER;
+	public static BlockEntityType<FusionControlComputerBlockEntity> FUSION_CONTROL_COMPUTER;
+	public static BlockEntityType<LightningRodBlockEntity> LIGHTNING_ROD;
+	public static BlockEntityType<IndustrialSawmillBlockEntity> INDUSTRIAL_SAWMILL;
+	public static BlockEntityType<GrinderBlockEntity> GRINDER;
+	public static BlockEntityType<SolidFuelGeneratorBlockEntity> SOLID_FUEL_GENERATOR;
+	public static BlockEntityType<ExtractorBlockEntity> EXTRACTOR;
+	public static BlockEntityType<ResinBasinBlockEntity> RESIN_BASIN;
+	public static BlockEntityType<CompressorBlockEntity> COMPRESSOR;
+	public static BlockEntityType<ElectricFurnaceBlockEntity> ELECTRIC_FURNACE;
+	public static BlockEntityType<SolarPanelBlockEntity> SOLAR_PANEL;
+	public static BlockEntityType<WaterMillBlockEntity> WATER_MILL;
+	public static BlockEntityType<WindMillBlockEntity> WIND_MILL;
+	public static BlockEntityType<RecyclerBlockEntity> RECYCLER;
+	public static BlockEntityType<LowVoltageSUBlockEntity> LOW_VOLTAGE_SU;
+	public static BlockEntityType<MediumVoltageSUBlockEntity> MEDIUM_VOLTAGE_SU;
+	public static BlockEntityType<HighVoltageSUBlockEntity> HIGH_VOLTAGE_SU;
+	public static BlockEntityType<LVTransformerBlockEntity> LV_TRANSFORMER;
+	public static BlockEntityType<MVTransformerBlockEntity> MV_TRANSFORMER;
+	public static BlockEntityType<HVTransformerBlockEntity> HV_TRANSFORMER;
+	public static BlockEntityType<EVTransformerBlockEntity> EV_TRANSFORMER;
+	public static BlockEntityType<AutoCraftingTableBlockEntity> AUTO_CRAFTING_TABLE;
+	public static BlockEntityType<IronFurnaceBlockEntity> IRON_FURNACE;
+	public static BlockEntityType<ScrapboxinatorBlockEntity> SCRAPBOXINATOR;
+	public static BlockEntityType<PlasmaGeneratorBlockEntity> PLASMA_GENERATOR;
+	public static BlockEntityType<LampBlockEntity> LAMP;
+	public static BlockEntityType<AlarmBlockEntity> ALARM;
+	public static BlockEntityType<FluidReplicatorBlockEntity> FLUID_REPLICATOR;
+	public static BlockEntityType<SolidCanningMachineBlockEntity> SOLID_CANNING_MACHINE;
+	public static BlockEntityType<WireMillBlockEntity> WIRE_MILL;
+	public static BlockEntityType<GreenhouseControllerBlockEntity> GREENHOUSE_CONTROLLER;
+	public static BlockEntityType<BlockBreakerBlockEntity> BLOCK_BREAKER;
+	public static BlockEntityType<BlockPlacerBlockEntity> BLOCK_PLACER;
+	public static BlockEntityType<LaunchpadBlockEntity> LAUNCHPAD;
+	public static BlockEntityType<ElevatorBlockEntity> ELEVATOR;
+	public static BlockEntityType<FishingStationBlockEntity> FISHING_STATION;
+	public static BlockEntityType<PumpBlockEntity> PUMP;
 
-	public static <T extends BlockEntity> BlockEntityType<T> register(BiFunction<BlockPos, BlockState, T> supplier, String name, ItemLike... items) {
-		return register(supplier, name, Arrays.stream(items).map(itemConvertible -> Block.byItem(itemConvertible.asItem())).toArray(Block[]::new));
+	private TRBlockEntities() {
 	}
 
-	public static <T extends BlockEntity> BlockEntityType<T> register(BiFunction<BlockPos, BlockState, T> supplier, String name, Block... blocks) {
+	private static <T extends BlockEntity> BlockEntityType<T> create(BiFunction<BlockPos, BlockState, T> supplier, ItemLike... items) {
+		return create(supplier, Arrays.stream(items).map(itemConvertible -> Block.byItem(itemConvertible.asItem())).toArray(Block[]::new));
+	}
+
+	private static <T extends BlockEntity> BlockEntityType<T> create(BiFunction<BlockPos, BlockState, T> supplier, Block... blocks) {
 		Validate.isTrue(blocks.length > 0, "no blocks for blockEntity entity type!");
-		return register(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, name).toString(), BlockEntityType.Builder.of(supplier::apply, blocks));
+		return BlockEntityType.Builder.of(supplier::apply, blocks).build(null);
 	}
 
-	public static <T extends BlockEntity> BlockEntityType<T> register(String id, BlockEntityType.Builder<T> builder) {
-		BlockEntityType<T> blockEntityType = builder.build(null);
-		Registry.register(BuiltInRegistries.BLOCK_ENTITY_TYPE, ResourceLocation.parse(id), blockEntityType);
-		TRBlockEntities.TYPES.add(blockEntityType);
-		return blockEntityType;
+	private static void prepare() {
+		synchronized (TRBlockEntities.class) {
+			if (prepared) {
+				return;
+			}
+			STORAGE_UNIT = create(StorageUnitBaseBlockEntity::new, TRContent.StorageUnit.values());
+			TANK_UNIT = create(TankUnitBaseBlockEntity::new, TRContent.TankUnit.values());
+			DRAIN = create(DrainBlockEntity::new, TRContent.Machine.DRAIN);
+			THERMAL_GEN = create(ThermalGeneratorBlockEntity::new, TRContent.Machine.THERMAL_GENERATOR);
+			INDUSTRIAL_CENTRIFUGE = create(IndustrialCentrifugeBlockEntity::new, TRContent.Machine.INDUSTRIAL_CENTRIFUGE);
+			ROLLING_MACHINE = create(RollingMachineBlockEntity::new, TRContent.Machine.ROLLING_MACHINE);
+			INDUSTRIAL_BLAST_FURNACE = create(IndustrialBlastFurnaceBlockEntity::new, TRContent.Machine.INDUSTRIAL_BLAST_FURNACE);
+			ALLOY_SMELTER = create(AlloySmelterBlockEntity::new, TRContent.Machine.ALLOY_SMELTER);
+			INDUSTRIAL_GRINDER = create(IndustrialGrinderBlockEntity::new, TRContent.Machine.INDUSTRIAL_GRINDER);
+			IMPLOSION_COMPRESSOR = create(ImplosionCompressorBlockEntity::new, TRContent.Machine.IMPLOSION_COMPRESSOR);
+			MATTER_FABRICATOR = create(MatterFabricatorBlockEntity::new, TRContent.Machine.MATTER_FABRICATOR);
+			CHUNK_LOADER = create(ChunkLoaderBlockEntity::new, TRContent.Machine.CHUNK_LOADER);
+			CHARGE_O_MAT = create(ChargeOMatBlockEntity::new, TRContent.Machine.CHARGE_O_MAT);
+			PLAYER_DETECTOR = create(PlayerDetectorBlockEntity::new, TRContent.Machine.PLAYER_DETECTOR);
+			CABLE = create(CableBlockEntity::new, TRContent.Cables.values());
+			MACHINE_CASINGS = create(MachineCasingBlockEntity::new, TRContent.MachineBlocks.getCasings());
+			DRAGON_EGG_SYPHON = create(DragonEggSyphonBlockEntity::new, TRContent.Machine.DRAGON_EGG_SYPHON);
+			ASSEMBLY_MACHINE = create(AssemblingMachineBlockEntity::new, TRContent.Machine.ASSEMBLY_MACHINE);
+			DIESEL_GENERATOR = create(DieselGeneratorBlockEntity::new, TRContent.Machine.DIESEL_GENERATOR);
+			INDUSTRIAL_ELECTROLYZER = create(IndustrialElectrolyzerBlockEntity::new, TRContent.Machine.INDUSTRIAL_ELECTROLYZER);
+			SEMI_FLUID_GENERATOR = create(SemiFluidGeneratorBlockEntity::new, TRContent.Machine.SEMI_FLUID_GENERATOR);
+			GAS_TURBINE = create(GasTurbineBlockEntity::new, TRContent.Machine.GAS_TURBINE);
+			IRON_ALLOY_FURNACE = create(IronAlloyFurnaceBlockEntity::new, TRContent.Machine.IRON_ALLOY_FURNACE);
+			CHEMICAL_REACTOR = create(ChemicalReactorBlockEntity::new, TRContent.Machine.CHEMICAL_REACTOR);
+			INTERDIMENSIONAL_SU = create(InterdimensionalSUBlockEntity::new, TRContent.Machine.INTERDIMENSIONAL_SU);
+			ADJUSTABLE_SU = create(AdjustableSUBlockEntity::new, TRContent.Machine.ADJUSTABLE_SU);
+			LAPOTRONIC_SU = create(LapotronicSUBlockEntity::new, TRContent.Machine.LAPOTRONIC_SU);
+			LSU_STORAGE = create(LSUStorageBlockEntity::new, TRContent.Machine.LSU_STORAGE);
+			DISTILLATION_TOWER = create(DistillationTowerBlockEntity::new, TRContent.Machine.DISTILLATION_TOWER);
+			VACUUM_FREEZER = create(VacuumFreezerBlockEntity::new, TRContent.Machine.VACUUM_FREEZER);
+			FUSION_CONTROL_COMPUTER = create(FusionControlComputerBlockEntity::new, TRContent.Machine.FUSION_CONTROL_COMPUTER);
+			LIGHTNING_ROD = create(LightningRodBlockEntity::new, TRContent.Machine.LIGHTNING_ROD);
+			INDUSTRIAL_SAWMILL = create(IndustrialSawmillBlockEntity::new, TRContent.Machine.INDUSTRIAL_SAWMILL);
+			GRINDER = create(GrinderBlockEntity::new, TRContent.Machine.GRINDER);
+			SOLID_FUEL_GENERATOR = create(SolidFuelGeneratorBlockEntity::new, TRContent.Machine.SOLID_FUEL_GENERATOR);
+			EXTRACTOR = create(ExtractorBlockEntity::new, TRContent.Machine.EXTRACTOR);
+			RESIN_BASIN = create(ResinBasinBlockEntity::new, TRContent.Machine.RESIN_BASIN);
+			COMPRESSOR = create(CompressorBlockEntity::new, TRContent.Machine.COMPRESSOR);
+			ELECTRIC_FURNACE = create(ElectricFurnaceBlockEntity::new, TRContent.Machine.ELECTRIC_FURNACE);
+			SOLAR_PANEL = create(SolarPanelBlockEntity::new, TRContent.SolarPanels.values());
+			WATER_MILL = create(WaterMillBlockEntity::new, TRContent.Machine.WATER_MILL);
+			WIND_MILL = create(WindMillBlockEntity::new, TRContent.Machine.WIND_MILL);
+			RECYCLER = create(RecyclerBlockEntity::new, TRContent.Machine.RECYCLER);
+			LOW_VOLTAGE_SU = create(LowVoltageSUBlockEntity::new, TRContent.Machine.LOW_VOLTAGE_SU);
+			MEDIUM_VOLTAGE_SU = create(MediumVoltageSUBlockEntity::new, TRContent.Machine.MEDIUM_VOLTAGE_SU);
+			HIGH_VOLTAGE_SU = create(HighVoltageSUBlockEntity::new, TRContent.Machine.HIGH_VOLTAGE_SU);
+			LV_TRANSFORMER = create(LVTransformerBlockEntity::new, TRContent.Machine.LV_TRANSFORMER);
+			MV_TRANSFORMER = create(MVTransformerBlockEntity::new, TRContent.Machine.MV_TRANSFORMER);
+			HV_TRANSFORMER = create(HVTransformerBlockEntity::new, TRContent.Machine.HV_TRANSFORMER);
+			EV_TRANSFORMER = create(EVTransformerBlockEntity::new, TRContent.Machine.EV_TRANSFORMER);
+			AUTO_CRAFTING_TABLE = create(AutoCraftingTableBlockEntity::new, TRContent.Machine.AUTO_CRAFTING_TABLE);
+			IRON_FURNACE = create(IronFurnaceBlockEntity::new, TRContent.Machine.IRON_FURNACE);
+			SCRAPBOXINATOR = create(ScrapboxinatorBlockEntity::new, TRContent.Machine.SCRAPBOXINATOR);
+			PLASMA_GENERATOR = create(PlasmaGeneratorBlockEntity::new, TRContent.Machine.PLASMA_GENERATOR);
+			LAMP = create(LampBlockEntity::new, TRContent.Machine.LAMP_INCANDESCENT, TRContent.Machine.LAMP_LED);
+			ALARM = create(AlarmBlockEntity::new, TRContent.Machine.ALARM);
+			FLUID_REPLICATOR = create(FluidReplicatorBlockEntity::new, TRContent.Machine.FLUID_REPLICATOR);
+			SOLID_CANNING_MACHINE = create(SolidCanningMachineBlockEntity::new, TRContent.Machine.SOLID_CANNING_MACHINE);
+			WIRE_MILL = create(WireMillBlockEntity::new, TRContent.Machine.WIRE_MILL);
+			GREENHOUSE_CONTROLLER = create(GreenhouseControllerBlockEntity::new, TRContent.Machine.GREENHOUSE_CONTROLLER);
+			BLOCK_BREAKER = create(BlockBreakerBlockEntity::new, TRContent.Machine.BLOCK_BREAKER);
+			BLOCK_PLACER = create(BlockPlacerBlockEntity::new, TRContent.Machine.BLOCK_PLACER);
+			LAUNCHPAD = create(LaunchpadBlockEntity::new, TRContent.Machine.LAUNCHPAD);
+			ELEVATOR = create(ElevatorBlockEntity::new, TRContent.Machine.ELEVATOR);
+			FISHING_STATION = create(FishingStationBlockEntity::new, TRContent.Machine.FISHING_STATION);
+			PUMP = create(PumpBlockEntity::new, TRContent.Machine.PUMP);
+
+			TYPES.clear();
+			TYPES.addAll(Arrays.asList(
+				STORAGE_UNIT, TANK_UNIT, DRAIN, THERMAL_GEN, INDUSTRIAL_CENTRIFUGE, ROLLING_MACHINE,
+				INDUSTRIAL_BLAST_FURNACE, ALLOY_SMELTER, INDUSTRIAL_GRINDER, IMPLOSION_COMPRESSOR, MATTER_FABRICATOR,
+				CHUNK_LOADER, CHARGE_O_MAT, PLAYER_DETECTOR, CABLE, MACHINE_CASINGS, DRAGON_EGG_SYPHON,
+				ASSEMBLY_MACHINE, DIESEL_GENERATOR, INDUSTRIAL_ELECTROLYZER, SEMI_FLUID_GENERATOR, GAS_TURBINE,
+				IRON_ALLOY_FURNACE, CHEMICAL_REACTOR, INTERDIMENSIONAL_SU, ADJUSTABLE_SU, LAPOTRONIC_SU,
+				LSU_STORAGE, DISTILLATION_TOWER, VACUUM_FREEZER, FUSION_CONTROL_COMPUTER, LIGHTNING_ROD,
+				INDUSTRIAL_SAWMILL, GRINDER, SOLID_FUEL_GENERATOR, EXTRACTOR, RESIN_BASIN, COMPRESSOR,
+				ELECTRIC_FURNACE, SOLAR_PANEL, WATER_MILL, WIND_MILL, RECYCLER, LOW_VOLTAGE_SU, MEDIUM_VOLTAGE_SU,
+				HIGH_VOLTAGE_SU, LV_TRANSFORMER, MV_TRANSFORMER, HV_TRANSFORMER, EV_TRANSFORMER,
+				AUTO_CRAFTING_TABLE, IRON_FURNACE, SCRAPBOXINATOR, PLASMA_GENERATOR, LAMP, ALARM,
+				FLUID_REPLICATOR, SOLID_CANNING_MACHINE, WIRE_MILL, GREENHOUSE_CONTROLLER, BLOCK_BREAKER,
+				BLOCK_PLACER, LAUNCHPAD, ELEVATOR, FISHING_STATION, PUMP));
+			prepared = true;
+		}
 	}
 
+	private static ResourceLocation id(String path) {
+		return ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, path);
+	}
+
+	private static void registerType(RegisterEvent event, String path, BlockEntityType<?> type) {
+		event.register(Registries.BLOCK_ENTITY_TYPE, id(path), () -> type);
+	}
+
+	public static void register(RegisterEvent event) {
+		ResourceKey<? extends Registry<?>> key = event.getRegistryKey();
+		if (!key.equals(Registries.BLOCK_ENTITY_TYPE)) {
+			return;
+		}
+		prepare();
+		registerType(event, "storage_unit", STORAGE_UNIT);
+		registerType(event, "tank_unit", TANK_UNIT);
+		registerType(event, "drain", DRAIN);
+		registerType(event, "thermal_generator", THERMAL_GEN);
+		registerType(event, "industrial_centrifuge", INDUSTRIAL_CENTRIFUGE);
+		registerType(event, "rolling_machine", ROLLING_MACHINE);
+		registerType(event, "industrial_blast_furnace", INDUSTRIAL_BLAST_FURNACE);
+		registerType(event, "alloy_smelter", ALLOY_SMELTER);
+		registerType(event, "industrial_grinder", INDUSTRIAL_GRINDER);
+		registerType(event, "implosion_compressor", IMPLOSION_COMPRESSOR);
+		registerType(event, "matter_fabricator", MATTER_FABRICATOR);
+		registerType(event, "chunk_loader", CHUNK_LOADER);
+		registerType(event, "charge_o_mat", CHARGE_O_MAT);
+		registerType(event, "player_detector", PLAYER_DETECTOR);
+		registerType(event, "cable", CABLE);
+		registerType(event, "machine_casing", MACHINE_CASINGS);
+		registerType(event, "dragon_egg_syphon", DRAGON_EGG_SYPHON);
+		registerType(event, "assembly_machine", ASSEMBLY_MACHINE);
+		registerType(event, "diesel_generator", DIESEL_GENERATOR);
+		registerType(event, "industrial_electrolyzer", INDUSTRIAL_ELECTROLYZER);
+		registerType(event, "semi_fluid_generator", SEMI_FLUID_GENERATOR);
+		registerType(event, "gas_turbine", GAS_TURBINE);
+		registerType(event, "iron_alloy_furnace", IRON_ALLOY_FURNACE);
+		registerType(event, "chemical_reactor", CHEMICAL_REACTOR);
+		registerType(event, "interdimensional_su", INTERDIMENSIONAL_SU);
+		registerType(event, "adjustable_su", ADJUSTABLE_SU);
+		registerType(event, "lapotronic_su", LAPOTRONIC_SU);
+		registerType(event, "lsu_storage", LSU_STORAGE);
+		registerType(event, "distillation_tower", DISTILLATION_TOWER);
+		registerType(event, "vacuum_freezer", VACUUM_FREEZER);
+		registerType(event, "fusion_control_computer", FUSION_CONTROL_COMPUTER);
+		registerType(event, "lightning_rod", LIGHTNING_ROD);
+		registerType(event, "industrial_sawmill", INDUSTRIAL_SAWMILL);
+		registerType(event, "grinder", GRINDER);
+		registerType(event, "solid_fuel_generator", SOLID_FUEL_GENERATOR);
+		registerType(event, "extractor", EXTRACTOR);
+		registerType(event, "resin_basin", RESIN_BASIN);
+		registerType(event, "compressor", COMPRESSOR);
+		registerType(event, "electric_furnace", ELECTRIC_FURNACE);
+		registerType(event, "solar_panel", SOLAR_PANEL);
+		registerType(event, "water_mill", WATER_MILL);
+		registerType(event, "wind_mill", WIND_MILL);
+		registerType(event, "recycler", RECYCLER);
+		registerType(event, "low_voltage_su", LOW_VOLTAGE_SU);
+		registerType(event, "medium_voltage_su", MEDIUM_VOLTAGE_SU);
+		registerType(event, "high_voltage_su", HIGH_VOLTAGE_SU);
+		registerType(event, "lv_transformer", LV_TRANSFORMER);
+		registerType(event, "mv_transformer", MV_TRANSFORMER);
+		registerType(event, "hv_transformer", HV_TRANSFORMER);
+		registerType(event, "ev_transformer", EV_TRANSFORMER);
+		registerType(event, "auto_crafting_table", AUTO_CRAFTING_TABLE);
+		registerType(event, "iron_furnace", IRON_FURNACE);
+		registerType(event, "scrapboxinator", SCRAPBOXINATOR);
+		registerType(event, "plasma_generator", PLASMA_GENERATOR);
+		registerType(event, "lamp", LAMP);
+		registerType(event, "alarm", ALARM);
+		registerType(event, "fluid_replicator", FLUID_REPLICATOR);
+		registerType(event, "solid_canning_machine", SOLID_CANNING_MACHINE);
+		registerType(event, "wire_mill", WIRE_MILL);
+		registerType(event, "greenhouse_controller", GREENHOUSE_CONTROLLER);
+		registerType(event, "block_breaker", BLOCK_BREAKER);
+		registerType(event, "block_placer", BLOCK_PLACER);
+		registerType(event, "launchpad", LAUNCHPAD);
+		registerType(event, "elevator", ELEVATOR);
+		registerType(event, "fishing_station", FISHING_STATION);
+		registerType(event, "pump", PUMP);
+	}
 }

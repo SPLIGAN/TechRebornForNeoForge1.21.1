@@ -43,6 +43,7 @@ import techreborn.init.ModRecipes;
 import techreborn.init.ModSounds;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRCauldronBehavior;
+import techreborn.events.ModRegistry;
 import techreborn.init.TRContent;
 import techreborn.init.TRDispenserBehavior;
 import techreborn.init.template.TechRebornTemplates;
@@ -58,7 +59,7 @@ public class TechReborn {
 	 */
 	public void onInitialize() {
 		new Configuration(TechRebornConfig.class, "techreborn");
-		TRContent.register();
+		ModRegistry.finishCommonSetup();
 
 		// Done to force the class to load
 		//noinspection ResultOfMethodCallIgnored

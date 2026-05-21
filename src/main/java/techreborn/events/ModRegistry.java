@@ -53,6 +53,15 @@ import techreborn.utils.InitUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.function.Consumer;
+
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 /**
  * @author drcrazy
@@ -60,59 +69,155 @@ import java.util.Optional;
 
 public class ModRegistry {
 
-	public static void register() {
-		registerBlocks();
-		registerItems();
-		registerFluids();
-		registerSounds();
+	public static void registerNeoForge(RegisterEvent event) {
+		ResourceKey<? extends Registry<?>> key = event.getRegistryKey();
+		if (key.equals(NeoForgeRegistries.Keys.FLUID_TYPES)) {
+			registerFluidTypesPhase(event);
+		} else if (key.equals(Registries.FLUID)) {
+			registerFluidsPhase();
+		} else if (key.equals(Registries.BLOCK)) {
+			Properties itemGroup = new Properties();
+			registerBlocksBlockPhase(itemGroup);
+			registerFluidBlocksPhase();
+		} else if (key.equals(Registries.ITEM)) {
+			Properties itemGroup = new Properties();
+			registerBlocksItemPhase(itemGroup);
+			registerFluidBucketsPhase();
+			registerItems(itemGroup);
+		} else if (key.equals(Registries.SOUND_EVENT)) {
+			registerSoundsPhase(event);
+		} else if (key.equals(Registries.POINT_OF_INTEREST_TYPE)) {
+			TRVillager.registerPoiTypes(event);
+		} else if (key.equals(Registries.VILLAGER_PROFESSION)) {
+			TRVillager.registerProfessions(event);
+		} else if (key.equals(Registries.CREATIVE_MODE_TAB)) {
+			TRItemGroup.register();
+		} else if (key.equals(Registries.RECIPE_SERIALIZER) || key.equals(Registries.RECIPE_TYPE)) {
+			ModRecipes.register(event);
+		} else if (key.equals(Registries.BLOCK_ENTITY_TYPE)) {
+			TRBlockEntities.register(event);
+		}
+	}
+
+	public static void finishCommonSetup() {
 		registerApis();
 		TRVillager.registerVillagerTrades();
 		TRVillager.registerWanderingTraderTrades();
 		TRVillager.registerVillagerHouses();
 	}
 
-	private static void registerBlocks() {
-		Properties itemGroup = new Item.Properties();
-		Arrays.stream(Ores.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
-		StorageBlocks.blockStream().forEach(block -> RebornRegistry.registerBlock(block, itemGroup));
+	private static void registerBlocksBlockPhase(Properties itemGroup) {
+		Arrays.stream(Ores.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
+		StorageBlocks.blockStream().forEach(RebornRegistry::registerBlockOnly);
 		Arrays.stream(MachineBlocks.values()).forEach(value -> {
-			RebornRegistry.registerBlock(value.frame, itemGroup);
-			RebornRegistry.registerBlock(value.casing, itemGroup);
+			RebornRegistry.registerBlockOnly(value.frame);
+			RebornRegistry.registerBlockOnly(value.casing);
 		});
-		Arrays.stream(SolarPanels.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
-		Arrays.stream(StorageUnit.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
-		Arrays.stream(StorageUnit.values()).map(StorageUnit::getUpgrader).filter(Optional::isPresent).forEach(value -> RebornRegistry.registerItem(value.get()));
-		Arrays.stream(TankUnit.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
-		Arrays.stream(Cables.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
-		Arrays.stream(Machine.values()).forEach(value -> RebornRegistry.registerBlock(value.block, itemGroup));
+		Arrays.stream(SolarPanels.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
+		Arrays.stream(StorageUnit.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
+		Arrays.stream(TankUnit.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
+		Arrays.stream(Cables.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
+		Arrays.stream(Machine.values()).forEach(value -> RebornRegistry.registerBlockOnly(value.block));
 
-		// Misc. blocks
-		RebornRegistry.registerBlock(TRContent.COMPUTER_CUBE = InitUtils.setup(new BlockComputerCube(), "computer_cube"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.NUKE = InitUtils.setup(new BlockNuke(), "nuke"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.REFINED_IRON_FENCE = InitUtils.setup(new BlockRefinedIronFence(), "refined_iron_fence"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.REINFORCED_GLASS = InitUtils.setup(new BlockReinforcedGlass(), "reinforced_glass"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_LEAVES = InitUtils.setup(new BlockRubberLeaves(), "rubber_leaves"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_LOG = InitUtils.setup(new BlockRubberLog(), "rubber_log"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_LOG_STRIPPED = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberLogStripped()), "rubber_log_stripped"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_WOOD = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberWoodStripped()), "rubber_wood"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.STRIPPED_RUBBER_WOOD = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberWoodStripped()), "stripped_rubber_wood"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_PLANKS = InitUtils.setup(new BlockRubberPlank(), "rubber_planks"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_SAPLING = InitUtils.setup(new BlockRubberSapling(), "rubber_sapling"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_SLAB = InitUtils.setup(new SlabBlock(TRBlockSettings.rubberSlab()), "rubber_slab"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_FENCE = InitUtils.setup(new FenceBlock(TRBlockSettings.rubberFence()), "rubber_fence"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_FENCE_GATE = InitUtils.setup(new FenceGateBlock(TRContent.RUBBER_WOOD_TYPE, TRBlockSettings.rubberFenceGate()), "rubber_fence_gate"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_STAIR = InitUtils.setup(new BlockRubberPlankStair(), "rubber_stair"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_TRAPDOOR = InitUtils.setup(new RubberTrapdoorBlock(), "rubber_trapdoor"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_BUTTON = InitUtils.setup(new RubberButtonBlock(), "rubber_button"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_PRESSURE_PLATE = InitUtils.setup(new RubberPressurePlateBlock(), "rubber_pressure_plate"), itemGroup);
-		RebornRegistry.registerBlock(TRContent.RUBBER_DOOR = InitUtils.setup(new RubberDoorBlock(), "rubber_door"), itemGroup);
+		RebornRegistry.registerBlockOnly(TRContent.COMPUTER_CUBE = InitUtils.setup(new BlockComputerCube(), "computer_cube"));
+		RebornRegistry.registerBlockOnly(TRContent.NUKE = InitUtils.setup(new BlockNuke(), "nuke"));
+		RebornRegistry.registerBlockOnly(TRContent.REFINED_IRON_FENCE = InitUtils.setup(new BlockRefinedIronFence(), "refined_iron_fence"));
+		RebornRegistry.registerBlockOnly(TRContent.REINFORCED_GLASS = InitUtils.setup(new BlockReinforcedGlass(), "reinforced_glass"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_LEAVES = InitUtils.setup(new BlockRubberLeaves(), "rubber_leaves"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_LOG = InitUtils.setup(new BlockRubberLog(), "rubber_log"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_LOG_STRIPPED = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberLogStripped()), "rubber_log_stripped"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_WOOD = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberWoodStripped()), "rubber_wood"));
+		RebornRegistry.registerBlockOnly(TRContent.STRIPPED_RUBBER_WOOD = InitUtils.setup(new RotatedPillarBlock(TRBlockSettings.rubberWoodStripped()), "stripped_rubber_wood"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_PLANKS = InitUtils.setup(new BlockRubberPlank(), "rubber_planks"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_SAPLING = InitUtils.setup(new BlockRubberSapling(), "rubber_sapling"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_SLAB = InitUtils.setup(new SlabBlock(TRBlockSettings.rubberSlab()), "rubber_slab"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_FENCE = InitUtils.setup(new FenceBlock(TRBlockSettings.rubberFence()), "rubber_fence"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_FENCE_GATE = InitUtils.setup(new FenceGateBlock(TRContent.RUBBER_WOOD_TYPE, TRBlockSettings.rubberFenceGate()), "rubber_fence_gate"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_STAIR = InitUtils.setup(new BlockRubberPlankStair(), "rubber_stair"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_TRAPDOOR = InitUtils.setup(new RubberTrapdoorBlock(), "rubber_trapdoor"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_BUTTON = InitUtils.setup(new RubberButtonBlock(), "rubber_button"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_PRESSURE_PLATE = InitUtils.setup(new RubberPressurePlateBlock(), "rubber_pressure_plate"));
+		RebornRegistry.registerBlockOnly(TRContent.RUBBER_DOOR = InitUtils.setup(new RubberDoorBlock(), "rubber_door"));
 		RebornRegistry.registerBlockNoItem(TRContent.POTTED_RUBBER_SAPLING = InitUtils.setup(new FlowerPotBlock(TRContent.RUBBER_SAPLING, TRBlockSettings.pottedRubberSapling()), "potted_rubber_sapling"));
-		RebornRegistry.registerBlock(TRContent.COPPER_WALL = InitUtils.setup(new WallBlock(TRBlockSettings.copperWall()), "copper_wall"), itemGroup);
+		RebornRegistry.registerBlockOnly(TRContent.COPPER_WALL = InitUtils.setup(new WallBlock(TRBlockSettings.copperWall()), "copper_wall"));
 
 		TechReborn.LOGGER.debug("TechReborn's Blocks Loaded");
 	}
 
-	private static void registerItems() {
+	private static void registerBlocksItemPhase(Properties itemGroup) {
+		Arrays.stream(Ores.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+		StorageBlocks.blockStream().forEach(block -> RebornRegistry.registerBlockItem(block, itemGroup));
+		Arrays.stream(MachineBlocks.values()).forEach(value -> {
+			RebornRegistry.registerBlockItem(value.frame, itemGroup);
+			RebornRegistry.registerBlockItem(value.casing, itemGroup);
+		});
+		Arrays.stream(SolarPanels.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+		Arrays.stream(StorageUnit.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+		Arrays.stream(TankUnit.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+		Arrays.stream(Cables.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+		Arrays.stream(Machine.values()).forEach(value -> RebornRegistry.registerBlockItem(value.block, itemGroup));
+
+		RebornRegistry.registerBlockItem(TRContent.COMPUTER_CUBE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.NUKE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.REFINED_IRON_FENCE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.REINFORCED_GLASS, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_LEAVES, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_LOG, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_LOG_STRIPPED, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_WOOD, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.STRIPPED_RUBBER_WOOD, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_PLANKS, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_SAPLING, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_SLAB, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_FENCE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_FENCE_GATE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_STAIR, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_TRAPDOOR, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_BUTTON, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_PRESSURE_PLATE, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.RUBBER_DOOR, itemGroup);
+		RebornRegistry.registerBlockItem(TRContent.COPPER_WALL, itemGroup);
+	}
+
+	private static void registerFluidTypesPhase(RegisterEvent event) {
+		Arrays.stream(ModFluids.values()).forEach(fluid -> fluid.registerFluidTypeOnly(event));
+	}
+
+	private static void registerFluidsPhase() {
+		Arrays.stream(ModFluids.values()).forEach(ModFluids::registerFluidsOnly);
+	}
+
+	private static void registerFluidBlocksPhase() {
+		Arrays.stream(ModFluids.values()).forEach(ModFluids::registerFluidBlockOnly);
+	}
+
+	private static void registerFluidBucketsPhase() {
+		Arrays.stream(ModFluids.values()).forEach(ModFluids::registerFluidBucketOnly);
+	}
+
+	private static void registerSoundsPhase(RegisterEvent event) {
+		registerSound(event, "alarm", v -> ModSounds.ALARM = v);
+		registerSound(event, "alarm_2", v -> ModSounds.ALARM_2 = v);
+		registerSound(event, "alarm_3", v -> ModSounds.ALARM_3 = v);
+		registerSound(event, "auto_crafting", v -> ModSounds.AUTO_CRAFTING = v);
+		registerSound(event, "block_dismantle", v -> ModSounds.BLOCK_DISMANTLE = v);
+		registerSound(event, "cable_shock", v -> ModSounds.CABLE_SHOCK = v);
+		registerSound(event, "machine_run", v -> ModSounds.MACHINE_RUN = v);
+		registerSound(event, "machine_start", v -> ModSounds.MACHINE_START = v);
+		registerSound(event, "sap_extract", v -> ModSounds.SAP_EXTRACT = v);
+	}
+
+	private static void registerSound(RegisterEvent event, String path, Consumer<SoundEvent> assign) {
+		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, path);
+		event.register(Registries.SOUND_EVENT, id, () -> {
+			SoundEvent soundEvent = SoundEvent.createVariableRangeEvent(id);
+			assign.accept(soundEvent);
+			return soundEvent;
+		});
+	}
+
+	private static void registerItems(Properties itemGroup) {
+		Arrays.stream(StorageUnit.values()).map(StorageUnit::getUpgrader).filter(Optional::isPresent).forEach(value -> RebornRegistry.registerItem(value.get()));
 		Arrays.stream(Ingots.values()).forEach(value -> RebornRegistry.registerItem(value.asItem()));
 		Arrays.stream(Nuggets.values()).forEach(value -> RebornRegistry.registerItem(value.asItem()));
 		Arrays.stream(Gems.values()).forEach(value -> RebornRegistry.registerItem(value.asItem()));
@@ -232,22 +337,6 @@ public class ModRegistry {
 		TRContent.CELL.registerFluidApi();
 
 		TechReborn.LOGGER.debug("TechReborn's Items Loaded");
-	}
-
-	private static void registerFluids() {
-		Arrays.stream(ModFluids.values()).forEach(ModFluids::register);
-	}
-
-	private static void registerSounds() {
-		ModSounds.ALARM = InitUtils.setup("alarm");
-		ModSounds.ALARM_2 = InitUtils.setup("alarm_2");
-		ModSounds.ALARM_3 = InitUtils.setup("alarm_3");
-		ModSounds.AUTO_CRAFTING = InitUtils.setup("auto_crafting");
-		ModSounds.BLOCK_DISMANTLE = InitUtils.setup("block_dismantle");
-		ModSounds.CABLE_SHOCK = InitUtils.setup("cable_shock");
-		ModSounds.MACHINE_RUN = InitUtils.setup("machine_run");
-		ModSounds.MACHINE_START = InitUtils.setup("machine_start");
-		ModSounds.SAP_EXTRACT = InitUtils.setup("sap_extract");
 	}
 
 	private static void registerApis() {

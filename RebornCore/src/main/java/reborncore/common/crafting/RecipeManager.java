@@ -27,7 +27,6 @@ package reborncore.common.crafting;
 import com.mojang.serialization.MapCodec;
 import java.util.List;
 import java.util.function.Function;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,29 +36,30 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
 public class RecipeManager {
-	public static RecipeType<RebornRecipe> newRecipeType(ResourceLocation name) {
-		return newRecipeType(name, RebornRecipe.CODEC, RebornRecipe.PACKET_CODEC);
+
+	public record RecipeTypeRegistration<R extends RebornRecipe>(RecipeType<R> type, RecipeSerializer<R> serializer) {
 	}
 
-	public static <R extends RebornRecipe> RecipeType<R> newRecipeType(ResourceLocation name, Function<RecipeType<R>, MapCodec<R>> codec, Function<RecipeType<R>, StreamCodec<RegistryFriendlyByteBuf, R>> packetCodec) {
+	private record Serializer<R extends RebornRecipe>(MapCodec<R> codec, StreamCodec<RegistryFriendlyByteBuf, R> packetCodec) implements RecipeSerializer<R> {
+		@Override
+		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
+			return packetCodec;
+		}
+	}
+
+	public static RecipeTypeRegistration<RebornRecipe> createRecipeRegistration(ResourceLocation name) {
+		return createRecipeRegistration(name, RebornRecipe.CODEC, RebornRecipe.PACKET_CODEC);
+	}
+
+	public static <R extends RebornRecipe> RecipeTypeRegistration<R> createRecipeRegistration(ResourceLocation name, Function<RecipeType<R>, MapCodec<R>> codec, Function<RecipeType<R>, StreamCodec<RegistryFriendlyByteBuf, R>> packetCodec) {
 		RecipeType<R> type = new RecipeType<R>() {
 			@Override
 			public String toString() {
 				return name.toString();
 			}
 		};
-		Registry.register(BuiltInRegistries.RECIPE_TYPE, name, type);
-
-		record Serializer<R extends RebornRecipe>(MapCodec<R> codec, StreamCodec<RegistryFriendlyByteBuf, R> packetCodec) implements RecipeSerializer<R> {
-			@Override
-			public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
-				return packetCodec;
-			}
-		}
 		Serializer<R> serializer = new Serializer<>(codec.apply(type), packetCodec.apply(type));
-		Registry.register(BuiltInRegistries.RECIPE_SERIALIZER, name, serializer);
-
-		return type;
+		return new RecipeTypeRegistration<>(type, serializer);
 	}
 
 	public static List<RecipeType<?>> getRecipeTypes(String namespace) {

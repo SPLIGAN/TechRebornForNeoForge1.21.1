@@ -29,12 +29,16 @@ import reborncore.common.fluid.*;
 import techreborn.TechReborn;
 
 import java.util.Locale;
+import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import net.neoforged.neoforge.registries.RegisterEvent;
 
 public enum ModFluids implements ItemLike {
 	BERYLLIUM,
@@ -79,11 +83,14 @@ public enum ModFluids implements ItemLike {
 	private RebornFluidBlock block;
 	private RebornBucketItem bucket;
 	private final ResourceLocation identifier;
+	private final FluidSettings fluidSettings;
+	private final FluidType fluidType;
+	private final Supplier<FluidType> fluidTypeSupplier;
 
 	ModFluids() {
 		this.identifier = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, this.toString().toLowerCase(Locale.ROOT));
 
-		FluidSettings fluidSettings = FluidSettings.create();
+		fluidSettings = FluidSettings.create();
 
 		ResourceLocation texture_still = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_still");
 		ResourceLocation texture_flowing = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_flowing");
@@ -91,20 +98,39 @@ public enum ModFluids implements ItemLike {
 		fluidSettings.setStillTexture(texture_still);
 		fluidSettings.setFlowingTexture(texture_flowing);
 
-		stillFluid = new RebornFluid(true, fluidSettings, () -> block, () -> bucket, () -> flowingFluid, () -> stillFluid) {
-		};
-		flowingFluid = new RebornFluid(false, fluidSettings, () -> block, () -> bucket, () -> flowingFluid, () -> stillFluid) {
-		};
+		fluidType = RebornFluidTypes.create(fluidSettings);
+		fluidTypeSupplier = () -> fluidType;
 
+		stillFluid = new RebornFluid(true, fluidSettings, fluidTypeSupplier, this::getBlock, this::getBucket, () -> flowingFluid, () -> stillFluid) {
+		};
+		flowingFluid = new RebornFluid(false, fluidSettings, fluidTypeSupplier, this::getBlock, this::getBucket, () -> flowingFluid, () -> stillFluid) {
+		};
+	}
+
+	public void registerFluidTypeOnly(RegisterEvent event) {
+		event.register(NeoForgeRegistries.Keys.FLUID_TYPES, identifier, () -> fluidType);
+	}
+
+	private void ensureBlockAndBucket() {
+		if (block != null) {
+			return;
+		}
 		block = new RebornFluidBlock(stillFluid, TRBlockSettings.fluid());
 		bucket = new RebornBucketItem(stillFluid, new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
 	}
 
-	public void register() {
+	public void registerFluidsOnly() {
 		RebornFluidManager.register(stillFluid, identifier);
 		RebornFluidManager.register(flowingFluid, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_flowing"));
+	}
 
+	public void registerFluidBlockOnly() {
+		ensureBlockAndBucket();
 		Registry.register(BuiltInRegistries.BLOCK, identifier, block);
+	}
+
+	public void registerFluidBucketOnly() {
+		ensureBlockAndBucket();
 		Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_bucket"), bucket);
 	}
 
@@ -117,6 +143,7 @@ public enum ModFluids implements ItemLike {
 	}
 
 	public RebornFluidBlock getBlock() {
+		ensureBlockAndBucket();
 		return block;
 	}
 
@@ -125,6 +152,7 @@ public enum ModFluids implements ItemLike {
 	}
 
 	public RebornBucketItem getBucket() {
+		ensureBlockAndBucket();
 		return bucket;
 	}
 

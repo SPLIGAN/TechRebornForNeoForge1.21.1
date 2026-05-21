@@ -37,6 +37,8 @@ import net.neoforged.neoforge.event.AddPackFindersEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import techreborn.component.TRDataComponentTypes;
+import techreborn.events.ModRegistry;
+import techreborn.init.TRContent;
 import techreborn.init.TechRebornCapabilities;
 import techreborn.events.OreDepthSyncHandler;
 import techreborn.packets.Packets;
@@ -49,6 +51,8 @@ import techreborn.world.compat.neoforge.NeoForgeBiomeModifierPack;
 public final class TechRebornNeoForge {
 
 	public TechRebornNeoForge(IEventBus modBus) {
+		modBus.addListener(RegisterEvent.class, TRContent::registerEntityTypes);
+		modBus.addListener(RegisterEvent.class, ModRegistry::registerNeoForge);
 		modBus.addListener(RegisterEvent.class, TRDataComponentTypes::register);
 		modBus.addListener(AddPackFindersEvent.class, NeoForgeBiomeModifierPack::register);
 		modBus.addListener(TechRebornCapabilities::register);

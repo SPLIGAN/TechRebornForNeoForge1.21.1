@@ -53,10 +53,13 @@ public final class NeoForgeVillagerBridge {
 	private NeoForgeVillagerBridge() {
 	}
 
-	public static PoiType registerPoi(ResourceLocation id, int ticketCount, int searchDistance, Block block) {
+	public static PoiType createPoiType(ResourceLocation id, int ticketCount, int searchDistance, Block block) {
 		ImmutableSet<BlockState> states = ImmutableSet.copyOf(block.getStateDefinition().getPossibleStates());
-		PoiType type = new PoiType(states, ticketCount, searchDistance);
-		return Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, id, type);
+		return new PoiType(states, ticketCount, searchDistance);
+	}
+
+	public static PoiType registerPoi(ResourceLocation id, int ticketCount, int searchDistance, Block block) {
+		return Registry.register(BuiltInRegistries.POINT_OF_INTEREST_TYPE, id, createPoiType(id, ticketCount, searchDistance, block));
 	}
 
 	public static VillagerProfession buildProfession(ResourceLocation id, ResourceKey<PoiType> workstation, SoundEvent workSound) {

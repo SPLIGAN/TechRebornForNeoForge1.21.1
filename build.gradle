@@ -82,6 +82,38 @@ tasks.named('processResources', ProcessResources).configure {
 	}
 }
 
+def embeddedRebornJarFileName = 'reborncore.jar'
+def jarJarMetadataFile = layout.buildDirectory.file('generated/jarjar/metadata.json')
+
+tasks.register('generateJarJarMetadata') {
+	inputs.property('rebornCoreVersion', provider { project(':RebornCore').version.toString() })
+	inputs.property('modVersionRange', provider { "[${mod_version},)" })
+	outputs.file(jarJarMetadataFile)
+	doLast {
+		def out = jarJarMetadataFile.get().asFile
+		out.parentFile.mkdirs()
+		def v = project(':RebornCore').version.toString()
+		def range = "[${mod_version},)"
+		out.text = """{
+\t"jars": [
+\t\t{
+\t\t\t"identifier": {
+\t\t\t\t"group": "RebornCore",
+\t\t\t\t"artifact": "reborncore"
+\t\t\t},
+\t\t\t"version": {
+\t\t\t\t"range": "${range}",
+\t\t\t\t"artifactVersion": "${v}"
+\t\t\t},
+\t\t\t"path": "META-INF/jarjar/${embeddedRebornJarFileName}",
+\t\t\t"isObfuscated": false
+\t\t}
+\t]
+}
+"""
+	}
+}
+
 tasks.named('jar', Jar).configure {
 	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 	manifest {
@@ -206,11 +238,10 @@ tasks.register('printMigrationTargets') {
 
 tasks.register('prepareNeoForgeSmokeMods', Copy) {
 	group = 'verification'
-	description = 'Copy TechReborn + RebornCore jars to build/smoke-neoforge/mods for Arclight / dedicated server staging'
-	dependsOn tasks.jar, project(':RebornCore').tasks.named('jar')
+	description = 'Copy TechReborn jar (embeds RebornCore via Jar-in-Jar) to build/smoke-neoforge/mods for server staging'
+	dependsOn tasks.jar
 	into layout.buildDirectory.dir('smoke-neoforge/mods')
 	from(tasks.jar)
-	from(project(':RebornCore').tasks.named('jar', Jar))
 	duplicatesStrategy = DuplicatesStrategy.FAIL
 }
 
@@ -283,6 +314,21 @@ project(':RebornCore').afterEvaluate {
 	rootProject.idea.module.scopes.COMPILE.plus += [rcCompile]
 	rootProject.idea.module.scopes.RUNTIME.plus += [rcRuntime]
 	rootProject.eclipse.classpath.plusConfigurations += [rcCompile]
+
+	rootProject.tasks.named('jar', Jar).configure {
+		dependsOn(rootProject.tasks.named('generateJarJarMetadata'), rc.tasks.named('jar'))
+		from(jarJarMetadataFile) {
+			into 'META-INF/jarjar'
+		}
+		from(rc.tasks.named('jar', Jar).flatMap { it.archiveFile }) {
+			into 'META-INF/jarjar'
+			rename { _name -> embeddedRebornJarFileName }
+		}
+	}
 }
 
 evaluationDependsOn(':RebornCore')
+
+tasks.named('assemble').configure {
+	dependsOn prepareNeoForgeSmokeMods
+}

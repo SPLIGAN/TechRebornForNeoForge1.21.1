@@ -26,8 +26,6 @@ package techreborn.init;
 
 import com.google.common.base.Preconditions;
 import net.minecraft.world.level.block.*;
-import net.minecraft.core.Registry;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
@@ -46,6 +44,7 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Marker;
@@ -97,7 +96,6 @@ import techreborn.blocks.transformers.BlockLVTransformer;
 import techreborn.blocks.transformers.BlockMVTransformer;
 import techreborn.config.TechRebornConfig;
 import techreborn.entities.EntityNukePrimed;
-import techreborn.events.ModRegistry;
 import techreborn.items.DynamicCellItem;
 import techreborn.items.UpgradeItem;
 import techreborn.items.UpgraderItem;
@@ -1548,12 +1546,13 @@ public class TRContent {
 		}
 	}
 
-	public static final EntityType<EntityNukePrimed> ENTITY_NUKE = EntityTypeBridge.createNukeType();
+	public static EntityType<EntityNukePrimed> ENTITY_NUKE;
 
-	public static void register() {
-		ModRegistry.register();
-		TRItemGroup.register();
-
-		Registry.register(BuiltInRegistries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuke"), ENTITY_NUKE);
+	public static void registerEntityTypes(RegisterEvent event) {
+		event.register(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuke"), () -> {
+			ENTITY_NUKE = EntityTypeBridge.createNukeType();
+			return ENTITY_NUKE;
+		});
 	}
+
 }

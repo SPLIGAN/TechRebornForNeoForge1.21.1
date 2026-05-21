@@ -73,6 +73,20 @@ public class RebornRegistry {
 		registerBlock(block, itemGroup, objIdentMap.get(block));
 	}
 
+	/** NeoForge: register block holder during {@code RegisterEvent} for {@link BuiltInRegistries#BLOCK}. */
+	public static void registerBlockOnly(Block block) {
+		Validate.isTrue(objIdentMap.containsKey(block));
+		Registry.register(BuiltInRegistries.BLOCK, objIdentMap.get(block), block);
+	}
+
+	/** NeoForge: register matching {@link BlockItem} during {@code RegisterEvent} for {@link BuiltInRegistries#ITEM}. */
+	public static void registerBlockItem(Block block, Item.Properties itemGroup) {
+		Validate.isTrue(objIdentMap.containsKey(block));
+		ResourceLocation name = objIdentMap.get(block);
+		BlockItem itemBlock = new BlockItem(block, itemGroup);
+		Registry.register(BuiltInRegistries.ITEM, name, itemBlock);
+	}
+
 	public static void registerBlock(Block block, Function<Block, BlockItem> blockItemFunction){
 		Validate.isTrue(objIdentMap.containsKey(block));
 		registerBlock(block, blockItemFunction, objIdentMap.get(block));

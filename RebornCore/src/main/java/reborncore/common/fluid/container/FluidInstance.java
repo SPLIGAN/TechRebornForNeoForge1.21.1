@@ -39,10 +39,19 @@ import reborncore.common.transfer.RcFluidVariant;
 public record FluidInstance(Fluid fluid, FluidValue amount) {
 	public static final FluidInstance EMPTY = new FluidInstance(Fluids.EMPTY, FluidValue.EMPTY);
 
-	public static final Codec<FluidInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+	private static final Codec<FluidInstance> OBJECT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
 		BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(FluidInstance::fluid),
-		FluidValue.CODEC.fieldOf("amount").forGetter(FluidInstance::getAmount)
+		FluidValue.RECIPE_AMOUNT_CODEC.optionalFieldOf("amount", FluidValue.fromMillibuckets(1000)).forGetter(FluidInstance::getAmount)
 	).apply(instance, FluidInstance::new));
+
+	/** JSON may be {@code {"fluid":"...","amount":...}} or a bare fluid id string (defaults to 1000 mB). */
+	public static final Codec<FluidInstance> CODEC = Codec.withAlternative(
+		OBJECT_CODEC,
+		BuiltInRegistries.FLUID.byNameCodec().xmap(
+			f -> new FluidInstance(f, FluidValue.fromMillibuckets(1000)),
+			FluidInstance::fluid
+		)
+	);
 	public static final StreamCodec<RegistryFriendlyByteBuf, FluidInstance> PACKET_CODEC = StreamCodec.composite(
 		ByteBufCodecs.registry(Registries.FLUID), FluidInstance::fluid,
 		FluidValue.PACKET_CODEC, FluidInstance::getAmount,
