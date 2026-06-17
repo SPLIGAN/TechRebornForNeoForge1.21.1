@@ -24,29 +24,10 @@
 
 package reborncore.common.blockentity;
 
-import com.mojang.serialization.DataResult;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.Container;
-import net.minecraft.world.WorldlyContainer;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.server.level.ServerLevel;
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
 import reborncore.api.blockentity.IUpgrade;
 import reborncore.api.blockentity.IUpgradeable;
@@ -54,6 +35,8 @@ import reborncore.api.blockentity.InventoryProvider;
 import reborncore.api.recipe.IRecipeCrafterProvider;
 import reborncore.common.blocks.BlockMachineBase;
 import reborncore.common.fluid.FluidValue;
+import reborncore.common.misc.world.ChunkEventListener;
+import reborncore.common.misc.world.ChunkEventListeners;
 import reborncore.common.network.NetworkManager;
 import reborncore.common.network.clientbound.CustomDescriptionPayload;
 import reborncore.common.recipes.IUpgradeHandler;
@@ -61,14 +44,37 @@ import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.RebornInventory;
 import reborncore.common.util.Tank;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import static reborncore.RebornCore.LOGGER;
+
+import java.util.*;
+import net.minecraft.ChatFormatting;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.Container;
+import net.minecraft.world.WorldlyContainer;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Created by modmuss50 on 04/11/2016.
  */
-public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTicker<MachineBaseBlockEntity>, IUpgradeable, IUpgradeHandler, IListInfoProvider, Container, WorldlyContainer, RedstoneConfigurable {
+public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTicker<MachineBaseBlockEntity>, IUpgradeable, IUpgradeHandler, IListInfoProvider, Container, WorldlyContainer, RedstoneConfigurable, ChunkEventListener {
 
 	public RebornInventory<MachineBaseBlockEntity> upgradeInventory = new RebornInventory<>(getUpgradeSlotCount(), "upgrades", 1, this, (slotID, stack, face, direction, blockEntity) -> true);
 	private SlotConfiguration slotConfiguration;
@@ -77,6 +83,12 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 	private final List<RedstoneConfiguration.Element> redstoneElements;
 
 	public boolean renderMultiblock = false;
+
+	private boolean shapeValid = false;
+	private boolean needsRematch = false;
+	@Nullable
+	private Set<BlockPos> shape = null;
+
 	private final static int syncCoolDown = 20;
 	private boolean markSync = false;
 	private int tickTime = 0;
@@ -121,21 +133,106 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 		redstoneElements = RedstoneConfiguration.getValidElements(this);
 	}
 
-	public boolean isMultiblockValid() {
+	public void rematch() {
 		MultiblockWriter.MultiblockVerifier verifier = new MultiblockWriter.MultiblockVerifier(getBlockPos(), getLevel());
 		writeMultiblock(verifier.rotate(getFacing().getOpposite()));
-		return verifier.isValid();
+		shapeValid = verifier.isValid();
+		needsRematch = false;
+	}
+
+	public boolean isShapeValid() {
+		return shapeValid;
+	}
+
+	public void setShapeValid(boolean shapeValid) {
+		this.shapeValid = shapeValid;
+	}
+
+	public void link() {
+		if (needsRematch) {
+			rematch();
+			syncWithAll();
+		}
+	}
+
+	public void unlink() {
+		if (shape != null) {
+			unregisterListeners(level);
+			shape = null;
+		}
+	}
+
+	public void registerMultiblockVerify() {
+		MultiblockWriter.MultiblockShapeFormer writer = new MultiblockWriter.MultiblockShapeFormer(getBlockPos());
+		writeMultiblock(writer.rotate(getFacing().getOpposite()));
+
+		shape = writer.getPos();
+		registerListeners(level);
+		needsRematch = true;
+	}
+
+	public Set<ChunkPos> getSpannedChunks() {
+		Set<ChunkPos> spannedChunks = new HashSet<>();
+
+		assert shape != null;
+		for (BlockPos pos : shape) {
+			spannedChunks.add(ChunkPos.containing(pos));
+		}
+
+		return spannedChunks;
+	}
+
+	public void registerListeners(Level world) {
+		for (ChunkPos chunkPos : getSpannedChunks()) {
+			ChunkEventListeners.listeners.add(world, chunkPos, this);
+		}
+	}
+
+	public void unregisterListeners(Level world) {
+		for (ChunkPos chunkPos : getSpannedChunks()) {
+			ChunkEventListeners.listeners.remove(world, chunkPos, this);
+		}
+	}
+
+	@Override
+	public void onBlockUpdate(BlockPos pos) {
+		if (shape != null && shape.contains(pos)) {
+			needsRematch = true;
+		}
+	}
+
+	@Override
+	public void onUnloadChunk() {
+		needsRematch = true;
+	}
+
+	@Override
+	public void onLoadChunk() {
+		needsRematch = true;
+	}
+
+	@Override
+	public final void setRemoved() {
+		super.setRemoved();
+
+		if (level instanceof ServerLevel) {
+			unlink();
+		}
 	}
 
 	private void syncIfNecessary(){
 		if (this.markSync && this.tickTime % syncCoolDown == 0) {
 			this.markSync = false;
-			if (level == null || level.isClientSide) { return; }
+			if (level == null || level.isClientSide()) { return; }
 			NetworkManager.sendToTracking(new CustomDescriptionPayload(this.worldPosition, this.saveWithoutMetadata(level.registryAccess())), this);
 		}
 	}
 
 	public void writeMultiblock(MultiblockWriter writer) {}
+
+	public boolean hasMultiblock() {
+		return false;
+	}
 
 	public void syncWithAll() {
 		this.markSync = true;
@@ -152,6 +249,9 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 				fluidConfiguration = new FluidConfiguration();
 			}
 		}
+		if (hasMultiblock() && level != null && !level.isClientSide()) {
+			registerMultiblockVerify();
+		}
 	}
 
 	@Nullable
@@ -162,14 +262,18 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registryLookup) {
-		CompoundTag compound = new CompoundTag();
-		super.saveAdditional(compound, registryLookup);
-		saveAdditional(compound, registryLookup);
+		CompoundTag compound;
+		try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(problemPath(), LOGGER)) {
+			TagValueOutput view = TagValueOutput.createWithContext(logging, registryLookup);
+			super.saveAdditional(view);
+			saveAdditional(view);
+			compound = view.buildResult();
+		}
 		return compound;
 	}
 
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		if (tickTime == 0) {
 			onLoad();
 		}
@@ -189,9 +293,12 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 			}
 			afterUpgradesApplication();
 		}
-		if (world == null || world.isClientSide) {
+		if (!(level instanceof ServerLevel)) {
 			return;
 		}
+
+		link();
+
 		if (crafter != null && isActive(RedstoneConfiguration.Element.RECIPE_PROCESSING)) {
 			crafter.updateEntity();
 		}
@@ -265,56 +372,45 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
 		if (getOptionalInventory().isPresent()) {
-			getOptionalInventory().get().read(tagCompound, registryLookup);
+			getOptionalInventory().get().read(view);
 		}
 		if (getOptionalCrafter().isPresent()) {
-			getOptionalCrafter().get().read(tagCompound);
+			getOptionalCrafter().get().read(view);
 		}
-		if (tagCompound.contains("slotConfig")) {
-			slotConfiguration = new SlotConfiguration(tagCompound.getCompound("slotConfig"));
-		} else {
+		view.child("slotConfig").ifPresentOrElse(config -> {
+			slotConfiguration = new SlotConfiguration(config);
+		}, () -> {
 			if (getOptionalInventory().isPresent()) {
 				slotConfiguration = new SlotConfiguration(getOptionalInventory().get());
 			}
-		}
-		if (tagCompound.contains("fluidConfig")) {
-			fluidConfiguration = new FluidConfiguration(tagCompound.getCompound("fluidConfig"));
-		}
-		if (tagCompound.contains("redstoneConfig")) {
-			CompoundTag redstoneConfig = tagCompound.getCompound("redstoneConfig");
-			DataResult<RedstoneConfiguration> result = RedstoneConfiguration.CODEC.codec().parse(NbtOps.INSTANCE, redstoneConfig);
-
-			if (result.isSuccess()) {
-				redstoneConfiguration = result.getOrThrow();
-			} else {
-				// If the redstone configuration is invalid, reset it
-				redstoneConfiguration = new RedstoneConfiguration();
-			}
-		}
-		upgradeInventory.read(tagCompound, "Upgrades", registryLookup);
+		});
+		view.child("fluidConfig").ifPresent(config -> {
+			fluidConfiguration = new FluidConfiguration(config);
+		});
+		redstoneConfiguration = view.read("redstoneConfig", RedstoneConfiguration.CODEC.codec()).orElseGet(RedstoneConfiguration::new);
+		upgradeInventory.read(view, "Upgrades");
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
 		if (getOptionalInventory().isPresent()) {
-			getOptionalInventory().get().write(tagCompound, registryLookup);
+			getOptionalInventory().get().write(view);
 		}
 		if (getOptionalCrafter().isPresent()) {
-			getOptionalCrafter().get().write(tagCompound);
+			getOptionalCrafter().get().write(view);
 		}
 		if (slotConfiguration != null) {
-			tagCompound.put("slotConfig", slotConfiguration.write());
+			slotConfiguration.write(view.child("slotConfig"));
 		}
 		if (fluidConfiguration != null) {
-			tagCompound.put("fluidConfig", fluidConfiguration.write());
+			fluidConfiguration.write(view.child("fluidConfig"));
 		}
-		upgradeInventory.write(tagCompound, "Upgrades", registryLookup);
-		tagCompound.put("redstoneConfig", RedstoneConfiguration.CODEC.codec()
-			.encodeStart(NbtOps.INSTANCE, redstoneConfiguration).result().get());
+		upgradeInventory.write(view, "Upgrades");
+		view.store("redstoneConfig", RedstoneConfiguration.CODEC.codec(), redstoneConfiguration);
 	}
 
 	// Inventory end
@@ -503,7 +599,7 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 		}
 	}
 
-	@NotNull
+	@NonNull
 	public SlotConfiguration getSlotConfiguration() {
 		Validate.notNull(slotConfiguration, "slotConfiguration cannot be null");
 		return slotConfiguration;

@@ -36,11 +36,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import static techreborn.blockentity.storage.energy.lesu.LapotronicSUBlockEntity.*;
 
@@ -55,6 +55,12 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 		super(TRBlockEntities.LSU_STORAGE, pos, state);
 	}
 
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState oldState) {
+		disconnectNeighbors();
+		super.preRemoveSideEffects(pos, oldState);
+	}
+
 	public final void connectNeighbors() {
 		if (level == null) return;
 
@@ -62,9 +68,9 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 		byte flagCanConnect = 0b000000;
 		LinkedList<LSUStorageBlockEntity> canConnect = new LinkedList<>();
 		HashSet<BlockPos> visited = new HashSet<>();
-		visited.add(getBlockPos());
+		visited.add(worldPosition);
 		for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
-			switch (level.getBlockEntity(getBlockPos().relative(DIRECTIONS[i]))) {
+			switch (level.getBlockEntity(worldPosition.relative(DIRECTIONS[i]))) {
 				case LSUStorageBlockEntity lsu_storage -> {
 					neighbors |= FLAGS[i];
 					lsu_storage.neighbors |= OPP_FLAGS[i];
@@ -72,7 +78,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 					if (lsu_storage.master == null) {
 						flagCanConnect |= FLAGS[i];
 						canConnect.add(lsu_storage);
-						visited.add(lsu_storage.getBlockPos());
+						visited.add(lsu_storage.worldPosition);
 					} else if (master == null) {
 						master = lsu_storage.master;
 						lsu_storage.links |= OPP_FLAGS[i];
@@ -112,7 +118,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 			count++;
 			for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
 				if ((lsu_storage.neighbors & FLAGS[i]) != 0) {
-					linkPos = lsu_storage.getBlockPos().relative(DIRECTIONS[i]);
+					linkPos = lsu_storage.worldPosition.relative(DIRECTIONS[i]);
 					if (visited.add(linkPos) && level.getBlockEntity(linkPos) instanceof LSUStorageBlockEntity link_lsu_storage) {
 						lsu_storage.links |= FLAGS[i];
 						canConnect.add(link_lsu_storage);
@@ -142,7 +148,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 				lsu_storage.neighbors ^= OPP_FLAGS[i];
 				lsu_storage.links &= (byte) ~OPP_FLAGS[i];
 				lsu_storage.setChanged();
-			} else if (level.getBlockEntity(getBlockPos().relative(DIRECTIONS[i])) instanceof LapotronicSUBlockEntity lapotronic_su) {
+			} else if (level.getBlockEntity(worldPosition.relative(DIRECTIONS[i])) instanceof LapotronicSUBlockEntity lapotronic_su) {
 				lapotronic_su.neighbors ^= OPP_FLAGS[i];
 				lapotronic_su.setChanged();
 			}
@@ -164,7 +170,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 			HashMap<BlockPos, LSUStorageBlockEntity> visited = new HashMap<>();
 			ArrayList<LSUStorageBlockEntity> canDelete = new ArrayList<>(count);
 			lsu_storage = branches.getFirst();
-			visited.put(lsu_storage.getBlockPos(), null);
+			visited.put(lsu_storage.worldPosition, null);
 			canDelete.add(lsu_storage);
 
 			// 3.1 Expand outwards layer by layer, marking all connected blocks and collecting parent and unused route directions
@@ -175,7 +181,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 				for (int j = 0; j < DIRECTIONS_LENGTH; j++) {
 					if ((lsu_storage.links & FLAGS[j]) != 0) {
 						link_lsu_storage = lsu_storage.fastGetLSUS(DIRECTIONS[j]);
-						visited.put(link_lsu_storage.getBlockPos(), lsu_storage);
+						visited.put(link_lsu_storage.worldPosition, lsu_storage);
 						canDelete.add(link_lsu_storage);
 						length++;
 					} else if ((lsu_storage.neighbors & FLAGS[j]) != 0) {
@@ -188,7 +194,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 			BlockPos linkPos;
 			for (Pair<LSUStorageBlockEntity, Integer> pair : unused) {
 				lsu_storage = pair.getLeft();
-				linkPos = lsu_storage.getBlockPos().relative(DIRECTIONS[pair.getRight()]);
+				linkPos = lsu_storage.worldPosition.relative(DIRECTIONS[pair.getRight()]);
 				if (!visited.containsKey(linkPos)) {
 					link_lsu_storage = fastGetLSUS(linkPos);
 					if (link_lsu_storage.master == master) {
@@ -197,17 +203,17 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 
 						// 3.4 Change route direction from current location to start point
 						LSUStorageBlockEntity child = lsu_storage;
-						LSUStorageBlockEntity parent = visited.get(child.getBlockPos());
+						LSUStorageBlockEntity parent = visited.get(child.worldPosition);
 						while (parent != null) {
 							for (int j = 0; j < DIRECTIONS_LENGTH; j++) {
-								if ((parent.links & FLAGS[j]) != 0 && parent.getBlockPos().relative(DIRECTIONS[j]).equals(child.getBlockPos())) {
+								if ((parent.links & FLAGS[j]) != 0 && parent.worldPosition.relative(DIRECTIONS[j]).equals(child.worldPosition)) {
 									parent.links ^= FLAGS[j];
 									child.links |= OPP_FLAGS[j];
 									break;
 								}
 							}
 							child = parent;
-							parent = visited.get(parent.getBlockPos());
+							parent = visited.get(parent.worldPosition);
 						}
 
 						// 3.5 Delete only one
@@ -242,7 +248,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 			canDelete = new ArrayList<>(count);
 
 			lsu_storage = branches.get(i);
-			visited.put(lsu_storage.getBlockPos(), null);
+			visited.put(lsu_storage.worldPosition, null);
 			canDelete.add(lsu_storage);
 
 			// 4.1 Expand outwards layer by layer, marking all connected blocks and collecting parent and unused route directions
@@ -251,7 +257,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 				for (int k = 0; k < DIRECTIONS_LENGTH; k++) {
 					if ((lsu_storage.links & FLAGS[k]) != 0) {
 						link_lsu_storage = lsu_storage.fastGetLSUS(DIRECTIONS[k]);
-						visited.put(link_lsu_storage.getBlockPos(), lsu_storage);
+						visited.put(link_lsu_storage.worldPosition, lsu_storage);
 						canDelete.add(link_lsu_storage);
 						length++;
 					} else if ((lsu_storage.neighbors & FLAGS[k]) != 0) {
@@ -277,7 +283,7 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 			checkUnused:
 			for (Pair<LSUStorageBlockEntity, Integer> pair : unusedList.get(i)) {
 				lsu_storage = pair.getLeft();
-				linkPos = lsu_storage.getBlockPos().relative(DIRECTIONS[pair.getRight()]);
+				linkPos = lsu_storage.worldPosition.relative(DIRECTIONS[pair.getRight()]);
 				if (!visited.containsKey(linkPos)) {
 					// 4.4 Check if the block is connected to another branch
 					for (int j = 0; j < size; j++) {
@@ -337,17 +343,17 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 				// 4.9 Change route direction from current location to start point
 				visited = visitedList.get(i);
 				child = lsu_storage;
-				parent = visited.get(child.getBlockPos());
+				parent = visited.get(child.worldPosition);
 				while (parent != null) {
 					for (int k = 0; k < DIRECTIONS_LENGTH; k++) {
-						if ((parent.links & FLAGS[k]) != 0 && parent.getBlockPos().relative(DIRECTIONS[k]).equals(child.getBlockPos())) {
+						if ((parent.links & FLAGS[k]) != 0 && parent.worldPosition.relative(DIRECTIONS[k]).equals(child.worldPosition)) {
 							parent.links ^= FLAGS[k];
 							child.links |= OPP_FLAGS[k];
 							break;
 						}
 					}
 					child = parent;
-					parent = visited.get(parent.getBlockPos());
+					parent = visited.get(parent.worldPosition);
 				}
 
 				// 4.10 Branch passes check
@@ -374,32 +380,27 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 
 	public LSUStorageBlockEntity fastGetLSUS(Direction direction) {
 		assert level != null;
-		return (LSUStorageBlockEntity) level.getBlockEntity(getBlockPos().relative(direction));
+		return (LSUStorageBlockEntity) level.getBlockEntity(worldPosition.relative(direction));
 	}
 
 	public BlockPos posOffset(Direction direction) {
-		return getBlockPos().relative(direction);
+		return worldPosition.relative(direction);
 	}
 
 	public void addTo(HashSet<BlockPos> visited) {
-		visited.add(getBlockPos());
+		visited.add(worldPosition);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putByte("neighbors", neighbors);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putByte("neighbors", neighbors);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		if (tagCompound.contains("neighbors")) {
-			neighbors = tagCompound.getByte("neighbors");
-		} else {
-			// Compatible with older versions: judge not initialized
-			neighbors = (byte) 0b10111111;
-		}
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		neighbors = view.getByteOr("neighbors", (byte) 0b10111111);
 	}
 
 	// MachineBaseBlockEntity
@@ -407,10 +408,10 @@ public class LSUStorageBlockEntity extends MachineBaseBlockEntity
 	public void onLoad() {
 		super.onLoad();
 		// Compatible with older versions: initialize neighbors
-		if (level != null && !level.isClientSide && ((neighbors & 0b10000000) != 0)) {
+		if (level != null && !level.isClientSide() && ((neighbors & 0b10000000) != 0)) {
 			neighbors = 0b000000;
 			for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
-				if (level.getBlockEntity(getBlockPos().relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
+				if (level.getBlockEntity(worldPosition.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
 					neighbors |= FLAGS[i];
 				}
 			}

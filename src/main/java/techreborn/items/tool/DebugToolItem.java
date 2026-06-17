@@ -25,11 +25,11 @@
 package techreborn.items.tool;
 
 import reborncore.common.powerSystem.PowerSystem;
-import reborncore.common.energy.api.EnergyStorage;
+import team.reborn.energy.api.EnergyStorage;
+import techreborn.init.TRItemSettings;
 
-import java.util.Map.Entry;
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -40,15 +40,14 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 
 /**
  * Created by Mark on 20/03/2016.
  */
 public class DebugToolItem extends Item {
 
-	public DebugToolItem() {
-		super(new Item.Properties());
+	public DebugToolItem(String name) {
+		super(TRItemSettings.item(name));
 	}
 
 	@Override
@@ -58,16 +57,16 @@ public class DebugToolItem extends Item {
 		if (block == null) {
 			return InteractionResult.FAIL;
 		}
-		if (context.getLevel().isClientSide) {
+		if (context.getLevel().isClientSide()) {
 			return InteractionResult.SUCCESS;
 		}
 		sendMessage(context, Component.literal(getRegistryName(block)));
 
-		for (Entry<Property<?>, Comparable<?>> entry : blockState.getValues().entrySet()) {
-			sendMessage(context, Component.literal(getPropertyString(entry)));
-		}
+		blockState.getValues().forEach(value -> {
+			sendMessage(context, Component.literal(getPropertyString(value)));
+		});
 
-		EnergyStorage energyStorage = EnergyStorage.findSided(context.getLevel(), context.getClickedPos(), context.getClickedFace());
+		EnergyStorage energyStorage = EnergyStorage.SIDED.find(context.getLevel(), context.getClickedPos(), context.getClickedFace());
 		if (energyStorage != null) {
 			sendMessage(context, Component.literal(getRCPower(energyStorage)));
 		}
@@ -85,15 +84,15 @@ public class DebugToolItem extends Item {
 	}
 
 	private void sendMessage(UseOnContext context, Component message) {
-		if (context.getLevel().isClientSide || context.getPlayer() == null) {
+		if (context.getLevel().isClientSide() || context.getPlayer() == null) {
 			return;
 		}
 		context.getPlayer().sendSystemMessage(message);
 	}
 
-	private String getPropertyString(Entry<Property<?>, Comparable<?>> entryIn) {
-		Property<?> property = entryIn.getKey();
-		Comparable<?> comparable = entryIn.getValue();
+	private String getPropertyString(net.minecraft.world.level.block.state.properties.Property.Value<?> value) {
+		net.minecraft.world.level.block.state.properties.Property<?> property = value.property();
+		Comparable<?> comparable = value.value();
 		String s = Util.getPropertyName(property, comparable);
 		if (Boolean.TRUE.equals(comparable)) {
 			s = ChatFormatting.GREEN + s;

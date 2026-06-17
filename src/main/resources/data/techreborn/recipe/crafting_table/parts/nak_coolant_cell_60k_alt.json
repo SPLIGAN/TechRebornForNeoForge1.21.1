@@ -1,26 +1,24 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "group": "nak_coolant_cell_60k",
-  "pattern": [
-    "TPT",
-    "SCS",
-    "TPT"
-  ],
-  "key": {
-    "C": {
-      "item": "techreborn:water_coolant_cell_10k"
+    "type": "minecraft:crafting_shaped",
+    "group": "nak_coolant_cell_60k",
+    "pattern": [
+        "TPT",
+        "SCS",
+        "TPT"
+    ],
+    "key": {
+        "C": "techreborn:water_coolant_cell_10k",
+        "T": "#c:ingots/tin",
+        "P": {
+            "fabric:type": "reborncore:fluid_container",
+            "fluid": "techreborn:potassium"
+        },
+        "S": {
+            "fabric:type": "reborncore:fluid_container",
+            "fluid": "techreborn:sodium"
+        }
     },
-    "T": {
-      "tag": "c:ingots/tin"
-    },
-    "P": {
-      "item": "techreborn:potassium_bucket"
-    },
-    "S": {
-      "item": "techreborn:sodium_bucket"
+    "result": {
+        "id": "techreborn:nak_coolant_cell_60k"
     }
-  },
-  "result": {
-    "id": "techreborn:nak_coolant_cell_60k"
-  }
 }

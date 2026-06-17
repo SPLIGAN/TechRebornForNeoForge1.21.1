@@ -24,18 +24,9 @@
 
 package techreborn.blockentity.storage.energy;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.component.TypedEntityData;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.blockentity.IUpgrade;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.powerSystem.RcEnergyTier;
@@ -46,6 +37,21 @@ import reborncore.common.util.RebornInventory;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
+
+import static techreborn.TechReborn.LOGGER;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class AdjustableSUBlockEntity extends EnergyStorageBlockEntity implements BuiltScreenHandlerProvider {
 
@@ -85,16 +91,16 @@ public class AdjustableSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	// EnergyStorageBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
 		if (OUTPUT > getMaxConfigOutput()) {
 			OUTPUT = getMaxConfigOutput();
 		}
-		if (world.getGameTime() % 20 == 0) {
+		if (serverLevel.getGameTime() % 20 == 0) {
 			checkTier();
 		}
 	}
@@ -106,11 +112,13 @@ public class AdjustableSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	@Override
 	public ItemStack getToolDrop(Player entityPlayer) {
-		CompoundTag nbt = new CompoundTag();
 		ItemStack dropStack = TRContent.Machine.ADJUSTABLE_SU.getStack();
 		if (level != null){
-			saveAdditional(nbt, level.registryAccess());
-			dropStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
+			try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(problemPath(), LOGGER)) {
+				TagValueOutput view = TagValueOutput.createWithContext(logging, level.registryAccess());
+				saveAdditional(view);
+				dropStack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(getType(), view.buildResult()));
+			}
 		}
 
 		return dropStack;
@@ -143,15 +151,15 @@ public class AdjustableSUBlockEntity extends EnergyStorageBlockEntity implements
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putInt("output", OUTPUT);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("output", OUTPUT);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(nbtCompound, registryLookup);
-		this.OUTPUT = nbtCompound.getInt("output");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		this.OUTPUT = view.getIntOr("output", 0);
 	}
 
 	// MachineBaseBlockEntity

@@ -25,35 +25,75 @@
 package techreborn.client.render.entitys;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.Sheets;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
 import techreborn.blockentity.cable.CableBlockEntity;
 import techreborn.blocks.cable.CableBlock;
 
-public class CableCoverRenderer implements BlockEntityRenderer<CableBlockEntity> {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CableCoverRenderer implements BlockEntityRenderer<CableBlockEntity, CableCoverRenderer.CableCoverRenderState> {
 
 	public CableCoverRenderer(BlockEntityRendererProvider.Context ctx) {
 	}
 
 	@Override
-	public void render(CableBlockEntity blockEntity, float tickDelta, PoseStack matrices, MultiBufferSource vertexConsumers, int light, int overlay) {
+	public CableCoverRenderState createRenderState() {
+		return new CableCoverRenderState();
+	}
+
+	@Override
+	public void extractRenderState(
+		CableBlockEntity blockEntity,
+		CableCoverRenderState state,
+		float f,
+		Vec3 vec3,
+		ModelFeatureRenderer.@Nullable CrumblingOverlay crumblingOverlay
+	) {
+		BlockEntityRenderState.extractBase(blockEntity, state, crumblingOverlay);
 		if (!blockEntity.getBlockState().getValue(CableBlock.COVERED) || blockEntity.getLevel() == null) {
 			return;
 		}
-
-		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
-		final BlockState renderData = blockEntity.getRenderAttachmentData();
-		final BlockState coverState = renderData != null ? renderData : Blocks.OAK_PLANKS.defaultBlockState();
-		final VertexConsumer consumer = vertexConsumers.getBuffer(ItemBlockRenderTypes.getChunkRenderType(coverState));
-		blockRenderManager.renderBatched(coverState, blockEntity.getBlockPos(), blockEntity.getLevel(), matrices, consumer, true, RandomSource.create());
+		final BlockState renderData = blockEntity.getRenderData();
+		state.cover = renderData != null ? renderData : Blocks.OAK_PLANKS.defaultBlockState();
+		// TODO 26.1: render type for covers is now baked into model quads; using cutout as default
+		state.layer = Sheets.cutoutBlockSheet();
+		RandomSource random = RandomSource.create();
+		random.setSeed(42L);
+		state.parts = new ArrayList<>();
+		Minecraft.getInstance().getModelManager().getBlockStateModelSet().get(state.cover).collectParts(random, state.parts);
 	}
 
+	@Override
+	public void submit(
+		CableCoverRenderState state,
+		PoseStack poseStack,
+		SubmitNodeCollector submitNodeCollector,
+		CameraRenderState cameraRenderState
+	) {
+		if (state.layer != null && state.parts != null && !state.parts.isEmpty()) {
+			submitNodeCollector.submitBlockModel(poseStack, state.layer, state.parts, new int[0], state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
+		}
+	}
+
+	public static class CableCoverRenderState extends BlockEntityRenderState {
+		public RenderType layer;
+		public List<BlockStateModelPart> parts;
+		public BlockState cover;
+	}
 }

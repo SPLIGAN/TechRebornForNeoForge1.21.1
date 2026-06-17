@@ -24,30 +24,12 @@
 
 package techreborn.blockentity.cable;
 
-import org.jetbrains.annotations.Nullable;
-import reborncore.api.IListInfoProvider;
-import reborncore.api.IToolDrop;
-import reborncore.common.compat.EnergyLookupBridge;
-import reborncore.common.network.NetworkManager;
-import reborncore.common.network.clientbound.CustomDescriptionPayload;
-import reborncore.common.powerSystem.PowerSystem;
-import reborncore.common.util.StringUtils;
-import reborncore.common.util.WorldUtils;
-import reborncore.common.energy.api.EnergyStorage;
-import reborncore.common.energy.api.base.SimpleSidedEnergyContainer;
-import techreborn.blocks.cable.CableBlock;
-
-import techreborn.init.TRBlockEntities;
-import techreborn.init.TRContent;
-
-import java.util.ArrayList;
-import java.util.List;
+import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
@@ -58,6 +40,23 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
+import reborncore.api.IListInfoProvider;
+import reborncore.api.IToolDrop;
+import reborncore.common.network.NetworkManager;
+import reborncore.common.network.clientbound.CustomDescriptionPayload;
+import reborncore.common.powerSystem.PowerSystem;
+import reborncore.common.util.StringUtils;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
+import techreborn.blocks.cable.CableBlock;
+import techreborn.init.TRBlockEntities;
+import techreborn.init.TRContent;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class CableBlockEntity extends BlockEntity
 	implements BlockEntityTicker<CableBlockEntity>, IListInfoProvider, IToolDrop {
@@ -89,7 +88,8 @@ public class CableBlockEntity extends BlockEntity
 	/**
 	 * Adjacent caches, used to quickly query adjacent cable block entities.
 	 */
-	private final EnergyLookupBridge.AdjacentEnergyAccess[] adjacentCaches = new EnergyLookupBridge.AdjacentEnergyAccess[6];
+	@SuppressWarnings("unchecked")
+	private final BlockApiCache<EnergyStorage, Direction>[] adjacentCaches = new BlockApiCache[6];
 	/**
 	 * Bitmask to prevent input or output into/from the cable when the cable already transferred in the target direction.
 	 * This prevents double transfer rates, and back and forth between two cables.
@@ -143,7 +143,7 @@ public class CableBlockEntity extends BlockEntity
 
 	public void setCover(BlockState cover) {
 		this.cover = cover;
-		if (level != null && !level.isClientSide) {
+		if (level != null && !level.isClientSide()) {
 			NetworkManager.sendToTracking(new CustomDescriptionPayload(getBlockPos(), this.saveWithoutMetadata(level.registryAccess())), this);
 		}
 	}
@@ -156,16 +156,16 @@ public class CableBlockEntity extends BlockEntity
 		energyContainer.amount = energy;
 	}
 
-	private EnergyLookupBridge.AdjacentEnergyAccess getAdjacentAccess(Direction direction) {
+	private BlockApiCache<EnergyStorage, Direction> getAdjacentCache(Direction direction) {
 		if (adjacentCaches[direction.get3DDataValue()] == null) {
-			adjacentCaches[direction.get3DDataValue()] = EnergyLookupBridge.createAdjacent((ServerLevel) level, worldPosition.relative(direction));
+			adjacentCaches[direction.get3DDataValue()] = BlockApiCache.create(EnergyStorage.SIDED, (ServerLevel) level, worldPosition.relative(direction));
 		}
 		return adjacentCaches[direction.get3DDataValue()];
 	}
 
 	@Nullable
 	BlockEntity getAdjacentBlockEntity(Direction direction) {
-		return getAdjacentAccess(direction).getBlockEntity();
+		return getAdjacentCache(direction).getBlockEntity();
 	}
 
 	void appendTargets(List<OfferedEnergyStorage> targetStorages) {
@@ -182,16 +182,16 @@ public class CableBlockEntity extends BlockEntity
 			for (Direction direction : Direction.values()) {
 				boolean foundSomething = false;
 
-				EnergyLookupBridge.AdjacentEnergyAccess adjAccess = getAdjacentAccess(direction);
+				BlockApiCache<EnergyStorage, Direction> adjCache = getAdjacentCache(direction);
 
-				if (adjAccess.getBlockEntity() instanceof CableBlockEntity adjCable) {
+				if (adjCache.getBlockEntity() instanceof CableBlockEntity adjCable) {
 					if (adjCable.getCableType().transferRate == getCableType().transferRate) {
 						// Make sure cables are not used as regular targets.
 						foundSomething = true;
 					}
-				} else if (adjAccess.find(direction.getOpposite()) != null) {
+				} else if (adjCache.find(direction.getOpposite()) != null) {
 					foundSomething = true;
-					targets.add(new CableTarget(direction, adjAccess));
+					targets.add(new CableTarget(direction, adjCache));
 				}
 
 				newBlockState = newBlockState.setValue(CableBlock.PROPERTY_MAP.get(direction), foundSomething);
@@ -225,28 +225,24 @@ public class CableBlockEntity extends BlockEntity
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
+		CompoundTag nbtTag = new CompoundTag();
+		// writeNbt(nbtTag);
 		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(compound, registryLookup);
-		if (compound.contains("energy")) {
-			energyContainer.amount = compound.getLong("energy");
-		}
-		if (compound.contains("cover")) {
-			cover = NbtUtils.readBlockState(WorldUtils.getBlockRegistryWrapper(level), compound.getCompound("cover"));
-		} else {
-			cover = null;
-		}
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		energyContainer.amount = view.getLongOr("energy", 0);
+		cover = view.read("cover", BlockState.CODEC).orElse(null);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(compound, registryLookup);
-		compound.putLong("energy", energyContainer.amount);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putLong("energy", energyContainer.amount);
 		if (cover != null) {
-			compound.put("cover", NbtUtils.writeBlockState(cover));
+			view.store("cover", BlockState.CODEC, cover);
 		}
 	}
 
@@ -257,7 +253,7 @@ public class CableBlockEntity extends BlockEntity
 	// BlockEntityTicker
 	@Override
 	public void tick(Level world, BlockPos pos, BlockState state, CableBlockEntity blockEntity2) {
-		if (world == null || world.isClientSide) {
+		if (world == null || world.isClientSide()) {
 			return;
 		}
 
@@ -297,15 +293,16 @@ public class CableBlockEntity extends BlockEntity
 		return new ItemStack(getCableType().block);
 	}
 
-	public @Nullable BlockState getRenderAttachmentData() {
+	@Override
+	public @Nullable BlockState getRenderData() {
 		return cover;
 	}
 
-	private record CableTarget(Direction directionTo, EnergyLookupBridge.AdjacentEnergyAccess access) {
+	private record CableTarget(Direction directionTo, BlockApiCache<EnergyStorage, Direction> cache) {
 
 		@Nullable
 		EnergyStorage find() {
-			return access.find(directionTo.getOpposite());
+			return cache.find(directionTo.getOpposite());
 		}
 	}
 }

@@ -24,7 +24,8 @@
 
 package techreborn.blockentity.generator;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -40,14 +41,14 @@ import techreborn.recipe.recipes.FluidGeneratorRecipe;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class BaseFluidGeneratorBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, InventoryProvider {
 	private final int euTick;
@@ -76,9 +77,9 @@ public abstract class BaseFluidGeneratorBlockEntity extends PowerAcceptorBlockEn
 
 	@SuppressWarnings("deprecation")
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
@@ -113,15 +114,15 @@ public abstract class BaseFluidGeneratorBlockEntity extends PowerAcceptorBlockEn
 					final int currentWithdraw = (int) pendingWithdraw;
 					pendingWithdraw -= currentWithdraw;
 					tank.modifyFluid(fluidInstance -> fluidInstance.subtractAmount(FluidValue.fromRaw(currentWithdraw)));
-					lastOutput = world.getGameTime();
+					lastOutput = serverLevel.getGameTime();
 				}
 			}
 		}
 
-		if (world.getGameTime() - lastOutput < 30 && !isActive()) {
-			world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(BlockMachineBase.ACTIVE, true));
-		} else if (world.getGameTime() - lastOutput > 30 && isActive()) {
-			world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(BlockMachineBase.ACTIVE, false));
+		if (serverLevel.getGameTime() - lastOutput < 30 && !isActive()) {
+			serverLevel.setBlockAndUpdate(pos, serverLevel.getBlockState(pos).setValue(BlockMachineBase.ACTIVE, true));
+		} else if (serverLevel.getGameTime() - lastOutput > 30 && isActive()) {
+			serverLevel.setBlockAndUpdate(pos, serverLevel.getBlockState(pos).setValue(BlockMachineBase.ACTIVE, false));
 		}
 	}
 
@@ -142,7 +143,7 @@ public abstract class BaseFluidGeneratorBlockEntity extends PowerAcceptorBlockEn
 	}
 
 	public List<FluidGeneratorRecipe> getRecipes() {
-		return RecipeUtils.getRecipes(getLevel(), recipeType);
+		return RecipeUtils.getRecipes(level, recipeType);
 	}
 
 	@Nullable
@@ -177,15 +178,15 @@ public abstract class BaseFluidGeneratorBlockEntity extends PowerAcceptorBlockEn
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		tank.read(tagCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		tank.read(view);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tank.write(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		tank.write(view);
 	}
 
 	@Override

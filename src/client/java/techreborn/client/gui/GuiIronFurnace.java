@@ -24,27 +24,26 @@
 
 package techreborn.client.gui;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.GuiBuilder;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import techreborn.blockentity.machine.iron.IronFurnaceBlockEntity;
 import techreborn.packets.serverbound.ExperiencePayload;
 import techreborn.utils.PlayerUtils;
 
 import java.util.Objects;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.ImageButton;
-import net.minecraft.client.gui.components.WidgetSprites;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
 
 public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	final IronFurnaceBlockEntity blockEntity;
-	private static final ResourceLocation EXP_BUTTON_TEXTURE = ResourceLocation.withDefaultNamespace("item/experience_bottle");
+	private static final ItemStack EXP_BUTTON_STACK = new ItemStack(Items.EXPERIENCE_BOTTLE);
 
 	public GuiIronFurnace(int syncID, Player player, IronFurnaceBlockEntity furnace) {
 		super(player, furnace, furnace.createScreenHandler(syncID, player));
@@ -52,7 +51,7 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	}
 
 	public void onClick(Button buttonWidget) {
-		ClientNetworkingBridge.sendToServer(new ExperiencePayload(blockEntity.getBlockPos()));
+		ClientPlayNetworking.send(new ExperiencePayload(blockEntity.getBlockPos()));
 	}
 
 	@Override
@@ -61,25 +60,23 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 		addRenderableWidget(new XpButtonWidget(this::onClick));
 	}
 
-	private class XpButtonWidget extends ImageButton {
-		private static final WidgetSprites TEXTURES = new WidgetSprites(EXP_BUTTON_TEXTURE, EXP_BUTTON_TEXTURE);
-
+	private class XpButtonWidget extends Button {
 		public XpButtonWidget(OnPress pressAction) {
 			super(getGuiLeft() + 116,
 				getGuiTop() + 58,
 				16,
 				16,
-				TEXTURES,
+				Component.empty(),
 				pressAction,
-				Component.empty());
+				DEFAULT_NARRATION);
 		}
 
 		@Override
-		public void renderWidget(GuiGraphics context, int mouseX, int mouseY, float delta) {
-			super.renderWidget(context, mouseX, mouseY, delta);
+		public void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
+			context.item(EXP_BUTTON_STACK, getX(), getY());
 
 			if (isHovered) {
-				context.renderTooltip(getTextRenderer(), getTooltipText(), mouseX, mouseY);
+				context.setTooltipForNextFrame(getFont(), getTooltipText(), mouseX, mouseY);
 			}
 		}
 
@@ -115,8 +112,8 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, float lastFrameDuration, int mouseX, int mouseY) {
-		super.renderBg(drawContext, lastFrameDuration, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float lastFrameDuration) {
+		super.extractBackground(drawContext, mouseX, mouseY, lastFrameDuration);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		// Input slot
@@ -128,8 +125,8 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, int mouseX, int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, int mouseX, int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		builder.drawProgressBar(drawContext, this, blockEntity.getProgressScaled(100), 100, 85, 36, mouseX, mouseY, GuiBuilder.ProgressDirection.RIGHT, layer);

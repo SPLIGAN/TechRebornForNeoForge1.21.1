@@ -35,6 +35,7 @@ import java.util.function.BiFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -48,29 +49,29 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class ResinBasinBlock extends BaseBlockEntityProvider {
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty POURING = BooleanProperty.create("pouring");
 	public static final BooleanProperty FULL = BooleanProperty.create("full");
 	protected static final VoxelShape SHAPE = Block.box(0d,0d, 0d, 16d, 8d, 16d);
 	final BiFunction<BlockPos, BlockState, BlockEntity> blockEntityClass;
 
-	public ResinBasinBlock(BiFunction<BlockPos, BlockState, BlockEntity> blockEntityClass) {
-		super(TRBlockSettings.resinBasin());
+	public ResinBasinBlock(BiFunction<BlockPos, BlockState, BlockEntity> blockEntityClass, String name) {
+		super(TRBlockSettings.resinBasin(name));
 		this.blockEntityClass = blockEntityClass;
 
-		registerDefaultState(
-				getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(POURING, false).setValue(FULL, false));
+		this.registerDefaultState(
+				this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(POURING, false).setValue(FULL, false));
 	}
 
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
 		return SHAPE;
 	}
 
@@ -78,6 +79,7 @@ public class ResinBasinBlock extends BaseBlockEntityProvider {
 		world.setBlockAndUpdate(pos, world.getBlockState(pos).setValue(FACING, facing));
 	}
 
+	// Block
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING, POURING, FULL);
@@ -88,7 +90,7 @@ public class ResinBasinBlock extends BaseBlockEntityProvider {
 	}
 
 	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
+	public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hit) {
 		if (world == null || world.isClientSide() || player == null || pos == null || !(world.getBlockEntity(pos) instanceof ResinBasinBlockEntity basin))
 			return InteractionResult.PASS;
 		ItemStack sap = basin.empty();
@@ -110,7 +112,9 @@ public class ResinBasinBlock extends BaseBlockEntityProvider {
 		if (worldIn.getBlockState(pos.relative(facing.getOpposite())).getBlock() != TRContent.RUBBER_LOG) {
 			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 			WorldUtils.dropItem(this.asItem(), worldIn, pos);
-			placer.sendSystemMessage(Component.translatable("techreborn.tooltip.invalid_basin_placement"));
+			if (placer instanceof ServerPlayer player) {
+				player.sendSystemMessage(Component.translatable("techreborn.tooltip.invalid_basin_placement"));
+			}
 		}
 	}
 
@@ -125,9 +129,10 @@ public class ResinBasinBlock extends BaseBlockEntityProvider {
 	@Override
 	public BlockState playerWillDestroy(Level world, BlockPos pos, BlockState state, Player player) {
 		BlockEntity blockEntity = world.getBlockEntity(pos);
-		if (blockEntity instanceof MachineBaseBlockEntity machineBase) {
-			machineBase.onBreak(world, player, pos, state);
+		if (blockEntity instanceof MachineBaseBlockEntity) {
+			((MachineBaseBlockEntity) blockEntity).onBreak(world, player, pos, state);
 		}
+
 		return super.playerWillDestroy(world, pos, state, player);
 	}
 }

@@ -24,8 +24,19 @@
 
 package techreborn.blockentity.generator.basic;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BucketItem;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -38,21 +49,6 @@ import reborncore.common.util.RebornInventory;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
-
-import java.util.Map;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.BucketItem;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, InventoryProvider, BuiltScreenHandlerProvider {
 
@@ -68,26 +64,20 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 		super(TRBlockEntities.SOLID_FUEL_GENERATOR, pos, state);
 	}
 
-	public static int getItemBurnTime(@NotNull ItemStack stack) {
+	public static int getItemBurnTime(Level world, ItemStack stack) {
 		if (stack.isEmpty()) {
 			return 0;
 		}
-		Map<Item, Integer> burnMap = AbstractFurnaceBlockEntity.getFuel();
-		if (burnMap.containsKey(stack.getItem())) {
-			return burnMap.get(stack.getItem()) / 4;
-		}
-		return 0;
+		return world.fuelValues().burnDuration(stack) / 4;
 	}
 
 	private void updateState() {
-		Level level = getLevel();
 		assert level != null;
-		BlockPos bp = getBlockPos();
-		final BlockState BlockStateContainer = level.getBlockState(bp);
+		final BlockState BlockStateContainer = level.getBlockState(worldPosition);
 		if (BlockStateContainer.getBlock() instanceof final BlockMachineBase blockMachineBase) {
 			boolean active = burnTime > 0 && getFreeSpace() > 0.0f;
 			if (BlockStateContainer.getValue(BlockMachineBase.ACTIVE) != active) {
-				blockMachineBase.setActive(active, level, bp);
+				blockMachineBase.setActive(active, level, worldPosition);
 			}
 		}
 	}
@@ -95,9 +85,9 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide){
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)){
 			return;
 		}
 
@@ -115,7 +105,7 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 
 		if (burnTime == 0) {
 			updateState();
-			burnTime = totalBurnTime = SolidFuelGeneratorBlockEntity.getItemBurnTime(inventory.getItem(fuelSlot));
+			burnTime = totalBurnTime = SolidFuelGeneratorBlockEntity.getItemBurnTime(serverLevel, inventory.getItem(fuelSlot));
 			if (burnTime > 0) {
 				updateState();
 				burnItem = inventory.getItem(fuelSlot);
@@ -156,17 +146,17 @@ public class SolidFuelGeneratorBlockEntity extends PowerAcceptorBlockEntity impl
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tag, registryLookup);
-		burnTime = tag.getInt("BurnTime");
-		totalBurnTime = tag.getInt("TotalBurnTime");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		burnTime = view.getIntOr("BurnTime", 0);
+		totalBurnTime = view.getIntOr("TotalBurnTime", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tag, registryLookup);
-		tag.putInt("BurnTime", burnTime);
-		tag.putInt("TotalBurnTime", totalBurnTime);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("BurnTime", burnTime);
+		view.putInt("TotalBurnTime", totalBurnTime);
 	}
 
 	// MachineBaseBlockEntity

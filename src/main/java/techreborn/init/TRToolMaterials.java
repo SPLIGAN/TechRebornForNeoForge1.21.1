@@ -24,70 +24,29 @@
 
 package techreborn.init;
 
-import techreborn.TechReborn;
-
-import static net.minecraft.world.item.Tiers.*;
-
-import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.Tier;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.world.item.ToolMaterial;
 
 /**
  * We use custom materials to allow LevelZ to tweak the mining level of our tools.
  */
 public class TRToolMaterials {
-	public static final Tier BASIC_CHAINSAW = copy(IRON, "basic_chainsaw");
-	public static final Tier BASIC_DRILL = copy(IRON, "basic_drill");
-	public static final Tier BASIC_JACKHAMMER = copy(DIAMOND, "basic_jackhammer");
+	public static final ToolMaterial BASIC_CHAINSAW = copy(ToolMaterial.IRON, "basic_chainsaw");
+	public static final ToolMaterial BASIC_DRILL = copy(ToolMaterial.IRON, "basic_drill");
+	public static final ToolMaterial BASIC_JACKHAMMER = copy(ToolMaterial.DIAMOND, "basic_jackhammer");
 
-	public static final Tier ADVANCED_CHAINSAW = copy(DIAMOND, "advanced_chainsaw");
-	public static final Tier ADVANCED_DRILL = copy(DIAMOND, "advanced_drill");
-	public static final Tier ADVANCED_JACKHAMMER = copy(NETHERITE, "advanced_jackhammer");
+	public static final ToolMaterial ADVANCED_CHAINSAW = copy(ToolMaterial.DIAMOND, "advanced_chainsaw");
+	public static final ToolMaterial ADVANCED_DRILL = copy(ToolMaterial.DIAMOND, "advanced_drill");
+	public static final ToolMaterial ADVANCED_JACKHAMMER = copy(ToolMaterial.DIAMOND, "advanced_jackhammer");
 
-	public static final Tier INDUSTRIAL_CHAINSAW = copy(NETHERITE, "industrial_chainsaw");
-	public static final Tier INDUSTRIAL_DRILL = copy(NETHERITE, "industrial_drill");
-	public static final Tier INDUSTRIAL_JACKHAMMER = copy(NETHERITE, "industrial_jackhammer");
+	public static final ToolMaterial INDUSTRIAL_CHAINSAW = copy(ToolMaterial.NETHERITE, "industrial_chainsaw");
+	public static final ToolMaterial INDUSTRIAL_DRILL = copy(ToolMaterial.NETHERITE, "industrial_drill");
+	public static final ToolMaterial INDUSTRIAL_JACKHAMMER = copy(ToolMaterial.NETHERITE, "industrial_jackhammer");
 
-	public static final Tier ROCK_CUTTER = copy(DIAMOND, "rock_cutter");
-	public static final Tier NANOSABER = copy(NETHERITE, "nanosaber");
-	public static final Tier OMNI_TOOL = copy(NETHERITE, "omni_tool");
+	public static final ToolMaterial ROCK_CUTTER = copy(ToolMaterial.DIAMOND, "rock_cutter");
+	public static final ToolMaterial NANOSABER = copy(ToolMaterial.NETHERITE, "nanosaber");
+	public static final ToolMaterial OMNI_TOOL = copy(ToolMaterial.NETHERITE, "omni_tool");
 
-	public static Tier copy(Tier material, String id) {
-		return new Tier() {
-			@Override
-			public int getUses() {
-				return material.getUses();
-			}
-
-			@Override
-			public float getSpeed() {
-				return material.getSpeed();
-			}
-
-			@Override
-			public float getAttackDamageBonus() {
-				return material.getAttackDamageBonus();
-			}
-
-			@Override
-			public TagKey<Block> getIncorrectBlocksForDrops() { return material.getIncorrectBlocksForDrops(); }
-
-			@Override
-			public int getEnchantmentValue() {
-				return material.getEnchantmentValue();
-			}
-
-			@Override
-			public Ingredient getRepairIngredient() {
-				return material.getRepairIngredient();
-			}
-
-			// This allows LevelZ to identify the material.
-			@Override
-			public String toString() {
-				return TechReborn.MOD_ID + ":" + id;
-			}
-		};
+	public static ToolMaterial copy(ToolMaterial material, String id) {
+		return new ToolMaterial(material.incorrectBlocksForDrops(), material.durability(), material.speed(), material.attackDamageBonus(), material.enchantmentValue(), material.repairItems());
 	}
 }

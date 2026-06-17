@@ -33,13 +33,15 @@ import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Base logic class for Multiblock-connected {@link BlockEntity} entities. Most multiblock
@@ -113,26 +115,26 @@ public abstract class MultiblockBlockEntityBase extends IMultiblockPart implemen
 	// /// Overrides from base BlockEntity methods
 
 	@Override
-	public void loadAdditional(CompoundTag data, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(data, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
 
 		// We can't directly initialize a multiblock controller yet, so we cache
 		// the data here until
 		// we receive a "validate()" call, which creates the controller and hands
 		// off the cached data.
-		if (data.contains("multiblockData")) {
-			this.cachedMultiblockData = data.getCompound("multiblockData");
-		}
+		view.read("multiblockData", CompoundTag.CODEC).ifPresent(data -> {
+			this.cachedMultiblockData = data;
+		});
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag data, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(data, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
 
 		if (isMultiblockSaveDelegate() && isConnected()) {
 			CompoundTag multiblockData = new CompoundTag();
 			this.controller.write(multiblockData);
-			data.put("multiblockData", multiblockData);
+			view.store("multiblockData", CompoundTag.CODEC, multiblockData);
 		}
 	}
 
@@ -209,7 +211,7 @@ public abstract class MultiblockBlockEntityBase extends IMultiblockPart implemen
 	 */
 	protected void decodeDescriptionPacket(CompoundTag packetData) {
 		if (packetData.contains("multiblockData")) {
-			CompoundTag tag = packetData.getCompound("multiblockData");
+			CompoundTag tag = packetData.getCompoundOrEmpty("multiblockData");
 			if (isConnected()) {
 				getMultiblockController().decodeDescriptionPacket(tag);
 			} else {
@@ -342,11 +344,11 @@ public abstract class MultiblockBlockEntityBase extends IMultiblockPart implemen
 
 	// /// Helper functions for notifying neighboring blocks
 	protected void notifyNeighborsOfBlockChange() {
-		level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+		level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock(), ExperimentalRedstoneUtils.initialOrientation(level, null, null));
 	}
 
 	protected void notifyNeighborsOfBlockEntityChange() {
-		level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock());
+		level.updateNeighborsAt(getBlockPos(), getBlockState().getBlock(), ExperimentalRedstoneUtils.initialOrientation(level, null, null));
 	}
 
 	// /// Private/Protected Logic Helpers

@@ -26,26 +26,26 @@ package techreborn.items.tool;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.PickaxeItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRContent;
 import techreborn.init.TRItemSettings;
 
 
-public class JackhammerItem extends PickaxeItem implements RcFabricEnergyItem {
+public class JackhammerItem extends Item implements RcEnergyItem {
 	public final int maxCharge;
 	public final RcEnergyTier tier;
 	public final int cost;
 	protected final float unpoweredSpeed = 0.5F;
 
-	public JackhammerItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost) {
-		super(material, TRItemSettings.unbreakable());
+	public JackhammerItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost, String name) {
+		super(TRItemSettings.unbreakable(name).pickaxe(material, -2f, -2.8f));
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
 		this.cost = cost;
@@ -66,18 +66,6 @@ public class JackhammerItem extends PickaxeItem implements RcFabricEnergyItem {
 		return worldIn.getBlockState(pos).is(TRContent.BlockTags.JACKHAMMER_MINEABLE);
 	}
 
-	// MiningToolItem
-	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-			return true;
-		}
-
-	// ToolItem
-	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
-		return false;
-	}
-
 	// Item
 	@Override
 	public float getDestroySpeed(ItemStack stack, BlockState state) {
@@ -90,11 +78,6 @@ public class JackhammerItem extends PickaxeItem implements RcFabricEnergyItem {
 	@Override
 	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, cost);
-		return true;
-	}
-
-	@Override
-	public boolean isEnchantable(ItemStack stack) {
 		return true;
 	}
 
@@ -120,7 +103,7 @@ public class JackhammerItem extends PickaxeItem implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return tier;
 	}
 

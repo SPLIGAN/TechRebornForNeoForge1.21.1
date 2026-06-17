@@ -24,10 +24,10 @@
 
 package techreborn.client.gui;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import org.joml.Matrix3x2fStack;
 import reborncore.client.gui.GuiBase;
 import reborncore.common.powerSystem.PowerSystem;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -43,8 +43,8 @@ public class GuiBatbox extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, f, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float f) {
+		super.extractBackground(drawContext, mouseX, mouseY, f);
 		final Layer layer = Layer.BACKGROUND;
 
 		drawSlot(drawContext, 62, 45, layer);
@@ -52,20 +52,20 @@ public class GuiBatbox extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final Layer layer = Layer.FOREGROUND;
 
 		if (!hideGuiElements()) {
-			final PoseStack matrices = drawContext.pose();
-			matrices.pushPose();
-			matrices.scale(0.6f, 0.6f, 1.0f);
+			final Matrix3x2fStack matrices = drawContext.pose();
+			matrices.pushMatrix();
+			matrices.scale(0.6f, 0.6f);
 			Component text = Component.literal(PowerSystem.getLocalizedPowerNoSuffix(blockEntity.getEnergy()))
 					.append("/")
 					.append(PowerSystem.getLocalizedPower(blockEntity.getMaxStoredPower()));
 
-			drawCentredText(drawContext, text, 35, 0, 58, layer);
-			matrices.popPose();
+			drawCentredText(drawContext, text, 35, 0xff000000, 58, layer);
+			matrices.popMatrix();
 		}
 
 		builder.drawMultiEnergyBar(drawContext, this, 81, 28, (int) blockEntity.getEnergy(), (int) blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);

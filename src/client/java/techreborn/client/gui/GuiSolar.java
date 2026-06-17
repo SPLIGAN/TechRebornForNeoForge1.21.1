@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
@@ -41,17 +41,17 @@ public class GuiSolar extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, int mouseX, int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, int mouseX, int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		builder.drawMultiEnergyBar(drawContext, this, 156, 19, (int) blockEntity.getEnergy(), (int) blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);
 
 		if (!blockEntity.isGenerating()) {
-			builder.drawText(drawContext, this, Component.translatable("techreborn.message.panel_blocked"), 10, 20, 12066591);
+			builder.drawText(drawContext, this, Component.translatable("techreborn.message.panel_blocked"), 10, 20, 0xffb81f1f);
 		}
 
-		builder.drawText(drawContext, this, Component.literal("Generating: " + blockEntity.getGenerationRate() + " E/t"), 10, 30, 0);
+		builder.drawText(drawContext, this, Component.literal("Generating: " + blockEntity.getGenerationRate() + " E/t"), 10, 30, 0xff000000);
 
 	}
 }

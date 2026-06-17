@@ -26,30 +26,31 @@ package techreborn.items;
 
 import reborncore.common.chunkloading.ChunkLoaderManager;
 import techreborn.component.TRDataComponentTypes;
+import techreborn.init.TRItemSettings;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
 public class FrequencyTransmitterItem extends Item {
 
-	public FrequencyTransmitterItem() {
-		super(new Item.Properties().stacksTo(1));
+	public FrequencyTransmitterItem(String name) {
+		super(TRItemSettings.item(name).stacksTo(1));
 	}
 
 	@Override
@@ -63,7 +64,7 @@ public class FrequencyTransmitterItem extends Item {
 		stack.set(TRDataComponentTypes.FREQUENCY_TRANSMITTER, globalPos);
 
 		if (context.getPlayer() instanceof ServerPlayer serverPlayerEntity) {
-			serverPlayerEntity.displayClientMessage(Component.translatable("techreborn.message.setTo")
+			serverPlayerEntity.sendOverlayMessage(Component.translatable("techreborn.message.setTo")
 											.append(Component.literal(" X:").withStyle(ChatFormatting.GRAY))
 											.append(Component.literal(String.valueOf(pos.getX())).withStyle(ChatFormatting.GOLD))
 											.append(Component.literal(" Y:").withStyle(ChatFormatting.GRAY))
@@ -73,7 +74,7 @@ public class FrequencyTransmitterItem extends Item {
 											.append(" ")
 											.append(Component.translatable("techreborn.message.in").withStyle(ChatFormatting.GRAY))
 											.append(" ")
-											.append(Component.literal(getDimName(globalPos.dimension()).toString()).withStyle(ChatFormatting.GOLD)), true);
+											.append(Component.literal(getDimName(globalPos.dimension()).toString()).withStyle(ChatFormatting.GOLD)));
 		}
 
 		return InteractionResult.SUCCESS;
@@ -84,39 +85,38 @@ public class FrequencyTransmitterItem extends Item {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player,
+	public InteractionResult use(Level world, Player player,
 											InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		if (player.isShiftKeyDown()) {
 			stack.remove(TRDataComponentTypes.FREQUENCY_TRANSMITTER);
 
 			if (player instanceof ServerPlayer serverPlayerEntity) {
-				serverPlayerEntity.displayClientMessage(Component.translatable("techreborn.message.coordsHaveBeen")
+				serverPlayerEntity.sendOverlayMessage(Component.translatable("techreborn.message.coordsHaveBeen")
 												.withStyle(ChatFormatting.GRAY)
 												.append(" ")
 												.append(
 													Component.translatable("techreborn.message.cleared")
 														.withStyle(ChatFormatting.GOLD)
-												), true);
+												));
 			}
 		}
 
-		return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
-		super.appendHoverText(stack, context, tooltip, type);
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
 		getPos(stack)
 			.ifPresent(globalPos -> {
-				tooltip.add(Component.literal(ChatFormatting.GRAY + "X: " + ChatFormatting.GOLD + globalPos.pos().getX()));
-				tooltip.add(Component.literal(ChatFormatting.GRAY + "Y: " + ChatFormatting.GOLD + globalPos.pos().getY()));
-				tooltip.add(Component.literal(ChatFormatting.GRAY + "Z: " + ChatFormatting.GOLD + globalPos.pos().getZ()));
-				tooltip.add(Component.literal(ChatFormatting.DARK_GRAY + getDimName(globalPos.dimension()).toString()));
+				tooltip.accept(Component.literal(ChatFormatting.GRAY + "X: " + ChatFormatting.GOLD + globalPos.pos().getX()));
+				tooltip.accept(Component.literal(ChatFormatting.GRAY + "Y: " + ChatFormatting.GOLD + globalPos.pos().getY()));
+				tooltip.accept(Component.literal(ChatFormatting.GRAY + "Z: " + ChatFormatting.GOLD + globalPos.pos().getZ()));
+				tooltip.accept(Component.literal(ChatFormatting.DARK_GRAY + getDimName(globalPos.dimension()).toString()));
 			});
 	}
 
-	private static ResourceLocation getDimName(ResourceKey<Level> dimensionRegistryKey) {
-		return dimensionRegistryKey.location();
+	private static Identifier getDimName(ResourceKey<Level> dimensionRegistryKey) {
+		return dimensionRegistryKey.identifier();
 	}
 }

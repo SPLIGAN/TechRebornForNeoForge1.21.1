@@ -1,20 +1,18 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " P ",
-    "PCP",
-    " P "
-  ],
-  "key": {
-    "P": {
-      "item": "techreborn:neutron_reflector"
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " P ",
+        "PCP",
+        " P "
+    ],
+    "key": {
+        "P": "techreborn:neutron_reflector",
+        "C": {
+            "fabric:type": "reborncore:fluid_container",
+            "fluid": "techreborn:beryllium"
+        }
     },
-    "C": {
-      "item": "techreborn:beryllium_bucket"
+    "result": {
+        "id": "techreborn:thick_neutron_reflector"
     }
-
-  },
-  "result": {
-    "id": "techreborn:thick_neutron_reflector"
-  }
 }

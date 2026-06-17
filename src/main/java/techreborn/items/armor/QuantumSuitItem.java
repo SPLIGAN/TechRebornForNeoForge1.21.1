@@ -28,19 +28,20 @@ import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.api.items.ArmorRemoveHandler;
 import reborncore.common.powerSystem.RcEnergyTier;
 import techreborn.config.TechRebornConfig;
+import techreborn.init.TRItemSettings;
 import techreborn.utils.TRItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -48,10 +49,12 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.Level;
 
 public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEntityTicker, ArmorRemoveHandler {
@@ -64,31 +67,31 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 	private final ItemAttributeModifiers hasPowerSprintAttributes;
 	private final ItemAttributeModifiers fullSuitSprintAttributes;
 
-	public QuantumSuitItem(Holder<ArmorMaterial> material, Type slot) {
-		super(material, slot, TechRebornConfig.quantumSuitCapacity, RcEnergyTier.INSANE);
+	public QuantumSuitItem(ArmorMaterial material, ArmorType slot, String name) {
+		super(material, slot, TechRebornConfig.quantumSuitCapacity, RcEnergyTier.INSANE, name);
 		switch (slot) {
 			case HELMET, BOOTS:
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(3).toughness(2).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(3).toughness(3).knockback(1).build();
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(5).toughness(5).knockback(2).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(5).toughness(5).knockback(2).build();
 				hasPowerSprintAttributes = fullSuitSprintAttributes = null;
 				break;
 			case CHESTPLATE:
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(6).toughness(2).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(6).toughness(3).knockback(1).build();
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(5).knockback(3).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(5).knockback(3).build();
 				hasPowerSprintAttributes = fullSuitSprintAttributes = null;
 				break;
 			case LEGGINGS: {
 				AttributeModifier modifier = new AttributeModifier(
-					ResourceLocation.fromNamespaceAndPath("techreborn", "quantum_movement_speed"),
+					Identifier.fromNamespaceAndPath("techreborn", "quantum_movement_speed"),
 					0.15,
 					AttributeModifier.Operation.ADD_VALUE
 				);
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(8).toughness(2).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(8).toughness(3).knockback(1).build();
 				hasPowerSprintAttributes = hasPowerAttributes.withModifierAdded(Attributes.MOVEMENT_SPEED, modifier, EquipmentSlotGroup.LEGS);
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(5).knockback(3).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(5).knockback(3).build();
 				fullSuitSprintAttributes = fullSuitAttributes.withModifierAdded(Attributes.MOVEMENT_SPEED, modifier, EquipmentSlotGroup.LEGS);
 				break;
 			}
@@ -104,8 +107,7 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 	// ArmorBlockEntityTicker
 	@Override
 	public void tickArmor(ItemStack stack, boolean hasFullSuit, Player playerEntity) {
-		final EquipmentSlot slotType = this.getEquipmentSlot();
-		switch (slotType) {
+		switch (getSlotType()) {
 			case HEAD -> {
 				// Water Breathing
 				if (playerEntity.isUnderWater() && tryUseEnergy(stack, TechRebornConfig.quantumSuitBreathingCost)) {
@@ -153,9 +155,17 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 		applyModifier(stack, hasFullSuit, false);
 	}
 
-	private void applyModifier(ItemStack stack, ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
+	private void applyModifierAndHide(ItemStack stack, ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
 		if (attributes != target) {
 			stack.set(DataComponents.ATTRIBUTE_MODIFIERS, target);
+			stack.set(DataComponents.TOOLTIP_DISPLAY, AttributeModifierBuilder.ATTRIBUTE_HIDE);
+		}
+	}
+
+	private void applyModifierAndShow(ItemStack stack, ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
+		if (attributes != target) {
+			stack.set(DataComponents.ATTRIBUTE_MODIFIERS, target);
+			stack.set(DataComponents.TOOLTIP_DISPLAY, TRItemSettings.UNBREAKABLE_HIDE);
 		}
 	}
 
@@ -165,28 +175,29 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 		if (energy > 0) {
 			if (sprintEnable && energy >= TechRebornConfig.quantumSuitSprintingCost) {
 				if (hasFullSuit) {
-					applyModifier(stack, attributes, fullSuitSprintAttributes);
+					applyModifierAndHide(stack, attributes, fullSuitSprintAttributes);
 				} else {
-					applyModifier(stack, attributes, hasPowerSprintAttributes);
+					applyModifierAndShow(stack, attributes, hasPowerSprintAttributes);
 				}
 			} else if (hasFullSuit) {
-				applyModifier(stack, attributes, fullSuitAttributes);
+				applyModifierAndHide(stack, attributes, fullSuitAttributes);
 			} else {
-				applyModifier(stack, attributes, hasPowerAttributes);
+				applyModifierAndShow(stack, attributes, hasPowerAttributes);
 			}
 		} else {
-			applyModifier(stack, attributes, noPowerAttributes);
+			applyModifierAndShow(stack, attributes, noPowerAttributes);
 		}
 	}
 
 	// ArmorRemoveHandler
 	@Override
 	public void onRemoved(Player playerEntity) {
-		if (this.getEquipmentSlot() == EquipmentSlot.CHEST && TechRebornConfig.quantumSuitEnableFlight) {
+		EquipmentSlot slotType = this.getSlotType();
+		if (slotType == EquipmentSlot.CHEST && TechRebornConfig.quantumSuitEnableFlight) {
 			if (!playerEntity.isCreative() && !playerEntity.isSpectator()) {
 				HANDLER.setAllowFlight(playerEntity, false);
 			}
-		} else if (this.getEquipmentSlot() == EquipmentSlot.HEAD) {
+		} else if (slotType == EquipmentSlot.HEAD) {
 			playerEntity.removeEffect(MobEffects.NIGHT_VISION);
 		}
 		ItemStack stack = playerEntity.inventoryMenu.getCarried();
@@ -194,7 +205,7 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 			quantumSuitItem.applyModifier(stack, false, false);
 			stack.remove(DataComponents.CUSTOM_DATA);
 		} else {
-			playerEntity.getInventory().items.forEach(itemStack -> {
+			playerEntity.getInventory().getNonEquipmentItems().forEach(itemStack -> {
 				if (itemStack.getItem() instanceof QuantumSuitItem quantumSuitItem) {
 					quantumSuitItem.applyModifier(itemStack, false, false);
 					itemStack.remove(DataComponents.CUSTOM_DATA);
@@ -204,24 +215,24 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+	public InteractionResult use(Level world, Player user, InteractionHand hand) {
 		ItemStack thisStack = user.getItemInHand(hand);
-		EquipmentSlot slotType = this.getEquipmentSlot();
+		EquipmentSlot slotType = this.getSlotType();
 		if (user.isShiftKeyDown() && (slotType == EquipmentSlot.HEAD || slotType == EquipmentSlot.LEGS)) {
 			TRItemUtils.switchActive(thisStack, 1, user);
-			return InteractionResultHolder.success(thisStack);
+			return InteractionResult.SUCCESS;
 		}
 		return super.use(world, user, hand);
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
-		if (this.getEquipmentSlot() == EquipmentSlot.HEAD) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
+		if (this.getSlotType() == EquipmentSlot.HEAD) {
 			TRItemUtils.buildActiveTooltip(stack, tooltip);
 		}
 
 		// Will only add Inactive/Active tooltip if sprint is enabled
-		if (this.getEquipmentSlot() == EquipmentSlot.LEGS && TechRebornConfig.quantumSuitEnableSprint) {
+		if (this.getSlotType() == EquipmentSlot.LEGS && TechRebornConfig.quantumSuitEnableSprint) {
 			TRItemUtils.buildActiveTooltip(stack, tooltip);
 		}
 	}
@@ -236,7 +247,7 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 			}
 		} else if (AttributeModifierBuilder.equals(attributes, fullSuitAttributes)) {
 			buffer.add(CommonComponents.EMPTY);
-			EquipmentSlot slotType = getEquipmentSlot();
+			EquipmentSlot slotType = getSlotType();
 			buffer.add(AttributeModifierBuilder.text(slotType).withStyle(ChatFormatting.GRAY));
 			if (shift) {
 				AttributeModifierBuilder.appendText(buffer, attributes, ChatFormatting.BLUE);
@@ -259,7 +270,7 @@ public class QuantumSuitItem extends TREnergyArmourItem implements ArmorBlockEnt
 				return;
 			}
 			buffer.add(Component.translatable("item.modifiers.power").withStyle(ChatFormatting.GRAY));
-			AttributeModifierBuilder.appendDiffText(buffer, attributes, hasPowerAttributes, ChatFormatting.BLUE);
+			AttributeModifierBuilder.appendDiffText(buffer, noPowerAttributes, hasPowerAttributes, ChatFormatting.BLUE);
 			buffer.add(Component.translatable("item.modifiers.all_equipment").withStyle(ChatFormatting.GRAY));
 			AttributeModifierBuilder.appendText(buffer, FULL_SUIT, ChatFormatting.BLUE);
 		}

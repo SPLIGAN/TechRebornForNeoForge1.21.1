@@ -26,7 +26,7 @@ package techreborn.items.tool.basic;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.config.TechRebornConfig;
@@ -35,11 +35,11 @@ import techreborn.init.TRItemSettings;
 /**
  * Created by modmuss50 on 05/11/2016.
  */
-public class ElectricTreetapItem extends Item implements RcFabricEnergyItem {
+public class ElectricTreetapItem extends Item implements RcEnergyItem {
 	public final RcEnergyTier tier = RcEnergyTier.MEDIUM;
 
-	public ElectricTreetapItem() {
-		super(TRItemSettings.unbreakable());
+	public ElectricTreetapItem(String name) {
+		super(TRItemSettings.item(name).durability(0));
 	}
 
 	// Item
@@ -65,7 +65,7 @@ public class ElectricTreetapItem extends Item implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return tier;
 	}
 

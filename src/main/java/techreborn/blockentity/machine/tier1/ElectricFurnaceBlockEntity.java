@@ -24,7 +24,21 @@
 
 package techreborn.blockentity.machine.tier1;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
+import net.minecraft.world.item.crafting.SmeltingRecipe;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -41,18 +55,6 @@ import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
 
 import java.util.Optional;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.SingleRecipeInput;
-import net.minecraft.world.item.crafting.SmeltingRecipe;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.state.BlockState;
 
 public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 		implements IToolDrop, InventoryProvider, BuiltScreenHandlerProvider {
@@ -72,7 +74,7 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 	}
 
 	private void setInvDirty(boolean isDirty) {
-		inventory.setHashChanged(isDirty);
+		inventory.setHasChanged(isDirty);
 	}
 
 	private boolean isInvDirty() {
@@ -85,7 +87,10 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 			resetCrafter();
 			return;
 		}
-		Optional<SmeltingRecipe> testRecipe = level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(stack), level).map(RecipeHolder::value);
+		if (level == null) return;
+		MinecraftServer server = level.getServer();
+		if (server == null) return;
+		Optional<SmeltingRecipe> testRecipe = server.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(stack), level).map(RecipeHolder::value);
 		if (!testRecipe.isPresent()) {
 			resetCrafter();
 			return;
@@ -95,12 +100,12 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 		}
 		currentRecipe = testRecipe.get();
 		cookTime = 0;
-		cookTimeTotal = Math.max((int) (currentRecipe.getCookingTime() * (1.0 - getSpeedMultiplier())), 1);
+		cookTimeTotal = Math.max((int) (currentRecipe.cookingTime() * (1.0 - getSpeedMultiplier())), 1);
 		updateState();
 	}
 
 	private boolean canAcceptOutput(SmeltingRecipe recipe, int slot) {
-		ItemStack recipeOutput = recipe.getResultItem(level.registryAccess());
+		ItemStack recipeOutput = recipe.assemble(new SingleRecipeInput(inventory.getItem(slot)));
 		if (recipeOutput.isEmpty()) {
 			return false;
 		}
@@ -123,7 +128,7 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 		if (!canAcceptOutput(currentRecipe, outputSlot)) {
 			return false;
 		}
-		return !(getEnergy() < currentRecipe.getCookingTime() * getEuPerTick(EnergyPerTick));
+		return !(getEnergy() < currentRecipe.cookingTime() * getEuPerTick(EnergyPerTick));
 	}
 
 	private void resetCrafter() {
@@ -134,14 +139,13 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 	}
 
 	private void updateState() {
-		BlockPos bp = getBlockPos();
-		Block furnaceBlock = level.getBlockState(bp).getBlock();
+		Block furnaceBlock = getLevel().getBlockState(worldPosition).getBlock();
 
 		if (furnaceBlock instanceof BlockMachineBase blockMachineBase) {
 			boolean isActive = currentRecipe != null || canCraftAgain();
-			blockMachineBase.setActive(isActive, level, bp);
+			blockMachineBase.setActive(isActive, level, worldPosition);
 		}
-		level.sendBlockUpdated(bp, level.getBlockState(bp), level.getBlockState(bp), 3);
+		level.sendBlockUpdated(worldPosition, level.getBlockState(worldPosition), level.getBlockState(worldPosition), 3);
 	}
 
 	private boolean hasAllInputs(SmeltingRecipe recipe) {
@@ -164,7 +168,7 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 			return;
 		}
 		ItemStack outputStack = inventory.getItem(outputSlot);
-		ItemStack result = recipe.getResultItem(level.registryAccess());
+		ItemStack result = recipe.assemble(new SingleRecipeInput(inventory.getItem(outputSlot)));
 		if (outputStack.isEmpty()) {
 			inventory.setItem(outputSlot, result.copy());
 		} else {
@@ -199,11 +203,11 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 
 	// TilePowerAcceptor
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
 		charge(2);
 
-		if (world == null || world.isClientSide) {
+		if (!(level instanceof ServerLevel)) {
 			return;
 		}
 
@@ -231,7 +235,7 @@ public class ElectricFurnaceBlockEntity extends PowerAcceptorBlockEntity
 				if (getStored() > getEuPerTick(EnergyPerTick)) {
 					useEnergy(getEuPerTick(EnergyPerTick));
 					cookTime++;
-					if (cookTime == 1 || cookTime % 20 == 0 && RecipeCrafter.soundHandler != null) {
+					if (!isMuffled() && (cookTime == 1 || cookTime % 20 == 0 && RecipeCrafter.soundHandler != null)) {
 						RecipeCrafter.soundHandler.playSound(false, this);
 					}
 				}

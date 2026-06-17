@@ -24,8 +24,29 @@
 
 package techreborn.blockentity.machine.tier1;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.CustomRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -41,27 +62,6 @@ import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.TransientCraftingContainer;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.CustomRecipe;
-import net.minecraft.world.item.crafting.Ingredient;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
 
 /**
  * Created by modmuss50 on 20/06/2017.
@@ -75,7 +75,8 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 	public static final int RECIPE_TIME = 120;
 	public static final int EU_TICK = 10;
 
-	public final RebornInventory<AutoCraftingTableBlockEntity> inventory = new RebornInventory<>(CRAFTING_AREA + 2, "AutoCraftingTableBlockEntity", 64, this);
+	public final RebornInventory<AutoCraftingTableBlockEntity> inventory;
+	private final BalanceTable balanceTable = new BalanceTable();
 	private final int OUTPUT_SLOT = CRAFTING_AREA; // first slot is indexed by 0, so this is the last non crafting slot
 	private final int EXTRA_OUTPUT_SLOT = CRAFTING_AREA + 1;
 
@@ -83,84 +84,101 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 	public int maxProgress = RECIPE_TIME;
 	public long euTick = EU_TICK;
 	public long lastSoundTime = 0;
-	public int balanceSlot = 0;
 
-	TransientCraftingContainer inventoryCrafting = null;
+	TransientCraftingContainer inventoryCrafting;
 	CraftingRecipe lastRecipe = null;
 	ItemStack outputPreview = ItemStack.EMPTY;
-
-	Item[] layoutInv = new Item[CRAFTING_AREA];
 
 	public boolean locked = false;
 
 	public AutoCraftingTableBlockEntity(BlockPos pos, BlockState state) {
 		super(TRBlockEntities.AUTO_CRAFTING_TABLE, pos, state);
-	}
+		inventoryCrafting = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
+			@Override
+			public ItemStack quickMoveStack(Player player, int index) {
+				return ItemStack.EMPTY;
+			}
 
-	@Nullable
-	public CraftingRecipe getCurrentRecipe(TransientCraftingContainer craftingInventory, CraftingInput input) {
-		if (lastRecipe != null && lastRecipe.matches(input, level)) {
-			if (outputPreview == ItemStack.EMPTY) {
-				layoutInv = getCraftingLayout(craftingInventory);
-				outputPreview = lastRecipe.assemble(input, level.registryAccess());
-			} else if (lastRecipe instanceof CustomRecipe) {
-				Item[] currentInvLayout = getCraftingLayout(craftingInventory);
-				if (!Arrays.equals(layoutInv, currentInvLayout)) {
-					layoutInv = currentInvLayout;
-					outputPreview = lastRecipe.assemble(input, level.registryAccess());
+			@Override
+			public boolean stillValid(Player playerIn) {
+				return false;
+			}
+		}, CRAFTING_WIDTH, CRAFTING_HEIGHT);
+		inventory = new RebornInventory<>(CRAFTING_AREA + 2, "AutoCraftingTableBlockEntity", 64, this) {
+			private void syncStack(int slot, ItemStack stack) {
+				if (slot < CRAFTING_AREA) {
+					inventoryCrafting.setItem(slot, stack);
 				}
 			}
-			return lastRecipe;
-		}
 
-		Item[] currentInvLayout = getCraftingLayout(craftingInventory);
-		if (Arrays.equals(layoutInv, currentInvLayout)) return null;
+			@Override
+			public void readData(ValueInput view) {
+				super.readData(view);
+				for (int i = 0; i < CRAFTING_AREA; i++) {
+					inventoryCrafting.setItem(i, inventory.getItem(i));
+				}
+			}
 
-		layoutInv = currentInvLayout;
+			@Override
+			public void setItem(int slot, ItemStack stack) {
+				super.setItem(slot, stack);
+				syncStack(slot, stack);
+			}
 
-		Optional<CraftingRecipe> testRecipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level).map(RecipeHolder::value);
-		if (testRecipe.isPresent()) {
-			lastRecipe = testRecipe.get();
-			outputPreview = lastRecipe.assemble(input, level.registryAccess());
-			return lastRecipe;
-		} else {
-			outputPreview = ItemStack.EMPTY;
-		}
+			@Override
+			public ItemStack removeItemNoUpdate(int i) {
+				syncStack(i, ItemStack.EMPTY);
+				return super.removeItemNoUpdate(i);
+			}
 
-		return null;
+			@Override
+			public ItemStack removeItem(int i, int i1) {
+				ItemStack stack = super.removeItem(i, i1);
+				if (this.getItem(i).isEmpty()) {
+					syncStack(i, ItemStack.EMPTY);
+				}
+				return stack;
+			}
+
+			@Override
+			public ItemStack shrinkSlot(int slot, int count) {
+				ItemStack stack = super.shrinkSlot(slot, count);
+				if (this.getItem(slot).isEmpty()) {
+					syncStack(slot, ItemStack.EMPTY);
+				}
+				return stack;
+			}
+		};
 	}
 
-	private Item[] getCraftingLayout(TransientCraftingContainer craftingInventory) {
-		Item[] layout = new Item[CRAFTING_AREA];
-		for (int i = 0; i < CRAFTING_AREA; i++) {
-			layout[i] = craftingInventory.getItem(i).getItem();
+	public boolean updateCurrentRecipe(ServerLevel world, CraftingInput input) {
+		if (lastRecipe != null && lastRecipe.matches(input, world)) {
+			if (outputPreview == ItemStack.EMPTY) {
+				balanceTable.updateLayout(input);
+				outputPreview = lastRecipe.assemble(input);
+			} else if (lastRecipe instanceof CustomRecipe && balanceTable.updateLayout(input)) {
+				outputPreview = lastRecipe.assemble(input);
+			}
+			return true;
 		}
-		return layout;
-	}
 
-	private TransientCraftingContainer getCraftingInventory() {
-		if (inventoryCrafting == null) {
-			inventoryCrafting = new TransientCraftingContainer(new AbstractContainerMenu(null, -1) {
-				@Override
-				public ItemStack quickMoveStack(Player player, int index) {
-					return ItemStack.EMPTY;
-				}
-
-				@Override
-				public boolean stillValid(Player playerIn) {
-					return false;
-				}
-			}, CRAFTING_WIDTH, CRAFTING_HEIGHT);
+		if (balanceTable.updateLayout(input)) {
+			Optional<CraftingRecipe> testRecipe = world.recipeAccess()
+				.getRecipeFor(RecipeType.CRAFTING, input, world).map(RecipeHolder::value);
+			if (testRecipe.isPresent()) {
+				lastRecipe = testRecipe.get();
+				outputPreview = lastRecipe.assemble(input);
+				return true;
+			} else {
+				outputPreview = ItemStack.EMPTY;
+			}
 		}
-		for (int i = 0; i < CRAFTING_AREA; i++) {
-			inventoryCrafting.setItem(i, inventory.getItem(i));
-		}
-		return inventoryCrafting;
+		return false;
 	}
 
 	@Nullable
-	private ItemStack getRecipeRemainder(CraftingRecipe recipe, CraftingInput input) {
-		NonNullList<ItemStack> remainingStacks = recipe.getRemainingItems(input);
+	private ItemStack getRecipeReminder(CraftingInput input) {
+		NonNullList<ItemStack> remainingStacks = lastRecipe.getRemainingItems(input);
 		ItemStack reminderStack, recipeReminder = ItemStack.EMPTY;
 		for (int slot = 0, size = remainingStacks.size(); slot < size; slot++) {
 			reminderStack = remainingStacks.get(slot);
@@ -169,7 +187,7 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 				for (slot = slot + 1; slot < size; slot++) {
 					reminderStack = remainingStacks.get(slot);
 					if (!reminderStack.isEmpty()) {
-						if (ItemUtils.isItemEqual(recipeReminder, reminderStack, true, true)) {
+						if (ItemStack.isSameItemSameComponents(recipeReminder, reminderStack)) {
 							recipeReminder.grow(reminderStack.getCount());
 						} else {
 							return null;
@@ -180,6 +198,25 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 			}
 		}
 		return recipeReminder;
+	}
+
+	private void make(CraftingInput.Positioned positioned, ItemStack resultStack, ItemStack remainderStack) {
+		CraftingInput input = positioned.input();
+		int width = input.width();
+		int max = (positioned.top() + input.height()) * CRAFTING_WIDTH;
+		int space = CRAFTING_WIDTH - width;
+		for (int slot = positioned.top() * CRAFTING_WIDTH + positioned.left(); slot < max; slot += space) {
+			for (int end = slot + width; slot < end; slot++) {
+				if (!this.inventory.getItem(slot).isEmpty()) {
+					this.inventory.shrinkSlot(slot, 1);
+				}
+			}
+		}
+		moveOutput(resultStack, OUTPUT_SLOT);
+		if (!remainderStack.isEmpty()) {
+			moveOutput(remainderStack, EXTRA_OUTPUT_SLOT);
+		}
+		inventory.resetHasChanged();
 	}
 
 	private boolean hasOutputSpace(ItemStack output, int slot) {
@@ -193,49 +230,6 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 		return false;
 	}
 
-	private boolean make(CraftingRecipe recipe, CraftingInput input, ItemStack recipeReminder) {
-		NonNullList<Ingredient> ingredients = recipe.getIngredients();
-		if (ingredients.isEmpty()) {
-			input.items().forEach(stack -> stack.shrink(1));
-			if (!recipeReminder.isEmpty()) {
-				moveOutput(recipeReminder, EXTRA_OUTPUT_SLOT);
-			}
-		} else {
-			// each slot can only be used once because in canMake we only checked if decrement by 1 still retains the recipe
-			// otherwise recipes can break when an ingredient is used multiple times
-			boolean[] slotUsed = new boolean[CRAFTING_AREA];
-			for (int i = 0; i < ingredients.size(); i++) {
-				Ingredient ingredient = ingredients.get(i);
-				// Looks for the best slot to take it from
-				ItemStack bestSlot = inventory.getItem(i);
-				if (ingredient.test(bestSlot) && !slotUsed[i]) {
-					slotUsed[i] = true;
-					ItemStack remainderStack = getRemainderItem(bestSlot);
-					bestSlot.shrink(1);
-					if (!remainderStack.isEmpty()) {
-						moveOutput(remainderStack, EXTRA_OUTPUT_SLOT);
-					}
-
-				} else {
-					// check all slots in search of the ingredient
-					for (int j = 0; j < CRAFTING_AREA; j++) {
-						ItemStack stack = inventory.getItem(j);
-						if (ingredient.test(stack) && !slotUsed[j]) {
-							slotUsed[j] = true;
-							ItemStack remainderStack = getRemainderItem(stack);
-							stack.shrink(1);
-							if (!remainderStack.isEmpty()) {
-								moveOutput(remainderStack, EXTRA_OUTPUT_SLOT);
-							}
-						}
-					}
-				}
-			}
-		}
-		moveOutput(outputPreview, OUTPUT_SLOT);
-		return true;
-	}
-
 	private void moveOutput(ItemStack stack, int slot) {
 		ItemStack currentOutput = inventory.getItem(slot);
 		if (currentOutput.isEmpty()) {
@@ -245,118 +239,21 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 		}
 	}
 
-	private ItemStack getRemainderItem(ItemStack stack) {
-		return stack.getItem().getCraftingRemainingItem(stack);
-	}
-
-	private Optional<TransientCraftingContainer> balanceRecipe(TransientCraftingContainer craftCache, CraftingRecipe currentRecipe) {
-		balanceSlot++;
-		if (balanceSlot > craftCache.getContainerSize()) {
-			balanceSlot = 0;
-		}
-		// Find the best slot for each item in a recipe, and move it if needed
-		ItemStack sourceStack = inventory.getItem(balanceSlot);
-		if (sourceStack.isEmpty()) {
-			return Optional.empty();
-		}
-		List<Integer> possibleSlots = new ArrayList<>();
-		for (int s = 0; s < currentRecipe.getIngredients().size(); s++) {
-			for (int i = 0; i < CRAFTING_AREA; i++) {
-				if (possibleSlots.contains(i)) {
-					continue;
-				}
-				ItemStack stackInSlot = inventory.getItem(i);
-				Ingredient ingredient = currentRecipe.getIngredients().get(s);
-				if (ingredient != Ingredient.EMPTY && ingredient.test(sourceStack)) {
-					if (stackInSlot.getItem() == sourceStack.getItem()) {
-						possibleSlots.add(i);
-						break;
-					}
-				}
-			}
-
-		}
-
-		if (!possibleSlots.isEmpty()) {
-			int totalItems = possibleSlots.stream()
-				.mapToInt(value -> inventory.getItem(value).getCount()).sum();
-			int slots = possibleSlots.size();
-
-			//This makes an array of ints with the best possible slot distribution
-			int[] split = new int[slots];
-			int remainder = totalItems % slots;
-			Arrays.fill(split, totalItems / slots);
-			while (remainder > 0) {
-				for (int i = 0; i < split.length; i++) {
-					if (remainder > 0) {
-						split[i] += 1;
-						remainder--;
-					}
-				}
-			}
-
-			List<Integer> slotDistribution = possibleSlots.stream()
-				.mapToInt(value -> inventory.getItem(value).getCount())
-				.boxed().collect(Collectors.toList());
-
-			boolean needsBalance = false;
-			for (int required : split) {
-				if (slotDistribution.contains(required)) {
-					//We need to remove the int, not at the int, this seems to work around that
-					slotDistribution.remove(Integer.valueOf(required));
-				} else {
-					needsBalance = true;
-				}
-			}
-			if (!needsBalance) {
-				return Optional.empty();
-			}
-		} else {
-			return Optional.empty();
-		}
-
-		//Slot, count
-		Pair<Integer, Integer> bestSlot = null;
-		for (Integer slot : possibleSlots) {
-			ItemStack slotStack = inventory.getItem(slot);
-			if (slotStack.isEmpty()) {
-				bestSlot = Pair.of(slot, 0);
-			}
-			if (bestSlot == null) {
-				bestSlot = Pair.of(slot, slotStack.getCount());
-			} else if (bestSlot.getRight() >= slotStack.getCount()) {
-				bestSlot = Pair.of(slot, slotStack.getCount());
-			}
-		}
-		if (bestSlot.getLeft() == balanceSlot
-			|| bestSlot.getRight() == sourceStack.getCount()
-			|| inventory.getItem(bestSlot.getLeft()).isEmpty()
-			|| !ItemUtils.isItemEqual(sourceStack, inventory.getItem(bestSlot.getLeft()), true, true)) {
-			return Optional.empty();
-		}
-		sourceStack.shrink(1);
-		inventory.getItem(bestSlot.getLeft()).grow(1);
-		inventory.setHashChanged();
-
-		return Optional.of(getCraftingInventory());
-	}
-
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide || getStored() < euTick) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel) || getStored() < euTick) {
 			return;
 		}
-		TransientCraftingContainer inventory = getCraftingInventory();
-		if (inventory.isEmpty()) {
+		if (inventoryCrafting.isEmpty()) {
 			progress = 0;
 			outputPreview = ItemStack.EMPTY;
 			return;
 		}
-		CraftingInput input = getRecipeInput(inventory);
-		CraftingRecipe recipe = getCurrentRecipe(inventory, input);
-		if (recipe == null) {
+		CraftingInput.Positioned positioned = inventoryCrafting.asPositionedCraftInput();
+		CraftingInput input = positioned.input();
+		if (!updateCurrentRecipe(serverLevel, input)) {
 			progress = 0;
 			return;
 		}
@@ -364,8 +261,7 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 			return;
 		}
 
-		Optional<TransientCraftingContainer> balanceResult = balanceRecipe(inventory, recipe);
-		balanceResult.ifPresent(craftingInventory -> inventoryCrafting = craftingInventory);
+		balanceTable.balance(inventory, input);
 
 		// Don't allow recipe to change (Keep at least one of each slot stocked, assuming it's actually a recipe)
 		if (locked) {
@@ -376,15 +272,15 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 			}
 		}
 
-		ItemStack recipeReminder = getRecipeRemainder(recipe, input);
+		ItemStack recipeReminder = getRecipeReminder(input);
 		if (recipeReminder == null || !hasOutputSpace(recipeReminder, EXTRA_OUTPUT_SLOT)) {
 			return;
 		}
 
 		if (progress >= maxProgress) {
 			progress = 0;
-			make(recipe, input, recipeReminder);
-			if (inventory.isEmpty()) {
+			make(positioned, outputPreview, recipeReminder);
+			if (inventoryCrafting.isEmpty()) {
 				outputPreview = ItemStack.EMPTY;
 			}
 		} else {
@@ -397,10 +293,10 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 			}
 			progress++;
 			if (!isMuffled()) {
-				long time = world.getGameTime();
+				long time = serverLevel.getGameTime();
 				if (time - lastSoundTime > RECIPE_TIME) {
 					lastSoundTime = time;
-					world.playSound(null, pos.getX(), pos.getY(), pos.getZ(), ModSounds.AUTO_CRAFTING,
+					serverLevel.playSound(null, pos.getX(), pos.getY(), pos.getZ(), ModSounds.AUTO_CRAFTING,
 						SoundSource.BLOCKS, 0.3F, 0.8F);
 				}
 			}
@@ -429,17 +325,15 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		tag.putBoolean("locked", locked);
-		super.saveAdditional(tag, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		view.putBoolean("locked", locked);
+		super.saveAdditional(view);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		if (tag.contains("locked")) {
-			locked = tag.getBoolean("locked");
-		}
-		super.loadAdditional(tag, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		locked = view.getBooleanOr("locked", false);
+		super.loadAdditional(view);
 	}
 
 	// IToolDrop
@@ -506,11 +400,150 @@ public class AutoCraftingTableBlockEntity extends PowerAcceptorBlockEntity
 		outputPreview = stack;
 	}
 
-	private CraftingInput getRecipeInput(TransientCraftingContainer craftingInventory) {
-		List<ItemStack> stacks = new ArrayList<>(craftingInventory.getContainerSize());
-		for (int i = 0; i < craftingInventory.getContainerSize(); i++) {
-			stacks.add(craftingInventory.getItem(i));
+	static class BalanceTable {
+		private Item[] layout = new Item[0];
+		private BalanceEntry entry = new BalanceEntry();
+		private final Map<BalanceEntry, ArrayList<Integer>> ingredients = new HashMap<>();
+		private java.util.Iterator<BalanceEntry> iterator = null;
+		private boolean empty = true;
+		private boolean needsMatch = false;
+
+		public boolean updateLayout(CraftingInput input) {
+			int size = input.size();
+			ItemStack[] stacks = new ItemStack[size];
+			Item[] items = new Item[size];
+
+			boolean same = size == layout.length;
+			for (int i = 0; i < size; i++) {
+				stacks[i] = input.getItem(i);
+				items[i] = stacks[i].getItem();
+				if (same && layout[i] != items[i]) {
+					same = false;
+				}
+			}
+
+			if (same) {
+				return false;
+			}
+
+			layout = items;
+			ingredients.clear();
+			entry.resetMatch();
+			for (int i = 0; i < size; i++) {
+				if (items[i] != Items.AIR) {
+					entry.setItem(items[i]);
+					entry.setComponents(stacks[i].getComponents());
+					ingredients.computeIfAbsent(entry, this::createSlots).add(i);
+				}
+			}
+			ingredients.values().removeIf(this::checkInvalid);
+			empty = ingredients.isEmpty();
+			if (!empty) {
+				iterator = ingredients.keySet().stream().toList().iterator();
+				entry = iterator.next();
+				needsMatch = true;
+			}
+
+			return true;
 		}
-		return CraftingInput.of(craftingInventory.getWidth(), craftingInventory.getHeight(), stacks);
+
+		private ArrayList<Integer> createSlots(BalanceEntry _entry) {
+			entry = new BalanceEntry();
+			return new ArrayList<>(layout.length);
+		}
+
+		private boolean checkInvalid(ArrayList<Integer> list) {
+			return list.size() == 1;
+		}
+
+		public void balance(RebornInventory<AutoCraftingTableBlockEntity> inventory, CraftingInput input) {
+			if (empty) return;
+			if (!needsMatch) {
+				if (!inventory.hasChanged()) return;
+				inventory.resetHasChanged();
+				needsMatch = true;
+			}
+			List<Integer> list = ingredients.get(entry);
+			int min = Integer.MAX_VALUE, max = 0, count;
+			ItemStack minStack = null, maxStack = null, itemStack;
+			for (Integer slot : list) {
+				itemStack = input.getItem(slot);
+				count = itemStack.getCount();
+				if (min > count) {
+					min = count;
+					minStack = itemStack;
+				}
+				if (max < count) {
+					max = count;
+					maxStack = itemStack;
+				}
+			}
+			if (max > min + 1) {
+				assert minStack != null && maxStack != null;
+				maxStack.shrink(1);
+				minStack.grow(1);
+				inventory.resetHasChanged();
+				inventory.setChanged();
+			} else {
+				entry.stopMatch();
+			}
+
+			checkState(entryNext());
+		}
+
+		private boolean entryNext() {
+			if (!iterator.hasNext()) {
+				iterator = ingredients.keySet().stream().toList().iterator();
+			}
+			entry = iterator.next();
+			return entry.needsMatch;
+		}
+
+		private void checkState(boolean needsMatch) {
+			if (!needsMatch) {
+				for (int i = ingredients.size() - 1; i > 0; i--) {
+					if (entryNext()) return;
+				}
+				this.needsMatch = false;
+				ingredients.keySet().forEach(BalanceEntry::resetMatch);
+			}
+		}
+	}
+	static class BalanceEntry {
+		public Item item = null;
+		public DataComponentMap components = null;
+		public boolean needsMatch = true;
+
+		public void setItem(Item item) {
+			this.item = item;
+		}
+
+		public void setComponents(DataComponentMap components) {
+			this.components = components;
+		}
+
+		public void stopMatch() {
+			this.needsMatch = false;
+		}
+
+		public void resetMatch() {
+			this.needsMatch = true;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (o instanceof BalanceEntry entry) {
+				return item == entry.item && Objects.equals(components, entry.components);
+			} else if (o instanceof ItemStack stack) {
+				return item == stack.getItem() && Objects.equals(components, stack.getComponents());
+			} else {
+				return false;
+			}
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(item, components);
+		}
 	}
 }

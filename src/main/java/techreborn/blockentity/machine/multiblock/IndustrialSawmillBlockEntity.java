@@ -26,14 +26,15 @@ package techreborn.blockentity.machine.multiblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.MultiblockWriter;
 import reborncore.common.fluid.FluidUtils;
@@ -67,6 +68,11 @@ public class IndustrialSawmillBlockEntity extends GenericMachineBlockEntity impl
 	}
 
 	@Override
+	public boolean hasMultiblock() {
+		return true;
+	}
+
+	@Override
 	public void writeMultiblock(MultiblockWriter writer) {
 		Block basic = TRContent.MachineBlocks.BASIC.getCasing();
 		Block advanced = TRContent.MachineBlocks.ADVANCED.getCasing();
@@ -78,9 +84,9 @@ public class IndustrialSawmillBlockEntity extends GenericMachineBlockEntity impl
 
 	// TileGenericMachine
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel)) {
 			return;
 		}
 
@@ -97,15 +103,15 @@ public class IndustrialSawmillBlockEntity extends GenericMachineBlockEntity impl
 
 	// TilePowerAcceptor
 	@Override
-	public void loadAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		tank.read(tagCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		tank.read(view);
 	}
 
 	@Override
-	public void saveAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tank.write(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		tank.write(view);
 	}
 
 	// TileMachineBase
@@ -120,7 +126,7 @@ public class IndustrialSawmillBlockEntity extends GenericMachineBlockEntity impl
 	public BuiltScreenHandler createScreenHandler(int syncID, final Player player) {
 		return new ScreenHandlerBuilder("industrialsawmill").player(player.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(this).fluidSlot(1, 34, 35).slot(0, 84, 43).outputSlot(2, 126, 25).outputSlot(3, 126, 43)
-				.outputSlot(4, 126, 61).outputSlot(5, 34, 55).energySlot(6, 8, 72).sync(tank).syncEnergyValue().syncCrafterValue()
+				.outputSlot(4, 126, 61).outputSlot(5, 34, 55).energySlot(6, 8, 72).sync(tank).syncEnergyValue().syncCrafterValue().syncShapeValue()
 				.addInventory().create(this, syncID);
 	}
 

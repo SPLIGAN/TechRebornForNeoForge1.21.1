@@ -24,15 +24,16 @@
 
 package techreborn.items;
 
-import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.RecipeUtils;
 import reborncore.common.util.WorldUtils;
 import techreborn.init.ModRecipes;
+import techreborn.init.TRContent;
+import techreborn.init.TRItemSettings;
+import techreborn.recipe.recipes.ScrapBoxRecipe;
 
 import java.util.List;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -40,20 +41,25 @@ import net.minecraft.world.level.Level;
 
 public class ScrapBoxItem extends Item {
 
-	public ScrapBoxItem() {
-		super(new Item.Properties());
+	public ScrapBoxItem(String name) {
+		super(TRItemSettings.item(name));
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
-		ItemStack stack = player.getMainHandItem();
-		if (!world.isClientSide) {
-			List<RebornRecipe> scrapboxRecipeList = RecipeUtils.getRecipes(world, ModRecipes.SCRAPBOX);
-			int random = world.random.nextInt(scrapboxRecipeList.size());
-			ItemStack out = scrapboxRecipeList.get(random).outputs().get(0);
+	public InteractionResult use(Level world, Player player, InteractionHand hand) {
+		ItemStack stack = player.getItemInHand(hand);
+		if (stack.is(TRContent.SCRAP_BOX)) {
+			if (world.isClientSide()) {
+				return InteractionResult.SUCCESS;
+			}
+			List<ScrapBoxRecipe> scrapboxRecipeList = RecipeUtils.getRecipes(world, ModRecipes.SCRAPBOX);
+			int random = world.getRandom().nextInt(scrapboxRecipeList.size());
+			ItemStack out = scrapboxRecipeList.get(random).outputs().get(0).create();
 			WorldUtils.dropItem(out, world, player.blockPosition());
-			stack.shrink(1);
+			ItemStack copy = stack.copy();
+			copy.shrink(1);
+			return InteractionResult.SUCCESS.heldItemTransformedTo(copy);
 		}
-		return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+		return InteractionResult.PASS;
 	}
 }

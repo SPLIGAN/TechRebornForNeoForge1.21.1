@@ -25,6 +25,7 @@
 package techreborn.blocks.misc;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -32,7 +33,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.multiblock.BlockMultiblockBase;
 import techreborn.blockentity.machine.multiblock.casing.MachineCasingBlockEntity;
 import techreborn.init.TRBlockSettings;
@@ -42,24 +43,22 @@ public class BlockMachineCasing extends BlockMultiblockBase {
 
 	public final int heatCapacity;
 
-	public BlockMachineCasing(int heatCapacity) {
-		super(TRBlockSettings.machineCasing());
+	public BlockMachineCasing(int heatCapacity, String name) {
+		super(TRBlockSettings.machineCasing(name));
+		registerDefaultState(defaultBlockState().setValue(DirectionUtils.HORIZONTAL_NEIGHBORS, 0));
 		this.heatCapacity = heatCapacity;
-		registerDefaultState(getStateDefinition().any().setValue(DirectionUtils.HORIZONTAL_NEIGHBORS, 0));
 	}
 
 	@Override
-	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+	public void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		super.createBlockStateDefinition(builder);
 		builder.add(DirectionUtils.HORIZONTAL_NEIGHBORS);
 	}
 
 	@Override
-	protected void onRemove(BlockState state, Level world, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			DirectionUtils.removeHorizontalNeighbor(world, pos, state, block -> block instanceof BlockMachineCasing);
-		}
-		super.onRemove(state, world, pos, newState, isMoving);
+	public void affectNeighborsAfterRemoval(BlockState state, ServerLevel world, BlockPos pos, boolean moved) {
+		super.affectNeighborsAfterRemoval(state, world, pos, moved);
+		DirectionUtils.removeHorizontalNeighbor(world, pos, state, block -> block instanceof BlockMachineCasing);
 	}
 
 	@Override

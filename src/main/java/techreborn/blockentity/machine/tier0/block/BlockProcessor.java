@@ -25,8 +25,9 @@
 package techreborn.blockentity.machine.tier0.block;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import reborncore.common.screen.builder.BlockEntityScreenHandlerBuilder;
 
 public interface BlockProcessor {
@@ -37,8 +38,8 @@ public interface BlockProcessor {
 	int getCurrentTickTime();
 	int getTickTime();
 
-	void loadAdditional(CompoundTag tag);
-	void saveAdditional(CompoundTag tag);
+	void readData(ValueInput view);
+	void writeData(ValueOutput view);
 	BlockEntityScreenHandlerBuilder syncNbt(BlockEntityScreenHandlerBuilder builder);
 
 	default int getProgress() {

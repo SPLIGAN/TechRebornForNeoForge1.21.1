@@ -32,10 +32,11 @@ import techreborn.blockentity.machine.tier1.GreenhouseControllerBlockEntity;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 
 public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
@@ -48,8 +49,8 @@ public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, f, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float f) {
+		super.extractBackground(drawContext, mouseX, mouseY, f);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		drawSlot(drawContext, 8, 72, layer);
@@ -62,38 +63,27 @@ public class GuiGreenhouseController extends GuiBase<BuiltScreenHandler> {
 		drawSlot(drawContext, 30, gridYPos + 36, layer);
 		drawSlot(drawContext, 48, gridYPos + 36, layer);
 
-		if (!blockEntity.isMultiblockValid()) {
-			drawContext.blit(ResourceLocation.fromNamespaceAndPath("techreborn", "textures/item/part/digital_display.png"), leftPos + 68, topPos + 22, 0, 0, 16, 16, 16, 16);
+		if (!blockEntity.isShapeValid()) {
+			drawContext.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath("techreborn", "textures/item/part/digital_display.png"), leftPos + 68, topPos + 22, 0, 0, 16, 16, 16, 16);
 			if (isPointInRect(68, 22, 16, 16, mouseX, mouseY)) {
 				List<Component> list = Arrays.stream(I18n.get("techreborn.tooltip.greenhouse.upgrade_available")
 						.split("\\r?\\n"))
 						.map(Component::literal)
 						.collect(Collectors.toList());
 
-				drawContext.renderComponentTooltip(getTextRenderer(), list, mouseX, mouseY);
+				drawContext.setComponentTooltipForNextFrame(getFont(), list, mouseX, mouseY);
 			}
 		}
 
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		addHologramButton(90, 24, 212, layer).clickHandler(this::onClick);
 		builder.drawHologramButton(drawContext, this, 90, 24, mouseX, mouseY, layer);
-
-		if (!blockEntity.isMultiblockValid()) {
-			if (isPointInRect(68, 22, 16, 16, mouseX, mouseY)) {
-				List<Component> list = Arrays.stream(I18n.get("techreborn.tooltip.greenhouse.upgrade_available")
-						.split("\\r?\\n"))
-						.map(Component::literal)
-						.collect(Collectors.toList());
-
-				drawContext.renderComponentTooltip(getTextRenderer(), list, mouseX - getGuiLeft(), mouseY - getGuiTop());
-			}
-		}
 
 		builder.drawMultiEnergyBar(drawContext, this, 9, 19, (int) blockEntity.getEnergy(), (int) blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);
 	}

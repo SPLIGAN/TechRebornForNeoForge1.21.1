@@ -24,14 +24,9 @@
 
 package techreborn.blockentity.machine.tier1;
 
-import net.minecraft.world.level.block.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,7 +35,6 @@ import net.minecraft.world.level.block.BambooStalkBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.BushBlock;
 import net.minecraft.world.level.block.CactusBlock;
 import net.minecraft.world.level.block.CaveVines;
 import net.minecraft.world.level.block.CocoaBlock;
@@ -49,10 +43,11 @@ import net.minecraft.world.level.block.NetherWartBlock;
 import net.minecraft.world.level.block.PumpkinBlock;
 import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.SweetBerryBushBlock;
+import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -104,7 +99,7 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 		Block block = blockState.getBlock();
 
 		if (growthBoost) {
-			if (block instanceof BonemealableBlock || block instanceof BushBlock
+			if (block instanceof BonemealableBlock || block instanceof VegetationBlock
 					|| block instanceof SugarCaneBlock	|| block instanceof CactusBlock
 			) {
 				if (getStored() > TechRebornConfig.greenhouseControllerEnergyPerBonemeal) {
@@ -119,7 +114,7 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 		}
 
 		if (block instanceof CropBlock cropBlock) {
-			processAgedCrop(blockState, blockPos, CropBlock.AGE, cropBlock.getMaxAge(), 0);
+			processAgedCrop(blockState, blockPos, cropBlock.getAgeProperty(), cropBlock.getMaxAge(), 0);
 		} else if (block instanceof NetherWartBlock) {
 			processAgedCrop(blockState, blockPos, NetherWartBlock.AGE, 3, 0);
 		} else if (block instanceof SweetBerryBushBlock) {
@@ -150,7 +145,7 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 						&& insertIntoInv(Collections.singletonList(TRContent.Parts.SAP.getStack()))
 				) {
 					useEnergy(TechRebornConfig.greenhouseControllerEnergyPerHarvest);
-					level.setBlock(blockPos.above(y), blockState.setValue(BlockRubberLog.HAS_SAP, false).setValue(BlockRubberLog.SAP_SIDE, Direction.from2DDataValue(0)), Block.UPDATE_ALL);
+					level.setBlockAndUpdate(blockPos.above(y), blockState.setValue(BlockRubberLog.HAS_SAP, false).setValue(BlockRubberLog.SAP_SIDE, Direction.from2DDataValue(0)));
 				}
 			}
 		} else if (block instanceof CaveVines){
@@ -159,8 +154,13 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 					&& insertIntoInv(Collections.singletonList(new ItemStack(Items.GLOW_BERRIES, 1)))
 				){
 					useEnergy(TechRebornConfig.greenhouseControllerEnergyPerHarvest);
-					level.setBlock(blockPos.above(y), blockState.setValue(BlockStateProperties.BERRIES, false), Block.UPDATE_ALL);
+					level.setBlockAndUpdate(blockPos.above(y), blockState.setValue(BlockStateProperties.BERRIES, false));
 				}
+			}
+		}
+		else if (blockState.is(Blocks.MELON)) {
+			if (tryHarvestBlock(blockState, blockPos)) {
+				level.destroyBlock(blockPos, false);
 			}
 		}
 	}
@@ -173,18 +173,12 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 			return;
 		}
 		if (tryHarvestBlock(blockState, blockPos)) {
-			level.setBlock(blockPos, blockState.setValue(ageProperty, newAge), Block.UPDATE_ALL);
+			level.setBlock(blockPos, blockState.setValue(ageProperty, newAge), 2);
 		}
 	}
 
 	private boolean tryHarvestBlock(BlockState blockState, BlockPos blockPos) {
-		if (!(level instanceof ServerLevel serverLevel)) {
-			return false;
-		}
-		LootParams.Builder builder = new LootParams.Builder(serverLevel)
-				.withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(blockPos))
-				.withParameter(LootContextParams.TOOL, ItemStack.EMPTY);
-		if (insertIntoInv(blockState.getDrops(builder))) {
+		if (insertIntoInv(Block.getDrops(blockState, (ServerLevel) level, blockPos, null))) {
 			useEnergy(TechRebornConfig.greenhouseControllerEnergyPerHarvest);
 			return true;
 		}
@@ -224,9 +218,9 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide){
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)){
 			return;
 		}
 		if (multiblockCenter == null) {
@@ -240,11 +234,11 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 		}
 
 		if (--ticksToNextMultiblockCheck < 0) {
-			growthBoost = isMultiblockValid();
+			growthBoost = isShapeValid();
 			ticksToNextMultiblockCheck = 200;
 		}
 
-		if (world.getGameTime() % 20 == 0) {
+		if (serverLevel.getGameTime() % 20 == 0) {
 			double cyclesLimit = getSpeedMultiplier() * 4 + 1;
 			while (cyclesLimit-- > 0) {
 				workCycle();
@@ -299,7 +293,7 @@ public class GreenhouseControllerBlockEntity extends PowerAcceptorBlockEntity
 
 	// InventoryProvider
 	@Override
-	public Container getInventory() {
+	public RebornInventory<GreenhouseControllerBlockEntity> getInventory() {
 		return this.inventory;
 	}
 

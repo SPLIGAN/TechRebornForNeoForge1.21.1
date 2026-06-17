@@ -24,8 +24,18 @@
 
 package techreborn.items;
 
+import reborncore.common.blockentity.MachineBaseBlockEntity;
+import techreborn.blockentity.storage.fluid.TankUnitBaseBlockEntity;
+import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
+import techreborn.init.TRContent.StorageUnit;
+import techreborn.init.TRContent.TankUnit;
+import techreborn.init.TRItemSettings;
+
+import static techreborn.TechReborn.LOGGER;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,16 +43,12 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import reborncore.common.blockentity.MachineBaseBlockEntity;
-import techreborn.blockentity.storage.fluid.TankUnitBaseBlockEntity;
-import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
-import techreborn.init.TRContent.StorageUnit;
-import techreborn.init.TRContent.TankUnit;
+import net.minecraft.world.level.storage.TagValueInput;
 
 public class UpgraderItem extends Item {
 
-	public UpgraderItem() {
-		super(new Item.Properties());
+	public UpgraderItem(String name) {
+		super(TRItemSettings.item(name));
 	}
 
 	@Override
@@ -78,16 +84,18 @@ public class UpgraderItem extends Item {
 		CompoundTag data = oldBlockEntity.saveWithoutMetadata(world.registryAccess());
 		data.putString("unitType", newType);
 
-		// empty storage to prevent item spill
-		oldBlockEntity.loadWithComponents(new CompoundTag(), world.registryAccess());
+		try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(() -> "UpgraderItem", LOGGER)) {
+			// empty storage to prevent item spill
+			oldBlockEntity.loadWithComponents(TagValueInput.create(logging, world.registryAccess(), new CompoundTag()));
 
-		world.setBlockAndUpdate(blockPos, newBlockState);
+			world.setBlockAndUpdate(blockPos, newBlockState);
 
-		// restore content and set a new storage type
-		BlockEntity newBlockEntity = world.getBlockEntity(blockPos);
-		if (newBlockEntity != null){
-			newBlockEntity.loadWithComponents(data, world.registryAccess());
-			((MachineBaseBlockEntity) newBlockEntity).syncWithAll();
+			// restore content and set a new storage type
+			BlockEntity newBlockEntity = world.getBlockEntity(blockPos);
+			if (newBlockEntity != null){
+				newBlockEntity.loadWithComponents(TagValueInput.create(logging, world.registryAccess(), data));
+				((MachineBaseBlockEntity) newBlockEntity).syncWithAll();
+			}
 		}
 
 		ItemStack stack = context.getItemInHand();

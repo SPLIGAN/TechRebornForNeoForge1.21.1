@@ -28,25 +28,28 @@ import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.api.items.ArmorRemoveHandler;
 import reborncore.common.powerSystem.RcEnergyTier;
 import techreborn.config.TechRebornConfig;
+import techreborn.init.TRItemSettings;
 import techreborn.utils.TRItemUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
-import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.Level;
 
 public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntityTicker, ArmorRemoveHandler {
@@ -55,23 +58,23 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 	private final ItemAttributeModifiers hasPowerAttributes;
 	private final ItemAttributeModifiers fullSuitAttributes;
 
-	public NanoSuitItem(Holder<ArmorMaterial> material, Type slot) {
-		super(material, slot, TechRebornConfig.nanoSuitCapacity, RcEnergyTier.HIGH);
+	public NanoSuitItem(ArmorMaterial material, ArmorType slot, String name) {
+		super(material, slot, TechRebornConfig.nanoSuitCapacity, RcEnergyTier.HIGH, name);
 		switch (slot) {
 			case HELMET, BOOTS:
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(1).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(3).toughness(2).knockback(1).build();
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(5).toughness(3).knockback(1).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(5).toughness(3).knockback(1).build();
 				break;
 			case CHESTPLATE:
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(2).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(6).toughness(2).knockback(1).build();
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(3).knockback(1).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(3).knockback(1).build();
 				break;
 			case LEGGINGS:
 				noPowerAttributes = new AttributeModifierBuilder(slot).armor(3).build();
 				hasPowerAttributes = new AttributeModifierBuilder(slot).armor(8).toughness(2).knockback(1).build();
-				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(3).knockback(1).tooltip(false).build();
+				fullSuitAttributes = new AttributeModifierBuilder(slot).armor(10).toughness(3).knockback(1).build();
 				break;
 			default:
 				throw new IllegalArgumentException("Invalid slot type");
@@ -86,7 +89,7 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 	@Override
 	public void tickArmor(ItemStack stack, boolean hasFullSuit, Player playerEntity) {
 		// Night Vision
-		if (this.getEquipmentSlot() == EquipmentSlot.HEAD) {
+		if (this.getSlotType() == EquipmentSlot.HEAD) {
 			if (TRItemUtils.isActive(stack) && tryUseEnergy(stack, TechRebornConfig.suitNightVisionCost)) {
 				playerEntity.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, 220, 1, false, false));
 			} else {
@@ -96,32 +99,31 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 		applyModifier(stack, hasFullSuit);
 	}
 
-	private void applyModifier(ItemStack stack, ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
-		if (attributes != target) {
-			stack.set(DataComponents.ATTRIBUTE_MODIFIERS, target);
-		}
-	}
-
 	public void applyModifier(ItemStack stack, boolean hasFullSuit) {
 		ItemAttributeModifiers attributes = stack.get(DataComponents.ATTRIBUTE_MODIFIERS);
 		if (getStoredEnergy(stack) > 0) {
 			if (hasFullSuit) {
-				applyModifier(stack, attributes, fullSuitAttributes);
-			} else {
-				applyModifier(stack, attributes, hasPowerAttributes);
+				if (attributes != fullSuitAttributes) {
+					stack.set(DataComponents.ATTRIBUTE_MODIFIERS, fullSuitAttributes);
+					stack.set(DataComponents.TOOLTIP_DISPLAY, AttributeModifierBuilder.ATTRIBUTE_HIDE);
+				}
+			} else if (attributes != hasPowerAttributes) {
+				stack.set(DataComponents.ATTRIBUTE_MODIFIERS, hasPowerAttributes);
+				stack.set(DataComponents.TOOLTIP_DISPLAY, TRItemSettings.UNBREAKABLE_HIDE);
 			}
-		} else {
-			applyModifier(stack, attributes, noPowerAttributes);
+		} else if (attributes != noPowerAttributes) {
+			stack.set(DataComponents.ATTRIBUTE_MODIFIERS, noPowerAttributes);
+			stack.set(DataComponents.TOOLTIP_DISPLAY, TRItemSettings.UNBREAKABLE_HIDE);
 		}
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player user, InteractionHand hand) {
+	public InteractionResult use(Level world, Player user, InteractionHand hand) {
 		ItemStack thisStack = user.getItemInHand(hand);
-		EquipmentSlot slotType = this.getEquipmentSlot();
+		EquipmentSlot slotType = this.getSlotType();
 		if (user.isShiftKeyDown() && slotType == EquipmentSlot.HEAD) {
 			TRItemUtils.switchActive(thisStack, 1, user);
-			return InteractionResultHolder.success(thisStack);
+			return InteractionResult.SUCCESS;
 		}
 		return super.use(world, user, hand);
 	}
@@ -134,7 +136,7 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 			nanoSuitItem.applyModifier(stack, false);
 			stack.remove(DataComponents.CUSTOM_DATA);
 		} else {
-			playerEntity.getInventory().items.forEach(itemStack -> {
+			playerEntity.getInventory().getNonEquipmentItems().forEach(itemStack -> {
 				if (itemStack.getItem() instanceof NanoSuitItem nanoSuitItem) {
 					nanoSuitItem.applyModifier(itemStack, false);
 					itemStack.remove(DataComponents.CUSTOM_DATA);
@@ -144,8 +146,8 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
-		if (this.type == Type.HELMET) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
+		if (this.getSlotType() == EquipmentSlot.HEAD) {
 			TRItemUtils.buildActiveTooltip(stack, tooltip);
 		}
 	}
@@ -160,7 +162,7 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 			}
 		} else if (AttributeModifierBuilder.equals(attributes, fullSuitAttributes)) {
 			buffer.add(CommonComponents.EMPTY);
-			EquipmentSlot slotType = getEquipmentSlot();
+			EquipmentSlot slotType = getSlotType();
 			buffer.add(AttributeModifierBuilder.text(slotType).withStyle(ChatFormatting.GRAY));
 			AttributeModifierBuilder.appendText(buffer, shift ? attributes : hasPowerAttributes, ChatFormatting.BLUE);
 			AttributeModifierBuilder.appendEnchantmentText(buffer, stack, slotType, ChatFormatting.BLUE);
@@ -175,7 +177,7 @@ public class NanoSuitItem extends TREnergyArmourItem implements ArmorBlockEntity
 				return;
 			}
 			buffer.add(Component.translatable("item.modifiers.power").withStyle(ChatFormatting.GRAY));
-			AttributeModifierBuilder.appendDiffText(buffer, attributes, hasPowerAttributes, ChatFormatting.BLUE);
+			AttributeModifierBuilder.appendDiffText(buffer, noPowerAttributes, hasPowerAttributes, ChatFormatting.BLUE);
 			buffer.add(Component.translatable("item.modifiers.all_equipment").withStyle(ChatFormatting.GRAY));
 			AttributeModifierBuilder.appendText(buffer, FULL_SUIT, ChatFormatting.BLUE);
 		}

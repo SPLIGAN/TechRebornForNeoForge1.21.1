@@ -25,7 +25,20 @@
 package reborncore.client.gui;
 
 import com.google.common.collect.Lists;
-import reborncore.client.compat.FluidVariantRenderingBridge;
+import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractSelectionList;
+import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.material.Fluids;
 import reborncore.api.IListInfoProvider;
 import reborncore.client.gui.config.GuiTab;
 import reborncore.common.fluid.FluidUtils;
@@ -38,32 +51,25 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractSelectionList;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.material.Fluids;
 
 import static reborncore.client.gui.GuiSprites.drawSpriteStretched;
 
 public class GuiBuilder {
+	public static final GuiBuilder INSTANCE = new GuiBuilder();
+
 	private static final Component SPACE_TEXT = Component.literal(" ");
 	@Deprecated
-	public static final ResourceLocation GUI_ELEMENTS = ResourceLocation.fromNamespaceAndPath("reborncore", "textures/gui/guielements.png");
+	public static final Identifier GUI_ELEMENTS = Identifier.fromNamespaceAndPath("reborncore", "textures/gui/guielements.png");
 	private static final boolean EXPERIMENTAL_PROGRESS_BAR = false;
 
-	public void drawDefaultBackground(GuiGraphics drawContext, int x, int y, int width, int height) {
-		drawContext.blitSprite(GuiSprites.BACKGROUND.texture(), x, y, width, height);
+	private GuiBuilder() {
 	}
 
-	public void drawPlayerSlots(GuiGraphics drawContext, Screen gui, int posX, int posY, boolean center) {
+	public void drawDefaultBackground(GuiGraphicsExtractor drawContext, int x, int y, int width, int height) {
+		drawContext.blitSprite(RenderPipelines.GUI_TEXTURED, GuiSprites.BACKGROUND.texture(), x, y, width, height);
+	}
+
+	public void drawPlayerSlots(GuiGraphicsExtractor drawContext, Screen gui, int posX, int posY, boolean center) {
 		if (center) {
 			posX -= 81;
 		}
@@ -79,23 +85,23 @@ public class GuiBuilder {
 		}
 	}
 
-	public void drawSlot(GuiGraphics drawContext,int posX, int posY) {
+	public void drawSlot(GuiGraphicsExtractor drawContext,int posX, int posY) {
 		drawSpriteStretched(drawContext, GuiSprites.SLOT, posX, posY, 18, 18);
 	}
 
-	public void drawText(GuiGraphics drawContext, GuiBase<?> gui, Component text, int x, int y, int color) {
-		drawContext.drawString(gui.getTextRenderer(), text, x, y, color, false);
+	public void drawText(GuiGraphicsExtractor drawContext, RenderTarget gui, Component text, int x, int y, int color) {
+		drawContext.text(gui.getFont(), text, x, y, color, false);
 	}
 
-	public void drawProgressBar(GuiGraphics drawContext, GuiBase<?> gui, double progress, int x, int y) {
-		drawContext.blit(GUI_ELEMENTS, x, y, 150, 18, 22, 15, 256, 256);
+	public void drawProgressBar(GuiGraphicsExtractor drawContext, RenderTarget gui, double progress, int x, int y) {
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, 150, 18, 22, 15, 256, 256);
 		int j = (int) (progress);
 		if (j > 0) {
-			drawContext.blit(GUI_ELEMENTS, x, y, 150, 34, j + 1, 15, 256, 256);
+			drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, 150, 34, j + 1, 15, 256, 256);
 		}
 	}
 
-	public void drawOutputSlot(GuiGraphics drawContext, int x, int y) {
+	public void drawOutputSlot(GuiGraphicsExtractor drawContext, int x, int y) {
 		drawSpriteStretched(drawContext, GuiSprites.OUTPUT_SLOT, x, y, 26, 26);
 	}
 
@@ -110,14 +116,15 @@ public class GuiBuilder {
 	 * @param layer  {@link GuiBase.Layer} The layer to draw on
 	 * @param locked {@code boolean} Set to true if it is in locked state
 	 */
-	public void drawLockButton(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer, boolean locked) {
+	public void drawLockButton(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer, boolean locked) {
 		if (gui.hideGuiElements()) return;
+		int x2 = x, y2 = y;
 		if (layer == GuiBase.Layer.BACKGROUND) {
-			x += gui.getGuiLeft();
-			y += gui.getGuiTop();
+			x2 += gui.getGuiLeft();
+			y2 += gui.getGuiTop();
 		}
 
-		drawSpriteStretched(drawContext, locked ? GuiSprites.BUTTON_LOCKED : GuiSprites.BUTTON_UNLOCKED, x, y, 20, 12);
+		drawSpriteStretched(drawContext, locked ? GuiSprites.BUTTON_LOCKED : GuiSprites.BUTTON_UNLOCKED, x2, y2, 20, 12);
 		if (gui.isPointInRect(x, y, 20, 12, mouseX, mouseY)) {
 			List<Component> list = new ArrayList<>();
 			if (locked) {
@@ -125,7 +132,7 @@ public class GuiBuilder {
 			} else {
 				list.add(Component.translatable("reborncore.gui.tooltip.lock_items"));
 			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -139,14 +146,14 @@ public class GuiBuilder {
 	 * @param mouseY {@code int} Mouse cursor position to check for tooltip
 	 * @param layer  {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawHologramButton(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer) {
-		if (gui.isTabOpen()) return;
+	public void drawHologramButton(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer) {
+		if (gui instanceof GuiBase<?> guiBase && guiBase.isTabOpen()) return;
 		boolean hasTooltip = gui.isPointInRect(x, y, 20, 12, mouseX, mouseY);
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
 			y += gui.getGuiTop();
 		}
-		if (gui.getMachine().renderMultiblock) {
+		if (gui instanceof GuiBase<?> guiBase && guiBase.getMachine().renderMultiblock) {
 			drawSpriteStretched(drawContext, GuiSprites.BUTTON_HOLOGRAM_ENABLED, x, y, 20, 12);
 		} else {
 			drawSpriteStretched(drawContext, GuiSprites.BUTTON_HOLOGRAM_DISABLED, x, y, 20, 12);
@@ -154,11 +161,7 @@ public class GuiBuilder {
 		if (hasTooltip) {
 			List<Component> list = new ArrayList<>();
 			list.add(Component.translatable("reborncore.gui.tooltip.hologram"));
-			if (layer == GuiBase.Layer.FOREGROUND) {
-				mouseX -= gui.getGuiLeft();
-				mouseY -= gui.getGuiTop();
-			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -172,24 +175,24 @@ public class GuiBuilder {
 	 * @param max   {@code int} Maximum heat value
 	 * @param layer {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawBigHeatBar(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int value, int max, GuiBase.Layer layer) {
+	public void drawBigHeatBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int value, int max, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
 			y += gui.getGuiTop();
 		}
-		drawContext.blit(GUI_ELEMENTS, x, y, 26, 218, 114, 18, 256, 256);
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, 26, 218, 114, 18, 256, 256);
 		if (value != 0) {
 			int j = (int) ((double) value / (double) max * 106);
 			if (j < 0) {
 				j = 0;
 			}
-			drawContext.blit(GUI_ELEMENTS, x + 4, y + 4, 26, 246, j, 10, 256, 256);
+			drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x + 4, y + 4, 26, 246, j, 10, 256, 256);
 
 			Component text = Component.literal(String.valueOf(value))
 					.append(Component.translatable("reborncore.gui.heat"));
 
-			gui.drawCentredText(drawContext, text, y + 5, 0xFFFFFF, layer);
+			drawContext.centeredText(gui.getFont(), text, x + 57, y + 5, 0xFFFFFFFF);
 		}
 	}
 
@@ -208,7 +211,7 @@ public class GuiBuilder {
 	 * @param format {@link String} Formatted value to put on the bar
 	 * @param layer  {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawBigBlueBar(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int value, int max, int mouseX, int mouseY, String suffix, Component line2, String format, GuiBase.Layer layer) {
+	public void drawBigBlueBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int value, int max, int mouseX, int mouseY, String suffix, Component line2, String format, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
@@ -218,11 +221,11 @@ public class GuiBuilder {
 		if (j < 0) {
 			j = 0;
 		}
-		drawContext.blit(GUI_ELEMENTS, x + 4, y + 4, 0, 236, j, 10, 256, 256);
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x + 4, y + 4, 0, 236, j, 10, 256, 256);
 		if (!suffix.equals("")) {
 			suffix = " " + suffix;
 		}
-		gui.drawCentredText(drawContext, Component.literal(format).append(suffix), y + 5, 0xFFFFFF, layer);
+		drawContext.centeredText(gui.getFont(), Component.literal(format).append(suffix), x + 57, y + 5, 0xFFFFFFFF);
 		if (gui.isPointInRect(x, y, 114, 18, mouseX, mouseY)) {
 			int percentage = percentage(max, value);
 			List<Component> list = new ArrayList<>();
@@ -265,16 +268,16 @@ public class GuiBuilder {
 				mouseX -= gui.getGuiLeft();
 				mouseY -= gui.getGuiTop();
 			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
-	public void drawBigBlueBar(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int value, int max, int mouseX, int mouseY, String suffix, GuiBase.Layer layer) {
+	public void drawBigBlueBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int value, int max, int mouseX, int mouseY, String suffix, GuiBase.Layer layer) {
 		drawBigBlueBar(drawContext, gui, x, y, value, max, mouseX, mouseY, suffix, Component.empty(), Integer.toString(value), layer);
 
 	}
 
-	public void drawBigBlueBar(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int value, int max, int mouseX, int mouseY, GuiBase.Layer layer) {
+	public void drawBigBlueBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int value, int max, int mouseX, int mouseY, GuiBase.Layer layer) {
 		drawBigBlueBar(drawContext, gui, x, y, value, max, mouseX, mouseY, "", Component.empty(), "", layer);
 	}
 
@@ -284,7 +287,7 @@ public class GuiBuilder {
 	 * @param gui   {@link GuiBase} The GUI to draw on
 	 * @param layer {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawMultiblockMissingBar(GuiGraphics drawContext, GuiBase<?> gui, GuiBase.Layer layer) {
+	public void drawMultiblockMissingBar(GuiGraphicsExtractor drawContext, RenderTarget gui, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		int x = 0;
 		int y = 4;
@@ -297,7 +300,7 @@ public class GuiBuilder {
 		drawContext.fillGradient(x, y + 20, x + 176, y + 20 + 48, 0xC0000000, 0xC0000000);
 		drawContext.fillGradient(x, y + 68, x + 176, y + 70 + 20, 0xC0000000, 0x00000000);
 
-		gui.drawCentredText(drawContext, Component.translatable("reborncore.gui.missingmultiblock"), 43, 0xFFFFFF, layer);
+		drawContext.centeredText(gui.getFont(), Component.translatable("reborncore.gui.missingmultiblock"), x + 88, y + 10, 0xFFFFFFFF);
 	}
 
 	/**
@@ -308,7 +311,7 @@ public class GuiBuilder {
 	 * @param x   {@code int} Top left corner where to place slots
 	 * @param y   {@code int} Top left corner where to place slots
 	 */
-	public void drawUpgrades(GuiGraphics drawContext, GuiBase<?> gui, int x, int y) {
+	public void drawUpgrades(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y) {
 		drawSpriteStretched(drawContext, GuiSprites.UPGRADES, x, y, 24, 81);
 	}
 
@@ -320,9 +323,9 @@ public class GuiBuilder {
 	 * @param y     {@code int} Top left corner where to place tab
 	 * @param stack {@link ItemStack} Item to show as tab icon
 	 */
-	public void drawSlotTab(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, ItemStack stack) {
+	public void drawSlotTab(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, ItemStack stack) {
 		drawSpriteStretched(drawContext, GuiSprites.SLOT_TAB, x, y, 24, 24);
-		drawContext.renderItem(stack, x + 5, y + 4);
+		drawContext.item(stack, x + 5, y + 4);
 	}
 
 
@@ -335,25 +338,26 @@ public class GuiBuilder {
 	 * @param mouseX {@code int} Mouse cursor position
 	 * @param mouseY {@code int} Mouse cursor position
 	 */
-	public void drawSlotConfigTips(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int mouseX, int mouseY, GuiTab guiTab) {
+	public void drawSlotConfigTips(GuiGraphicsExtractor drawContext, GuiBase<?> gui, int x, int y, int mouseX, int mouseY, GuiTab guiTab) {
 		List<Component> tips = guiTab.getTips().stream()
 				.map(Component::translatable)
 				.collect(Collectors.toList());
 
 		TipsListWidget explanation = new TipsListWidget(gui, gui.getScreenWidth() - 14, 76, y, 9 + 2, tips);
 		explanation.setX(x - 81);
-		explanation.render(drawContext, mouseX, mouseY, 1.0f);
+		explanation.setScrollAmount(0);
+		explanation.extractRenderState(drawContext, mouseX, mouseY, 1.0f);
 	}
 
 	private static class TipsListWidget extends AbstractSelectionList<TipsListWidget.TipsListEntry> {
 		private final Theme theme;
 
-		public TipsListWidget(GuiBase<?> gui, int width, int height, int top, int entryHeight, List<Component> tips) {
-			super(gui.getMinecraft(), width, height, top, entryHeight);
+		public TipsListWidget(RenderTarget gui, int width, int height, int top, int entryHeight, List<Component> tips) {
+			super(Minecraft.getInstance(), width, height, top, entryHeight);
 			for (Component tip : tips) {
 				this.addEntry(new TipsListEntry(tip));
 			}
-			theme = gui.theme;
+			theme = ThemeManager.getTheme();
 		}
 
 		@Override
@@ -362,9 +366,9 @@ public class GuiBuilder {
 		}
 
 		@Override
-		public void renderListItems(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
+		public void extractListItems(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
 			drawContext.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0xff202020);
-			super.renderListItems(drawContext, mouseX, mouseY, delta);
+			super.extractListItems(drawContext, mouseX, mouseY, delta);
 		}
 
 		@Override
@@ -379,8 +383,8 @@ public class GuiBuilder {
 			}
 
 			@Override
-			public void render(GuiGraphics drawContext, int index, int y, int x, int width, int height, int mouseX, int mouseY, boolean hovering, float delta) {
-				drawContext.drawWordWrap(Minecraft.getInstance().font, tip, x, y, width, theme.subtitleColor().rgba());
+			public void extractContent(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, boolean hovered, float deltaTicks) {
+				drawContext.textWithWordWrap(Minecraft.getInstance().font, tip, getContentX(), getContentY(), getWidth(), theme.subtitleColor().rgba());
 			}
 		}
 	}
@@ -396,20 +400,20 @@ public class GuiBuilder {
 	 * @param maxOutput {@code int} Energy output value
 	 * @param layer     {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawEnergyOutput(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int maxOutput, GuiBase.Layer layer) {
+	public void drawEnergyOutput(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int maxOutput, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		Component text = Component.literal(PowerSystem.getLocalizedPowerNoSuffix(maxOutput))
 				.append(SPACE_TEXT)
 				.append(PowerSystem.ABBREVIATION)
 				.append(" ");
 
-		int width = gui.getTextRenderer().width(text);
-		gui.drawText(drawContext, text, x - width - 2, y + 5, 0, layer);
+		int width = gui.getFont().width(text);
+		drawContext.text(gui.getFont(), text, x - width - 2, y + 5, 0xFFFFFFFF, false);
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
 			y += gui.getGuiTop();
 		}
-		drawContext.blit(GUI_ELEMENTS, x, y, 150, 91, 16, 16, 256, 256);
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, 150, 91, 16, 16, 256, 256);
 	}
 
 	/**
@@ -425,7 +429,7 @@ public class GuiBuilder {
 	 * @param direction   {@link ProgressDirection} Direction of the progress arrow
 	 * @param layer       {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawProgressBar(GuiGraphics drawContext, GuiBase<?> gui, int progress, int maxProgress, int x, int y, int mouseX, int mouseY, ProgressDirection direction, GuiBase.Layer layer) {
+	public void drawProgressBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int progress, int maxProgress, int x, int y, int mouseX, int mouseY, ProgressDirection direction, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
@@ -445,10 +449,10 @@ public class GuiBuilder {
 			}
 		} else {
 			switch (direction) {
-				case RIGHT -> drawContext.blit(GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, j, 10, 256, 256);
-				case LEFT -> drawContext.blit(GUI_ELEMENTS, x + 16 - j, y, direction.xActive + 16 - j, direction.yActive, j, 10, 256, 256);
-				case UP -> drawContext.blit(GUI_ELEMENTS, x, y + 16 - j, direction.xActive, direction.yActive + 16 - j, 10, j, 256, 256);
-				case DOWN -> drawContext.blit(GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, 10, j, 256, 256);
+				case RIGHT -> drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, j, 10, 256, 256);
+				case LEFT -> drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x + 16 - j, y, direction.xActive + 16 - j, direction.yActive, j, 10, 256, 256);
+				case UP -> drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y + 16 - j, direction.xActive, direction.yActive + 16 - j, 10, j, 256, 256);
+				case DOWN -> drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, direction.xActive, direction.yActive, 10, j, 256, 256);
 			}
 		}
 
@@ -462,11 +466,7 @@ public class GuiBuilder {
 							.withStyle(StringUtils.getPercentageColour(percentage))
 							.append("%")
 			);
-			if (layer == GuiBase.Layer.FOREGROUND) {
-				mouseX -= gui.getGuiLeft();
-				mouseY -= gui.getGuiTop();
-			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -483,7 +483,7 @@ public class GuiBuilder {
 	 * @param buttonID        {@code int} Button ID used to switch energy systems
 	 * @param layer           {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawMultiEnergyBar(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, long energyStored, long maxEnergyStored, int mouseX,
+	public void drawMultiEnergyBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, long energyStored, long maxEnergyStored, int mouseX,
 								int mouseY, int buttonID, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
@@ -498,12 +498,13 @@ public class GuiBuilder {
 		if (energyStored > maxEnergyStored) {
 			draw = barHeight;
 		}
-		drawSpriteStretched(drawContext, GuiSprites.POWER_BAR_OVERLAY, x + 1, y + 49 - draw, 12, draw, 12, 48, gui);
+		drawSpriteStretched(drawContext, GuiSprites.POWER_BAR_OVERLAY, x + 1, y + 49 - draw, 12, draw, 12, 48);
 
 		int percentage = percentage(maxEnergyStored, energyStored);
 		if (gui.isPointInRect(x + 1, y + 1, 11, 48, mouseX, mouseY)) {
 			List<Component> list = Lists.newArrayList();
-			if (Screen.hasShiftDown()) {
+			boolean hasShift = Minecraft.getInstance().hasShiftDown();
+			if (hasShift) {
 				list.add(
 						Component.literal(PowerSystem.getLocalizedPowerFullNoSuffix(energyStored))
 								.withStyle(ChatFormatting.GOLD)
@@ -527,9 +528,9 @@ public class GuiBuilder {
 							)
 			);
 
-			if (gui.be instanceof IListInfoProvider) {
-				if (Screen.hasShiftDown()) {
-					((IListInfoProvider) gui.be).addInfo(list, true, true);
+			if (gui instanceof GuiBase<?> guiBase && guiBase.be instanceof IListInfoProvider) {
+				if (hasShift) {
+					((IListInfoProvider) guiBase.be).addInfo(list, true, true);
 				} else {
 					list.add(Component.empty());
 
@@ -542,11 +543,7 @@ public class GuiBuilder {
 					);
 				}
 			}
-			if (layer == GuiBase.Layer.FOREGROUND) {
-				mouseX -= gui.getGuiLeft();
-				mouseY -= gui.getGuiTop();
-			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -563,7 +560,7 @@ public class GuiBuilder {
 	 * @param isTankEmpty {@code boolean} True if tank is empty
 	 * @param layer       {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawTank(GuiGraphics drawContext, GuiBase<?> gui, int x, int y, int mouseX, int mouseY, FluidInstance fluid, FluidValue maxCapacity, boolean isTankEmpty, GuiBase.Layer layer) {
+	public void drawTank(GuiGraphicsExtractor drawContext, RenderTarget gui, int x, int y, int mouseX, int mouseY, FluidInstance fluid, FluidValue maxCapacity, boolean isTankEmpty, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
@@ -602,11 +599,7 @@ public class GuiBuilder {
 							.append(Component.translatable("reborncore.gui.tooltip.tank_fullness"))
 			);
 
-			if (layer == GuiBase.Layer.FOREGROUND) {
-				mouseX -= gui.getGuiLeft();
-				mouseY -= gui.getGuiTop();
-			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -621,30 +614,32 @@ public class GuiBuilder {
 	 * @param height      {@code int} Height of fluid to draw
 	 * @param maxCapacity {@code int} Maximum capacity of tank
 	 */
-	public void drawFluid(GuiGraphics drawContext, GuiBase<?> gui, FluidInstance fluid, int x, int y, int width, int height, long maxCapacity) {
+	public void drawFluid(GuiGraphicsExtractor drawContext, RenderTarget gui, FluidInstance fluid, int x, int y, int width, int height, long maxCapacity) {
 		if (fluid.fluid() == Fluids.EMPTY) {
 			return;
 		}
-		final TextureAtlasSprite sprite = FluidVariantRenderingBridge.getSprite(fluid.fluid());
-		int color = FluidVariantRenderingBridge.getColor(fluid.fluid());
+		// Get sprite from vanilla FluidModel instead of Fabric's FluidVariantRendering
+		final TextureAtlasSprite sprite = Minecraft.getInstance()
+			.getModelManager()
+			.getFluidStateModelSet()
+			.get(fluid.fluid().defaultFluidState())
+			.stillMaterial()
+			.sprite();
+		int color = FluidVariantRendering.getColor(fluid.fluidVariant());
+
 		final int drawHeight = (int) (fluid.getAmount().getRawValue() / (maxCapacity * 1F) * height);
 		y += height - drawHeight;
 		int count = drawHeight / width;
 		int remainder = drawHeight % width;
-
-		drawContext.setColor((color >> 16 & 255) / 255.0F, (float) (color >> 8 & 255) / 255.0F, (float) (color & 255) / 255.0F, 1F);
 		for (int i = 0; i < count; i++) {
-			drawContext.blit(x, y, 0, width, width, sprite);
+			drawContext.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, width, color);
 			y += width;
 		}
 		if (remainder != 0) {
-			int x2 = x + gui.getGuiLeft();
-			int y2 = y + gui.getGuiTop();
-			drawContext.enableScissor(x2, y2, x2 + width, y2 + remainder);
-			drawContext.blit(x, y, 0, width, width, sprite);
+			drawContext.enableScissor(x, y, x + width, y + remainder);
+			drawContext.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, x, y, width, width, color);
 			drawContext.disableScissor();
 		}
-		drawContext.setColor(1, 1, 1, 1);
 	}
 
 	/**
@@ -659,27 +654,23 @@ public class GuiBuilder {
 	 * @param mouseY      {@code int} Mouse cursor position to check for tooltip
 	 * @param layer       {@link GuiBase.Layer} The layer to draw on
 	 */
-	public void drawBurnBar(GuiGraphics drawContext, GuiBase<?> gui, int progress, int maxProgress, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer) {
+	public void drawBurnBar(GuiGraphicsExtractor drawContext, RenderTarget gui, int progress, int maxProgress, int x, int y, int mouseX, int mouseY, GuiBase.Layer layer) {
 		if (gui.hideGuiElements()) return;
 		if (layer == GuiBase.Layer.BACKGROUND) {
 			x += gui.getGuiLeft();
 			y += gui.getGuiTop();
 		}
-		drawContext.blit(GUI_ELEMENTS, x, y, 150, 64, 13, 13, 256, 256);
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y, 150, 64, 13, 13, 256, 256);
 		int j = 13 - (int) ((double) progress / (double) maxProgress * 13);
 		if (j > 0) {
-			drawContext.blit(GUI_ELEMENTS, x, y + j, 150, 51 + j, 13, 13 - j, 256, 256);
+			drawContext.blit(RenderPipelines.GUI_TEXTURED, GUI_ELEMENTS, x, y + j, 150, 51 + j, 13, 13 - j, 256, 256);
 
 		}
 		if (gui.isPointInRect(x, y, 12, 12, mouseX, mouseY)) {
 			int percentage = percentage(maxProgress, progress);
 			List<Component> list = new ArrayList<>();
 			list.add(StringUtils.getPercentageText(percentage));
-			if (layer == GuiBase.Layer.FOREGROUND) {
-				mouseX -= gui.getGuiLeft();
-				mouseY -= gui.getGuiTop();
-			}
-			drawContext.renderComponentTooltip(gui.getTextRenderer(), list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(gui.getFont(), list, mouseX, mouseY);
 		}
 	}
 
@@ -690,7 +681,7 @@ public class GuiBuilder {
 	 * @param y     {@code int} Top left corner where to place slots bar
 	 * @param count {@code int} Number of output slots
 	 */
-	public void drawOutputSlotBar(GuiGraphics drawContext, int x, int y, int count) {
+	public void drawOutputSlotBar(GuiGraphicsExtractor drawContext, int x, int y, int count) {
 		drawSpriteStretched(drawContext, GuiSprites.SLOT_BAR_RIGHT, x, y, 3, 26);
 		x += 3;
 		for (int i = 1; i <= count; i++) {
@@ -712,8 +703,8 @@ public class GuiBuilder {
 		LEFT(74, 160, 58, 160, 16, 10),
 		DOWN(78, 170, 88, 170, 10, 16),
 		UP(58, 170, 68, 170, 10, 16);
-		public final Material baseSprite;
-		public final Material overlaySprite;
+		public final SpriteId baseSprite;
+		public final SpriteId overlaySprite;
 		public final int x;
 		public final int y;
 		public final int xActive;

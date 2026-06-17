@@ -29,15 +29,15 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRItemSettings;
 
-public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
+public class ChainsawItem extends AxeItem implements RcEnergyItem {
 
 	public final int maxCharge;
 	public final RcEnergyTier tier;
@@ -46,8 +46,8 @@ public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
 	protected final float unpoweredSpeed = 0.5f;
 
 
-	public ChainsawItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
-		super(material, TRItemSettings.unbreakable());
+	public ChainsawItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed, String name) {
+		super(material, 3f, -2.9f, TRItemSettings.unbreakable(name));
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
 		this.cost = cost;
@@ -56,18 +56,6 @@ public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
 
 	public int getCost() {
 		return cost;
-	}
-
-	// MiningToolItem
-	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-		return true;
-	}
-
-	// ToolItem
-	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
-		return false;
 	}
 
 	// Item
@@ -90,9 +78,6 @@ public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public boolean isEnchantable(ItemStack stack) { return true; }
-
-	@Override
 	public int getBarWidth(ItemStack stack) {
 		return ItemUtils.getPowerForDurabilityBar(stack);
 	}
@@ -110,7 +95,7 @@ public class ChainsawItem extends AxeItem implements RcFabricEnergyItem {
 	public long getEnergyCapacity(ItemStack stack) { return maxCharge; }
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return tier;
 	}
 

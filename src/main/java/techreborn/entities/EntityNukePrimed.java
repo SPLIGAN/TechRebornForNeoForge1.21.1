@@ -26,6 +26,7 @@ package techreborn.entities;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.entity.EntityType;
@@ -33,10 +34,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.explosion.RebornExplosion;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRContent;
+
+import java.util.UUID;
 
 /**
  * Created by Mark on 13/03/2016.
@@ -44,7 +47,7 @@ import techreborn.init.TRContent;
 public class EntityNukePrimed extends PrimedTnt {
 	@Nullable LivingEntity owner;
 
-	private final ServerBossEvent bossBar = new ServerBossEvent(Component.translatable("block.techreborn.nuke"), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
+	private final ServerBossEvent bossBar = new ServerBossEvent(UUID.randomUUID(), Component.translatable("block.techreborn.nuke"), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
 
 
 	public EntityNukePrimed(EntityType<? extends EntityNukePrimed> type, Level world) {
@@ -56,7 +59,7 @@ public class EntityNukePrimed extends PrimedTnt {
 		this(TRContent.ENTITY_NUKE, world);
 
 		this.setPos(x, y, z);
-		double d = world.random.nextDouble() * 6.2831854820251465;
+		double d = world.getRandom().nextDouble() * 6.2831854820251465;
 		this.setDeltaMovement(-Math.sin(d) * 0.02, 0.2f, -Math.cos(d) * 0.02);
 		this.setFuse(80);
 		this.xo = x;
@@ -89,11 +92,11 @@ public class EntityNukePrimed extends PrimedTnt {
 
 		if (this.getFuse() <= 0) {
 			this.remove(RemovalReason.KILLED);
-			if (!this.level().isClientSide) {
+			if (!this.level().isClientSide()) {
 				this.explodeNuke();
 			}
 		} else {
-			this.updateInWaterStateAndDoFluidPushing();
+			this.updateFluidInteraction();
 		}
 	}
 
@@ -101,9 +104,9 @@ public class EntityNukePrimed extends PrimedTnt {
 		if (!TechRebornConfig.nukeEnabled) {
 			return;
 		}
-		RebornExplosion nukeExplosion = new RebornExplosion(blockPosition(), level(), TechRebornConfig.nukeRadius);
+		RebornExplosion nukeExplosion = new RebornExplosion(blockPosition(), (ServerLevel)level(), TechRebornConfig.nukeRadius);
 		nukeExplosion.setLivingBase(getOwner());
-		nukeExplosion.applyExplosion();
+		nukeExplosion.explode();
 	}
 
 	@Override

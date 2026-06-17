@@ -25,72 +25,69 @@
 package techreborn.items.armor;
 
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.equipment.ArmorType;
 
 import static techreborn.TechReborn.MOD_ID;
 
 public class AttributeModifierBuilder {
+	public static final TooltipDisplay ATTRIBUTE_HIDE = new TooltipDisplay(
+		false,
+		new LinkedHashSet<>(Set.of(DataComponents.UNBREAKABLE, DataComponents.ATTRIBUTE_MODIFIERS))
+	);
 	private final ItemAttributeModifiers.Builder builder;
 	private final EquipmentSlotGroup target;
-	private boolean tooltip = true;
 
 	public AttributeModifierBuilder() {
 		this(null);
 	}
 
-	public AttributeModifierBuilder(@Nullable ArmorItem.Type slot) {
+	public AttributeModifierBuilder(@Nullable ArmorType slot) {
 		builder = ItemAttributeModifiers.builder();
 		target = slot == null ? null : EquipmentSlotGroup.bySlot(slot.getSlot());
 	}
 
 	private AttributeModifier modifier(String path, double value) {
-		ResourceLocation id = ResourceLocation.fromNamespaceAndPath(MOD_ID, (target == null ? path : path + "/" + target.getSerializedName()));
+		Identifier id = Identifier.fromNamespaceAndPath(MOD_ID, (target == null ? path : path + "/" + target.getSerializedName()));
 		return new AttributeModifier(id, value, AttributeModifier.Operation.ADD_VALUE);
 	}
 
 	public AttributeModifierBuilder armor(int i) {
-		builder.add(Attributes.ARMOR, modifier("nano_suit_armor", i), target);
+		builder.add(Attributes.ARMOR, modifier("suit_armor", i), target);
 		return this;
 	}
 
 	public AttributeModifierBuilder toughness(int i) {
-		builder.add(Attributes.ARMOR_TOUGHNESS, modifier("nano_suit_armor_toughness", i), target);
+		builder.add(Attributes.ARMOR_TOUGHNESS, modifier("suit_armor_toughness", i), target);
 		return this;
 	}
 
 	public AttributeModifierBuilder knockback(double i) {
-		builder.add(Attributes.KNOCKBACK_RESISTANCE, modifier("nano_suit_knockback_resistance", i / 10), target);
-		return this;
-	}
-
-	public AttributeModifierBuilder tooltip(boolean show) {
-		tooltip = show;
+		builder.add(Attributes.KNOCKBACK_RESISTANCE, modifier("suit_knockback_resistance", i / 10), target);
 		return this;
 	}
 
 	public ItemAttributeModifiers build() {
-		ItemAttributeModifiers component = builder.build();
-		return tooltip ? component : component.withTooltip(false);
+		return builder.build();
 	}
 
 	public static boolean equals(@Nullable ItemAttributeModifiers attributes, ItemAttributeModifiers target) {
@@ -102,7 +99,7 @@ public class AttributeModifierBuilder {
 		if (m1.size() < m2.size()) {
 			return false;
 		}
-		Map<ResourceLocation, Double> map = new HashMap<>();
+		Map<Identifier, Double> map = new HashMap<>();
 		m1.forEach(entry -> map.put(entry.modifier().id(), entry.modifier().amount()));
 		for (ItemAttributeModifiers.Entry entry : m2) {
 			if (map.get(entry.modifier().id()) != entry.modifier().amount()) {
@@ -146,7 +143,7 @@ public class AttributeModifierBuilder {
 		ItemAttributeModifiers target,
 		ChatFormatting formatting
 	) {
-		Map<ResourceLocation, Double> map = new HashMap<>();
+		Map<Identifier, Double> map = new HashMap<>();
 		if (attributes != null) {
 			attributes.modifiers().forEach(entry -> map.put(entry.modifier().id(), entry.modifier().amount()));
 		}

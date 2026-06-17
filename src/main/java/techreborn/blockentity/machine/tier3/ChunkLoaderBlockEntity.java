@@ -25,9 +25,8 @@
 package techreborn.blockentity.machine.tier3;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -35,8 +34,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -89,7 +89,7 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 		int loadRadius = radius - 1;
 		for (int i = -loadRadius; i <= loadRadius; i++) {
 			for (int j = -loadRadius; j <= loadRadius; j++) {
-				ChunkPos loadPos = new ChunkPos(rootPos.x + i, rootPos.z + j);
+				ChunkPos loadPos = new ChunkPos(rootPos.x() + i, rootPos.z() + j);
 
 				if (!manager.isChunkLoaded(getLevel(), loadPos, getBlockPos())) {
 					manager.loadChunk(getLevel(), loadPos, getBlockPos(), ownerUdid);
@@ -99,54 +99,47 @@ public class ChunkLoaderBlockEntity extends MachineBaseBlockEntity implements IT
 	}
 
 	private void unloadAll() {
-		Level lv = getLevel();
-		if (lv == null) {
-			return;
-		}
-		ChunkLoaderManager manager = ChunkLoaderManager.get(lv);
-		manager.unloadChunkLoader(lv, getBlockPos());
+		ChunkLoaderManager manager = ChunkLoaderManager.get(level);
+		manager.unloadChunkLoader(level, getBlockPos());
 	}
 
 	public ChunkPos getChunkPos() {
-		return new ChunkPos(getBlockPos());
+		return ChunkPos.containing(getBlockPos());
 	}
 
 	// MachineBaseBlockEntity
 	@Override
-	public void onBreak(Level world, Player playerEntity, BlockPos blockPos, BlockState blockState) {
-		if (world.isClientSide) {
+	public void onBreak(Level level, Player playerEntity, BlockPos blockPos, BlockState blockState) {
+		if (!(level instanceof ServerLevel)) {
 			return;
 		}
 		unloadAll();
-		ChunkLoaderManager.get(world).clearClient((ServerPlayer) playerEntity);
+		ChunkLoaderManager.get(level).clearClient((ServerPlayer) playerEntity);
 	}
 
 	@Override
-	public void onPlace(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
+	public void onPlace(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		ownerUdid = placer.getStringUUID();
-		if (worldIn.isClientSide) return;
+		if (level.isClientSide()) return;
 		reload();
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putInt("radius", radius);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("radius", radius);
 		if (ownerUdid != null && !ownerUdid.isEmpty()){
-			tagCompound.putString("ownerUdid", ownerUdid);
+			view.putString("ownerUdid", ownerUdid);
 		}
-		inventory.write(tagCompound, registryLookup);
+		inventory.write(view);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(nbtCompound, registryLookup);
-		this.radius = nbtCompound.getInt("radius");
-		this.ownerUdid = nbtCompound.getString("ownerUdid");
-		if (!StringUtils.isBlank(ownerUdid)) {
-			nbtCompound.putString("ownerUdid", this.ownerUdid);
-		}
-		inventory.read(nbtCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		this.radius = view.getIntOr("radius", 0);
+		this.ownerUdid = view.getStringOr("ownerUdid", "");
+		inventory.read(view);
 	}
 
 	// IToolDrop

@@ -25,7 +25,7 @@
 package techreborn.blockentity.machine.tier1;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -37,11 +37,11 @@ import reborncore.common.screen.BuiltScreenHandlerProvider;
 import reborncore.common.screen.builder.ScreenHandlerBuilder;
 import reborncore.common.util.ItemUtils;
 import reborncore.common.util.RebornInventory;
-import techreborn.recipe.recipes.RollingMachineRecipe;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.ModRecipes;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
+import techreborn.recipe.recipes.RollingMachineRecipe;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,8 +50,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -62,6 +60,8 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 // TODO add tick and power bars.
 
@@ -110,7 +110,7 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 	@Override
 	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+		if (world == null || world.isClientSide()) {
 			return;
 		}
 		charge(10);
@@ -121,7 +121,7 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 			if (world.getGameTime() % 2 == 0) {
 				balanceRecipe(craftMatrix);
 			}
-			currentRecipeOutput = currentRecipe.getShapedRecipe().assemble(recipeInput(craftMatrix), world.registryAccess());
+			currentRecipeOutput = currentRecipe.getShapedRecipe().assemble(recipeInput(craftMatrix));
 		} else {
 			currentRecipeOutput = ItemStack.EMPTY;
 		}
@@ -171,20 +171,17 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 			return;
 		}
 		isRunning = active;
-		if (level != null && level.getBlockState(getBlockPos()).getBlock() instanceof BlockMachineBase blockMachineBase) {
-			blockMachineBase.setActive(active, level, getBlockPos());
+		if (this.getLevel().getBlockState(this.getBlockPos()).getBlock() instanceof BlockMachineBase blockMachineBase) {
+			blockMachineBase.setActive(active, this.getLevel(), this.getBlockPos());
 		}
-		if (level != null) {
-			BlockPos bp = getBlockPos();
-			level.sendBlockUpdated(bp, level.getBlockState(bp), level.getBlockState(bp), 3);
-		}
+		this.getLevel().sendBlockUpdated(this.getBlockPos(), this.getLevel().getBlockState(this.getBlockPos()), this.getLevel().getBlockState(this.getBlockPos()), 3);
 	}
 
 	public Optional<TransientCraftingContainer> balanceRecipe(TransientCraftingContainer craftCache) {
 		if (currentRecipe == null) {
 			return Optional.empty();
 		}
-		if (level != null && level.isClientSide) {
+		if (level.isClientSide()) {
 			return Optional.empty();
 		}
 		if (!locked) {
@@ -203,10 +200,10 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 			return Optional.empty();
 		}
 		List<Integer> possibleSlots = new ArrayList<>();
-		for (int s = 0; s < currentRecipe.getIngredients().size(); s++) {
+		for (int s = 0; s < currentRecipe.placementInfo().ingredients().size(); s++) {
 			ItemStack stackInSlot = inventory.getItem(s);
-			Ingredient ingredient = currentRecipe.getIngredients().get(s);
-			if (ingredient != Ingredient.EMPTY && ingredient.test(sourceStack)) {
+			Ingredient ingredient = currentRecipe.placementInfo().ingredients().get(s);
+			if (ingredient != null && ingredient.test(sourceStack)) {
 				if (stackInSlot.isEmpty()) {
 					possibleSlots.add(s);
 				} else if (stackInSlot.getItem() == sourceStack.getItem()) {
@@ -275,7 +272,7 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 		}
 		sourceStack.shrink(1);
 		inventory.getItem(bestSlot.getLeft()).grow(1);
-		inventory.setHashChanged();
+		inventory.setHasChanged();
 
 		return Optional.of(getCraftingMatrix());
 	}
@@ -353,7 +350,7 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 		if (recipe == null) {
 			return ItemStack.EMPTY;
 		}
-		return recipe.getResultItem(world.registryAccess());
+		return recipe.assemble(null);
 	}
 
 	public RollingMachineRecipe findMatchingRecipe(TransientCraftingContainer inv, Level world) {
@@ -396,19 +393,19 @@ public class RollingMachineBlockEntity extends PowerAcceptorBlockEntity
 	}
 
 	@Override
-	public void loadAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		this.isRunning = tagCompound.getBoolean("isRunning");
-		this.tickTime = tagCompound.getInt("tickTime");
-		this.locked = tagCompound.getBoolean("locked");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		this.isRunning = view.getBooleanOr("isRunning", false);
+		this.tickTime = view.getIntOr("tickTime", 0);
+		this.locked = view.getBooleanOr("locked", false);
 	}
 
 	@Override
-	public void saveAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putBoolean("isRunning", this.isRunning);
-		tagCompound.putInt("tickTime", this.tickTime);
-		tagCompound.putBoolean("locked", locked);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putBoolean("isRunning", this.isRunning);
+		view.putInt("tickTime", this.tickTime);
+		view.putBoolean("locked", locked);
 	}
 
 	@Override

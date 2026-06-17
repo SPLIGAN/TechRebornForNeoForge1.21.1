@@ -24,7 +24,7 @@
 
 package techreborn.blockentity.machine.tier1;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.RedstoneConfiguration;
@@ -49,7 +49,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -102,8 +102,8 @@ public class ElevatorBlockEntity extends PowerAcceptorBlockEntity implements ITo
 			if (!TechRebornConfig.allowElevatingThroughBlocks && !isAirOrElevator(upPos)) {
 				return Optional.empty();
 			}
-		} while (upPos.getY() < getLevel().getMaxBuildHeight() && !isValidTarget(upPos));
-		if (upPos.getY() < getLevel().getMaxBuildHeight() || isValidTarget(upPos)) {
+		} while (upPos.getY() <= getLevel().getMaxY() && !isValidTarget(upPos));
+		if (upPos.getY() < getLevel().getMaxY() || isValidTarget(upPos)) {
 			return Optional.of(upPos);
 		}
 		return Optional.empty();
@@ -119,8 +119,8 @@ public class ElevatorBlockEntity extends PowerAcceptorBlockEntity implements ITo
 			if (!TechRebornConfig.allowElevatingThroughBlocks && !isAirOrElevator(downPos)) {
 				return Optional.empty();
 			}
-		} while (downPos.getY() >= getLevel().getMinBuildHeight() && !isValidTarget(downPos));
-		if (downPos.getY() > getLevel().getMinBuildHeight() || isValidTarget(downPos)) {
+		} while (downPos.getY() >= getLevel().getMinY() && !isValidTarget(downPos));
+		if (downPos.getY() > getLevel().getMinY() || isValidTarget(downPos)) {
 			return Optional.of(downPos);
 		}
 		return Optional.empty();
@@ -145,13 +145,13 @@ public class ElevatorBlockEntity extends PowerAcceptorBlockEntity implements ITo
 			return false;
 		}
 		playTeleportSoundAt(getBlockPos());
-		player.changeDimension(new DimensionTransition(
+		player.teleport(new TeleportTransition(
 			(ServerLevel)getLevel(),
 			Vec3.atBottomCenterOf(new Vec3i(targetPos.getX(), targetPos.getY(), targetPos.getZ())),
 			Vec3.ZERO,
 			player.getYRot(),
 			player.getXRot(),
-			DimensionTransition.DO_NOTHING
+			TeleportTransition.DO_NOTHING
 		));
 
 		useEnergy(energy);
@@ -164,7 +164,7 @@ public class ElevatorBlockEntity extends PowerAcceptorBlockEntity implements ITo
 	}
 
 	public void teleportUp(final Player player) {
-		if (Vec3.atCenterOf(getBlockPos()).distanceToSqr(player.position()) > 25 || player.level() != this.level) {
+		if (!this.worldPosition.closerToCenterThan(player.position(), 5) && player.level() == this.level) {
 			// Ensure the player is close to the elevator and in the same world.
 			return;
 		}
@@ -180,16 +180,16 @@ public class ElevatorBlockEntity extends PowerAcceptorBlockEntity implements ITo
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (!(world instanceof ServerLevel) || getStored() <= 0 || !isActive(RedstoneConfiguration.Element.POWER_IO)) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel) || getStored() <= 0 || !isActive(RedstoneConfiguration.Element.POWER_IO)) {
 			return;
 		}
 
 		// teleporting up must be done via mixin for now
 		Optional<BlockPos> downTarget = null;
 
-		List<Player> players = world.getEntitiesOfClass(Player.class, new AABB(0d,1d,0d,1d,2d,1d).move(pos));
+		List<Player> players = serverLevel.getEntitiesOfClass(Player.class, new AABB(0d,1d,0d,1d,2d,1d).move(pos));
 		if (players.size() == 0) {
 			return;
 		}

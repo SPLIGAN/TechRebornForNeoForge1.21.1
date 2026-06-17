@@ -25,20 +25,19 @@
 package techreborn.items.tool;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.*;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.init.TRContent;
 import techreborn.init.TRItemSettings;
 
-public class DrillItem extends DiggerItem implements RcFabricEnergyItem {
+public class DrillItem extends Item implements RcEnergyItem {
 	public final int maxCharge;
 	public final RcEnergyTier tier;
 	public final int cost;
@@ -46,18 +45,12 @@ public class DrillItem extends DiggerItem implements RcFabricEnergyItem {
 	protected final float unpoweredSpeed = 0.5f;
 
 
-	public DrillItem(Tier material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed) {
-		super(material, TRContent.BlockTags.DRILL_MINEABLE, TRItemSettings.unbreakable());
+	public DrillItem(ToolMaterial material, int energyCapacity, RcEnergyTier tier, int cost, float poweredSpeed, String name) {
+		super(TRItemSettings.unbreakable(name).tool(material, TRContent.BlockTags.DRILL_MINEABLE, -2f, -2.8f, 0.0F));
 		this.maxCharge = energyCapacity;
 		this.tier = tier;
 		this.cost = cost;
 		this.poweredSpeed = poweredSpeed;
-	}
-
-	// ToolItem
-	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
-		return false;
 	}
 
 	//Item
@@ -72,11 +65,6 @@ public class DrillItem extends DiggerItem implements RcFabricEnergyItem {
 	@Override
 	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState blockIn, BlockPos pos, LivingEntity entityLiving) {
 		tryUseEnergy(stack, cost);
-		return true;
-	}
-
-	@Override
-	public boolean isEnchantable(ItemStack stack) {
 		return true;
 	}
 
@@ -102,7 +90,7 @@ public class DrillItem extends DiggerItem implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return tier;
 	}
 

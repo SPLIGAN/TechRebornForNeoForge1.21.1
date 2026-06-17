@@ -24,6 +24,7 @@
 
 package techreborn.blockentity.machine.iron;
 
+import net.minecraft.world.item.ItemStackTemplate;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.SizedIngredient;
 import reborncore.common.crafting.RecipeUtils;
@@ -49,6 +50,7 @@ public class IronAlloyFurnaceBlockEntity extends AbstractIronMachineBlockEntity 
 	public final static int INPUT_SLOT_2 = 1;
 	public final static int OUTPUT_SLOT = 2;
 	public final static int FUEL_SLOT = 3;
+	public int recipeCookingTime = 200;
 
 	public IronAlloyFurnaceBlockEntity(BlockPos pos, BlockState state) {
 		super(TRBlockEntities.IRON_ALLOY_FURNACE, pos, state, FUEL_SLOT, TRContent.Machine.IRON_ALLOY_FURNACE.block);
@@ -90,7 +92,8 @@ public class IronAlloyFurnaceBlockEntity extends AbstractIronMachineBlockEntity 
 		ItemStack itemstack = null;
 		for (RebornRecipe recipeType : RecipeUtils.getRecipes(level, ModRecipes.ALLOY_SMELTER)) {
 			if (hasAllInputs(recipeType)) {
-				List<ItemStack> outputs = recipeType.outputs();
+				List<ItemStack> outputs = recipeType.outputs().stream().map(ItemStackTemplate::create).toList();
+				recipeCookingTime = recipeType.time();
 
 				if(outputs.isEmpty()){
 					continue;
@@ -123,7 +126,7 @@ public class IronAlloyFurnaceBlockEntity extends AbstractIronMachineBlockEntity 
 			return;
 		}
 
-		ItemStack outputStack = currentRecipe.outputs().get(0);
+		ItemStack outputStack = currentRecipe.outputs().get(0).create();
 		if (outputStack.isEmpty()) {
 			return;
 		}
@@ -145,15 +148,15 @@ public class IronAlloyFurnaceBlockEntity extends AbstractIronMachineBlockEntity 
 
 	@Override
 	protected int cookingTime() {
-		// default value for vanilla smelting recipes is 200
-		int cookingTime = 200;
+		return (int) (recipeCookingTime / TechRebornConfig.cookingScale);
+	}
 
-		RebornRecipe recipe = getRecipe();
-		if (recipe != null) {
-			cookingTime = recipe.time();
-		}
+	public int getRecipeCookingTime() {
+		return recipeCookingTime;
+	}
 
-		return (int) (cookingTime / TechRebornConfig.cookingScale);
+	public void setRecipeCookingTime(int recipeCookingTime) {
+		this.recipeCookingTime = recipeCookingTime;
 	}
 
 	@Override
@@ -166,6 +169,7 @@ public class IronAlloyFurnaceBlockEntity extends AbstractIronMachineBlockEntity 
 				.sync(ByteBufCodecs.INT, this::getBurnTime, this::setBurnTime)
 				.sync(ByteBufCodecs.INT, this::getProgress, this::setProgress)
 				.sync(ByteBufCodecs.INT, this::getTotalBurnTime, this::setTotalBurnTime)
+				.sync(ByteBufCodecs.INT, this::getRecipeCookingTime, this::setRecipeCookingTime)
 				.addInventory().create(this, syncID);
 	}
 

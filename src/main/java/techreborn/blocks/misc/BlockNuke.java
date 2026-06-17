@@ -24,15 +24,14 @@
 
 package techreborn.blocks.misc;
 
-import java.util.function.BiConsumer;
-
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -40,6 +39,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.redstone.Orientation;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.BaseBlock;
 import techreborn.config.TechRebornConfig;
 import techreborn.entities.EntityNukePrimed;
@@ -51,9 +52,9 @@ import techreborn.init.TRBlockSettings;
 public class BlockNuke extends BaseBlock {
 	public static final BooleanProperty OVERLAY = BooleanProperty.create("overlay");
 
-	public BlockNuke() {
-		super(TRBlockSettings.nuke());
-		registerDefaultState(getStateDefinition().any().setValue(OVERLAY, false));
+	public BlockNuke(String name) {
+		super(TRBlockSettings.nuke(name));
+		this.registerDefaultState(this.getStateDefinition().any().setValue(OVERLAY, false));
 	}
 
 	public void ignite(Level worldIn, BlockPos pos, BlockState state, LivingEntity igniter) {
@@ -67,21 +68,19 @@ public class BlockNuke extends BaseBlock {
 	}
 
 	@Override
-	public void onExplosionHit(BlockState state, Level worldIn, BlockPos pos, Explosion explosionIn, BiConsumer<ItemStack, BlockPos> dropConsumer) {
-		if (!worldIn.isClientSide()) {
-			EntityNukePrimed entitynukeprimed = new EntityNukePrimed(worldIn, (float) pos.getX() + 0.5F,
-					pos.getY(), (float) pos.getZ() + 0.5F, explosionIn.getIndirectSourceEntity());
-			entitynukeprimed.setFuse(worldIn.random.nextInt(TechRebornConfig.nukeFuseTime / 4) + TechRebornConfig.nukeFuseTime / 8);
-			worldIn.addFreshEntity(entitynukeprimed);
-		}
+	public void wasExploded(ServerLevel worldIn, BlockPos pos, Explosion explosionIn) {
+		EntityNukePrimed entitynukeprimed = new EntityNukePrimed(worldIn, (float) pos.getX() + 0.5F,
+				pos.getY(), (float) pos.getZ() + 0.5F, explosionIn.getIndirectSourceEntity());
+		entitynukeprimed.setFuse(worldIn.getRandom().nextInt(TechRebornConfig.nukeFuseTime / 4) + TechRebornConfig.nukeFuseTime / 8);
+		worldIn.addFreshEntity(entitynukeprimed);
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn) {
+	protected void entityInside(BlockState state, Level worldIn, BlockPos pos, Entity entityIn, InsideBlockEffectApplier handler, boolean bl) {
 		if (!worldIn.isClientSide() && entityIn instanceof Projectile projectileEntity) {
 			LivingEntity shooter = null;
-			if (projectileEntity.getOwner() instanceof LivingEntity living) {
-				shooter = living;
+			if (projectileEntity.getOwner() instanceof LivingEntity) {
+				shooter = (LivingEntity) projectileEntity.getOwner();
 			}
 			if (projectileEntity.isOnFire()) {
 				ignite(worldIn, pos, state, shooter);
@@ -91,8 +90,8 @@ public class BlockNuke extends BaseBlock {
 	}
 
 	@Override
-	public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean movedByPiston) {
-		super.onPlace(state, worldIn, pos, oldState, movedByPiston);
+	public void onPlace(BlockState state, Level worldIn, BlockPos pos, BlockState oldState, boolean b) {
+		super.onPlace(state, worldIn, pos, oldState, b);
 		if (worldIn.hasNeighborSignal(pos)) {
 			ignite(worldIn, pos, state, null);
 			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
@@ -100,10 +99,10 @@ public class BlockNuke extends BaseBlock {
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level worldIn, BlockPos pos, Block blockIn, BlockPos fromPos, boolean isMoving) {
-		if (worldIn.hasNeighborSignal(pos)) {
-			ignite(worldIn, pos, state, null);
-			worldIn.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
+	protected void neighborChanged(BlockState state, Level world, BlockPos pos, Block sourceBlock, @Nullable Orientation wireOrientation, boolean notify) {
+		if (world.hasNeighborSignal(pos)) {
+			ignite(world, pos, state, null);
+			world.setBlockAndUpdate(pos, Blocks.AIR.defaultBlockState());
 		}
 	}
 

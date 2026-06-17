@@ -27,20 +27,19 @@ package techreborn.items.tool.industrial;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.item.*;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DiggerItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import reborncore.api.IToolHandler;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import reborncore.common.util.TorchHelper;
@@ -50,12 +49,10 @@ import techreborn.init.TRItemSettings;
 import techreborn.init.TRToolMaterials;
 
 
-public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToolHandler {
+public class OmniToolItem extends Item implements RcEnergyItem, IToolHandler {
 	// 4M FE max charge with 1k charge rate
-	public OmniToolItem() {
-		super(TRToolMaterials.OMNI_TOOL, TRContent.BlockTags.OMNI_TOOL_MINEABLE, TRItemSettings.unbreakable()
-			.attributes(PickaxeItem.createAttributes(TRToolMaterials.OMNI_TOOL, 3, 1)
-		));
+	public OmniToolItem(String name) {
+		super(TRItemSettings.unbreakable(name).tool(TRToolMaterials.OMNI_TOOL, TRContent.BlockTags.OMNI_TOOL_MINEABLE, 3f, 1f, 0.0F));
 	}
 
 	// MiningToolItem
@@ -69,7 +66,7 @@ public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToo
 	@Override
 	public float getDestroySpeed(ItemStack stack, BlockState state) {
 		if (getStoredEnergy(stack) >= TechRebornConfig.omniToolCost) {
-			return super.getTier().getSpeed();
+			return TRToolMaterials.OMNI_TOOL.speed();
 		}
 		Tool toolComponent = stack.get(DataComponents.TOOL);
 		return toolComponent != null ? toolComponent.defaultMiningSpeed() : 1.0F;
@@ -82,17 +79,10 @@ public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToo
 	}
 
 	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-		if (tryUseEnergy(stack, TechRebornConfig.omniToolHitCost)) {
-			target.hurt(target.level().damageSources().playerAttack((Player) attacker), 8F);
+	public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+		if (tryUseEnergy(stack, TechRebornConfig.omniToolHitCost) && target.level() instanceof ServerLevel serverWorld) {
+			target.hurtServer(serverWorld, serverWorld.damageSources().playerAttack((Player) attacker), 8F);
 		}
-		return true;
-	}
-
-	// ToolItem
-	@Override
-	public boolean isValidRepairItem(ItemStack itemStack_1, ItemStack itemStack_2) {
-		return false;
 	}
 
 	// Item
@@ -108,11 +98,6 @@ public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToo
 		if (tryUse != InteractionResult.PASS) { return tryUse; }
 
 		return TorchHelper.placeTorch(context);
-	}
-
-	@Override
-	public boolean isEnchantable(ItemStack stack) {
-		return true;
 	}
 
 	@Override
@@ -142,14 +127,14 @@ public class OmniToolItem extends DiggerItem implements RcFabricEnergyItem, IToo
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return RcEnergyTier.EXTREME;
 	}
 
 	// IToolHandler
 	@Override
 	public boolean handleTool(ItemStack stack, BlockPos pos, Level world, Player player, Direction side, boolean damage) {
-		if (!player.level().isClientSide && this.getStoredEnergy(stack) >= 5.0) {
+		if (!player.level().isClientSide() && this.getStoredEnergy(stack) >= 5.0) {
 			this.tryUseEnergy(stack, 5);
 			return true;
 		} else {

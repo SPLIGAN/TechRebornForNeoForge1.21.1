@@ -24,22 +24,23 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.Util;
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.util.Util;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.ConfirmLinkScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import reborncore.client.gui.Theme;
 import reborncore.client.gui.ThemeManager;
-import reborncore.client.network.ClientNetworkingBridge;
 import techreborn.config.TechRebornConfig;
 import techreborn.packets.serverbound.RefundPayload;
 
 public class GuiManual extends Screen {
 
-	private static final ResourceLocation MANUAL_TEXTURE = ResourceLocation.fromNamespaceAndPath("techreborn", "textures/gui/manual.png");
+	private static final Identifier MANUAL_TEXTURE = Identifier.fromNamespaceAndPath("techreborn", "textures/gui/manual.png");
 	final int guiWidth = 207;
 	final int guiHeight = 195;
 	private static final Component text1 = Component.translatable("techreborn.manual.wiki");
@@ -73,7 +74,7 @@ public class GuiManual extends Screen {
 		if (TechRebornConfig.allowManualRefund) {
 			addRenderableWidget(
 				Button.builder(Component.translatable("techreborn.manual.refundbtn"), button -> {
-					ClientNetworkingBridge.sendToServer(new RefundPayload());
+					ClientPlayNetworking.send(new RefundPayload());
 					minecraft.setScreen(null);
 				}).bounds((width / 2 - 30), y + 160, 60, 20).build()
 			);
@@ -90,23 +91,23 @@ public class GuiManual extends Screen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics drawContext, int mouseX, int mouseY, float delta) {
-		super.renderBackground(drawContext, mouseX, mouseY, delta);
+	public void extractBackground(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float delta) {
+		super.extractBackground(drawContext, mouseX, mouseY, delta);
 		int centerX = (width / 2) - guiWidth / 2;
 		int centerY = (height / 2) - guiHeight / 2;
-		drawContext.blit(MANUAL_TEXTURE, centerX, centerY, 0, 0, guiWidth, guiHeight);
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, MANUAL_TEXTURE, centerX, centerY, 0, 0, guiWidth, guiHeight, 256, 256);
 	}
 
 	@Override
-	public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
-		super.render(drawContext, mouseX, mouseY, partialTicks);
+	public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
 
 		int centerY = (height / 2) - guiHeight / 2;
 
-		drawContext.drawString(font, text1, (width / 2) - font.width(text1) / 2, centerY + 40, theme.titleColor().rgba(), false);
-		drawContext.drawString(font, text2, (width / 2) - font.width(text2) / 2, centerY + 90, theme.titleColor().rgba(), false);
+		drawContext.text(font, text1, (width / 2) - font.width(text1) / 2, centerY + 40, theme.titleColor().rgba(), false);
+		drawContext.text(font, text2, (width / 2) - font.width(text2) / 2, centerY + 90, theme.titleColor().rgba(), false);
 		if (TechRebornConfig.allowManualRefund) {
-			drawContext.drawString(font, text3, (width / 2) - font.width(text3) / 2, centerY + 140, theme.titleColor().rgba(), false);
+			drawContext.text(font, text3, (width / 2) - font.width(text3) / 2, centerY + 140, theme.titleColor().rgba(), false);
 		}
 	}
 }

@@ -28,27 +28,25 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.TRItemSettings;
 import techreborn.init.TRToolMaterials;
 
-public class RockCutterItem extends PickaxeItem implements RcFabricEnergyItem {
+public class RockCutterItem extends Item implements RcEnergyItem {
 	// 10k Energy with 128 E\t charge rate
-	public RockCutterItem() {
+	public RockCutterItem(String name) {
 		// combat stats same as for diamond pickaxe. Fix for #2468
-		super(TRToolMaterials.ROCK_CUTTER, TRItemSettings.unbreakable()
-			.attributes(PickaxeItem.createAttributes(TRToolMaterials.ROCK_CUTTER, 1.0f, -2.8f)
-		));
+		super(TRItemSettings.unbreakable(name).pickaxe(TRToolMaterials.ROCK_CUTTER,  1f, -2.8f));
 	}
 
 	// PickaxeItem
@@ -73,17 +71,6 @@ public class RockCutterItem extends PickaxeItem implements RcFabricEnergyItem {
 		return true;
 	}
 
-	@Override
-	public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-		return true;
-	}
-
-	// ToolItem
-	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
-		return false;
-	}
-
 	// Item
 	@Override
 	public void onCraftedPostProcess(ItemStack stack, Level world) {
@@ -93,11 +80,6 @@ public class RockCutterItem extends PickaxeItem implements RcFabricEnergyItem {
 		}
 
 		super.onCraftedPostProcess(stack, world);
-	}
-
-	@Override
-	public boolean isEnchantable(ItemStack stack) {
-		return true;
 	}
 
 	@Override
@@ -122,7 +104,7 @@ public class RockCutterItem extends PickaxeItem implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return RcEnergyTier.MEDIUM;
 	}
 

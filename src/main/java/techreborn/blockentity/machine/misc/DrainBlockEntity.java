@@ -24,10 +24,8 @@
 
 package techreborn.blockentity.machine.misc;
 
-import net.minecraft.world.level.block.*;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -39,7 +37,9 @@ import net.minecraft.world.level.block.LayeredCauldronBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.fluid.FluidValue;
@@ -60,14 +60,14 @@ public class DrainBlockEntity extends MachineBaseBlockEntity implements IToolDro
 	}
 
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
 		int ticks = TechRebornConfig.ticksUntilNextDrainAttempt;
-		if (ticks > 0 && world.getGameTime() % ticks == 0) {
+		if (ticks > 0 && serverLevel.getGameTime() % ticks == 0) {
 
 			if (internalTank.isEmpty()) {
 				tryDrain();
@@ -83,7 +83,7 @@ public class DrainBlockEntity extends MachineBaseBlockEntity implements IToolDro
 
 	private void tryDrain() {
 		// Position above drain
-		BlockPos above = getBlockPos().above();
+		BlockPos above = this.getBlockPos().above();
 
 		// Block and state above drain
 		BlockState aboveBlockState = level.getBlockState(above);
@@ -100,20 +100,20 @@ public class DrainBlockEntity extends MachineBaseBlockEntity implements IToolDro
 		}
 		if (aboveBlock instanceof LayeredCauldronBlock && aboveBlockState.is(Blocks.WATER_CAULDRON)) { //ensure Water cauldron
 			Fluid drainFluid = Fluids.WATER;
-			int cauldronLevel;
+			int fluidLevel;
 			if (aboveBlockState.hasProperty(LayeredCauldronBlock.LEVEL)){
-				cauldronLevel = aboveBlockState.getValue(LayeredCauldronBlock.LEVEL);
+				fluidLevel = aboveBlockState.getValue(LayeredCauldronBlock.LEVEL);
 			}
 			else {
 				return;
 			}
-			level.setBlock(above, Blocks.CAULDRON.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlockAndUpdate(above, Blocks.CAULDRON.defaultBlockState());
 			internalTank.setFluidInstance(
-				new FluidInstance(drainFluid, FluidValue.BUCKET.fraction(3).multiply(cauldronLevel))
+				new FluidInstance(drainFluid, FluidValue.BUCKET.fraction(3).multiply(fluidLevel))
 			);
 		}
 		if (aboveBlock instanceof LavaCauldronBlock){
-			level.setBlock(above, Blocks.CAULDRON.defaultBlockState(), Block.UPDATE_ALL);
+			level.setBlockAndUpdate(above, Blocks.CAULDRON.defaultBlockState());
 			internalTank.setFluidInstance(
 				new FluidInstance(Fluids.LAVA, FluidValue.BUCKET)
 			);
@@ -126,14 +126,14 @@ public class DrainBlockEntity extends MachineBaseBlockEntity implements IToolDro
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		internalTank.write(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		internalTank.write(view);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		internalTank.read(tagCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		internalTank.read(view);
 	}
 }

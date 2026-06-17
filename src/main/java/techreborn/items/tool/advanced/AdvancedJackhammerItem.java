@@ -24,7 +24,7 @@
 
 package techreborn.items.tool.advanced;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.misc.MultiBlockBreakingTool;
 import reborncore.common.powerSystem.RcEnergyTier;
 import techreborn.config.TechRebornConfig;
@@ -34,26 +34,28 @@ import techreborn.utils.TRItemUtils;
 import techreborn.utils.ToolsUtil;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class AdvancedJackhammerItem extends JackhammerItem implements MultiBlockBreakingTool {
 
-	public AdvancedJackhammerItem() {
-		super(TRToolMaterials.ADVANCED_JACKHAMMER, TechRebornConfig.advancedJackhammerCharge, RcEnergyTier.EXTREME, TechRebornConfig.advancedJackhammerCost);
+	public AdvancedJackhammerItem(String name) {
+		super(TRToolMaterials.ADVANCED_JACKHAMMER, TechRebornConfig.advancedJackhammerCharge, RcEnergyTier.EXTREME, TechRebornConfig.advancedJackhammerCost, name);
 	}
 
 	// JackhammerItem
@@ -77,29 +79,29 @@ public class AdvancedJackhammerItem extends JackhammerItem implements MultiBlock
 
 	// Item
 	@Override
-	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+	public InteractionResult use(final Level world, final Player player, final InteractionHand hand) {
 		final ItemStack stack = player.getItemInHand(hand);
 		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, cost, player);
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+			return InteractionResult.SUCCESS;
 		}
-		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
 		TRItemUtils.checkActive(stack, cost, entity);
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 
 	// MultiBlockBreakingTool
 	@Override
 	public Set<BlockPos> getBlocksToBreak(ItemStack stack, Level worldIn, BlockPos pos, @Nullable LivingEntity entityLiving) {
-		if (!isCorrectToolForDrops(stack, worldIn.getBlockState(pos))) {
+		if (!isCorrectToolForDrops(stack, worldIn.getBlockState(pos)) || !TRItemUtils.isActive(stack)) {
 			return Collections.emptySet();
 		}
 		return ToolsUtil.getAOEMiningBlocks(worldIn, pos, entityLiving, 1, false)

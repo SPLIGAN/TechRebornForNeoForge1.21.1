@@ -24,7 +24,7 @@
 
 package techreborn.blockentity.machine.tier2;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.RedstoneConfiguration;
@@ -39,8 +39,6 @@ import techreborn.init.TRContent;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -49,6 +47,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 
 public class LaunchpadBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, BuiltScreenHandlerProvider {
@@ -106,13 +106,13 @@ public class LaunchpadBlockEntity extends PowerAcceptorBlockEntity implements IT
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || getStored() <= 0 || !isActive(RedstoneConfiguration.Element.POWER_IO)) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (level == null || getStored() <= 0 || !isActive(RedstoneConfiguration.Element.POWER_IO)) {
 			return;
 		}
 
-		if (world.getGameTime() % TechRebornConfig.launchpadInterval != 0) {
+		if (level.getGameTime() % TechRebornConfig.launchpadInterval != 0) {
 			return;
 		}
 
@@ -121,11 +121,11 @@ public class LaunchpadBlockEntity extends PowerAcceptorBlockEntity implements IT
 		final int energyCost = selectedEnergyCost();
 
 		if (getStored() > energyCost) {
-			List<Entity> entities = world.getEntitiesOfClass(Entity.class, new AABB(0d,1d,0d,1d,2d,1d).move(pos));
+			List<Entity> entities = level.getEntitiesOfClass(Entity.class, new AABB(0d,1d,0d,1d,2d,1d).move(pos));
 			if (entities.isEmpty()) {
 				return;
 			}
-			world.playSound(null, pos, SoundEvents.PISTON_EXTEND, SoundSource.BLOCKS, 1f, 1f);
+			level.playSound(null, pos, SoundEvents.PISTON_EXTEND, SoundSource.BLOCKS, 1f, 1f);
 			for (Entity entity : entities) {
 				entity.push(0d, speed, 0d);
 			}
@@ -154,15 +154,15 @@ public class LaunchpadBlockEntity extends PowerAcceptorBlockEntity implements IT
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tag, registryLookup);
-		selection = tag.getInt("selection");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		selection = view.getIntOr("selection", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tag,registryLookup);
-		tag.putInt("selection", selection);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("selection", selection);
 	}
 
 	// MachineBaseBlockEntity

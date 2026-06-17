@@ -26,6 +26,8 @@ package techreborn.blockentity.generator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +37,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blocks.BlockMachineBase;
@@ -54,9 +56,9 @@ public class LightningRodBlockEntity extends PowerAcceptorBlockEntity implements
 	}
 
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide){
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)){
 			return;
 		}
 
@@ -70,26 +72,26 @@ public class LightningRodBlockEntity extends PowerAcceptorBlockEntity implements
 		}
 
 		if (onStatusHoldTicks == 0 || getEnergy() <= 0) {
-			machineBaseBlock.setActive(false, world, pos);
+			machineBaseBlock.setActive(false, serverLevel, pos);
 			onStatusHoldTicks = -1;
 		}
 
-		final float weatherStrength = world.getThunderLevel(1.0F);
+		final float weatherStrength = serverLevel.getThunderLevel(1.0F);
 		if (weatherStrength > 0.2F) {
 			//lightStrikeChance = (MAX - (CHANCE * WEATHER_STRENGTH)
 			final float lightStrikeChance = (100F - TechRebornConfig.lightningRodChanceOfStrike) * 20F;
 			final float totalChance = lightStrikeChance * getLightningStrikeMultiplier() * (1.1F - weatherStrength);
-			if (world.random.nextInt((int) Math.floor(totalChance)) == 0) {
+			if (serverLevel.getRandom().nextInt((int) Math.floor(totalChance)) == 0) {
 				if (!isValidIronFence(pos.above().getY())) {
 					onStatusHoldTicks = 400;
 					return;
 				}
 
-				LightningBolt lightningBolt = EntityType.LIGHTNING_BOLT.create(world);
-				lightningBolt.moveTo(Vec3.atBottomCenterOf(world.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, getBlockPos())));
-				world.addFreshEntity(lightningBolt);
+				LightningBolt lightningBolt = EntityType.LIGHTNING_BOLT.create(serverLevel, EntitySpawnReason.TRIGGERED);
+				lightningBolt.snapTo(Vec3.atBottomCenterOf(serverLevel.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING, getBlockPos())));
+				serverLevel.addFreshEntity(lightningBolt);
 				addEnergy((long) (TechRebornConfig.lightningRodBaseEnergyStrike * (0.3F + weatherStrength)));
-				machineBaseBlock.setActive(true, world, pos);
+				machineBaseBlock.setActive(true, serverLevel, pos);
 				onStatusHoldTicks = 400;
 			}
 		}
@@ -97,11 +99,9 @@ public class LightningRodBlockEntity extends PowerAcceptorBlockEntity implements
 	}
 
 	public float getLightningStrikeMultiplier() {
-		Level level = getLevel();
-		BlockPos bp = getBlockPos();
-		final float actualHeight = level.getMaxBuildHeight();
+		final float actualHeight = level.getMaxY();
 		final float groundLevel = level.getSeaLevel() + 1;
-		for (int i = bp.getY() + 1; i < actualHeight; i++) {
+		for (int i = worldPosition.getY() + 1; i < actualHeight; i++) {
 			if (!isValidIronFence(i)) {
 				if (groundLevel >= i)
 					return 4.3F;
@@ -114,12 +114,10 @@ public class LightningRodBlockEntity extends PowerAcceptorBlockEntity implements
 	}
 
 	public boolean isValidIronFence(int y) {
-		Level level = getLevel();
 		if (level == null){
 			return false;
 		}
-		BlockPos bp = getBlockPos();
-		Block block = level.getBlockState(new BlockPos(bp.getX(), y, bp.getZ())).getBlock();
+		Block block = this.level.getBlockState(new BlockPos(worldPosition.getX(), y, worldPosition.getZ())).getBlock();
 		return block == TRContent.REFINED_IRON_FENCE;
 	}
 

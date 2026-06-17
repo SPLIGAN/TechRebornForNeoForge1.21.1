@@ -25,6 +25,7 @@
 package techreborn.blocks.generator;
 
 import reborncore.api.ToolManager;
+import reborncore.common.BaseBlock;
 import techreborn.init.ModSounds;
 import techreborn.init.TRBlockSettings;
 
@@ -40,15 +41,14 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class BlockFusionCoil extends Block {
+public class BlockFusionCoil extends BaseBlock {
 
-	public BlockFusionCoil() {
-		super(TRBlockSettings.fusionCoil());
+	public BlockFusionCoil(String name) {
+		super(TRBlockSettings.fusionCoil(name));
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class BlockFusionCoil extends Block {
 			popResource(worldIn, pos, drop);
 			worldIn.playSound(null, playerIn.getX(), playerIn.getY(), playerIn.getZ(), ModSounds.BLOCK_DISMANTLE,
 					SoundSource.BLOCKS, 0.6F, 1F);
-			if (!worldIn.isClientSide) {
+			if (!worldIn.isClientSide()) {
 				worldIn.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
 			}
 			return InteractionResult.SUCCESS;
@@ -75,8 +75,8 @@ public class BlockFusionCoil extends Block {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
-		super.appendHoverText(stack, context, tooltip, options);
+	public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
+		super.appendTooltip(stack, context, tooltip, options);
 		tooltip.add(Component.translatable("techreborn.tooltip.fusion_coil").withStyle(ChatFormatting.BLUE));
 	}
 }

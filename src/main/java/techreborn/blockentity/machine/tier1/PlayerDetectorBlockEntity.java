@@ -26,15 +26,17 @@ package techreborn.blockentity.machine.tier1;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
@@ -76,26 +78,26 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
 
-		if (world == null || world.isClientSide) {
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
-		if (world.getGameTime() % 20 != 0) {
+		if (serverLevel.getGameTime() % 20 != 0) {
 			return;
 		}
 
 		boolean lastRedstone = redstone;
 		redstone = false;
 		if (getStored() > TechRebornConfig.playerDetectorEuPerTick) {
-			for (Player player : world.players()) {
+			for (Player player : serverLevel.players()) {
 				if (player.isSpectator()){
 					continue;
 				}
 				if (Mth.sqrt((float)player.distanceToSqr(pos.getX() +0.5f, pos.getY() +0.5f, pos.getZ() +0.5f)) <= (float)radius ) {
-					PlayerDetectorType type = world.getBlockState(pos).getValue(PlayerDetectorBlock.TYPE);
+					PlayerDetectorType type = serverLevel.getBlockState(pos).getValue(PlayerDetectorBlock.TYPE);
 					if (type == PlayerDetectorType.ALL) {// ALL
 						redstone = true;
 					} else if (type == PlayerDetectorType.OTHERS) {// Others
@@ -112,8 +114,8 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 			useEnergy(TechRebornConfig.playerDetectorEuPerTick);
 		}
 		if (lastRedstone != redstone) {
-			WorldUtils.updateBlock(world, pos);
-			world.updateNeighborsAt(pos, world.getBlockState(pos).getBlock());
+			WorldUtils.updateBlock(serverLevel, pos);
+			serverLevel.updateNeighborsAt(pos, serverLevel.getBlockState(pos).getBlock(), ExperimentalRedstoneUtils.initialOrientation(serverLevel, null, null));
 		}
 	}
 
@@ -138,17 +140,17 @@ public class PlayerDetectorBlockEntity extends PowerAcceptorBlockEntity implemen
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tag, registryLookup);
-		ownerUdid = tag.getString("ownerID");
-		radius = tag.getInt("radius");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		ownerUdid = view.getStringOr("ownerID", "");
+		radius = view.getIntOr("radius", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tag, registryLookup);
-		tag.putString("ownerID", ownerUdid);
-		tag.putInt("radius", radius);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putString("ownerID", ownerUdid);
+		view.putInt("radius", radius);
 	}
 
 	// MachineBaseBlockEntity

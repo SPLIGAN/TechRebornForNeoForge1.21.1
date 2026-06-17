@@ -30,31 +30,29 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import techreborn.init.TRItemSettings;
 
 public class GpsItem extends Item {
 
-	public GpsItem() {
-		super(new Properties());
+	public GpsItem(String name) {
+		super(TRItemSettings.item(name));
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
-		ItemStack stack = player.getItemInHand(hand);
+	public InteractionResult use(Level world, Player player, InteractionHand hand) {
 		if (player instanceof ServerPlayer serverPlayerEntity) {
 			BlockPos pos = player.blockPosition();
-			serverPlayerEntity.displayClientMessage(Component.literal(" X:").withStyle(ChatFormatting.GRAY)
+			serverPlayerEntity.sendOverlayMessage(Component.literal(" X:").withStyle(ChatFormatting.GRAY)
 											.append(Component.literal(String.valueOf(pos.getX())).withStyle(ChatFormatting.GOLD))
 											.append(Component.literal(" Y:").withStyle(ChatFormatting.GRAY))
 											.append(Component.literal(String.valueOf(pos.getY())).withStyle(ChatFormatting.GOLD))
 											.append(Component.literal(" Z:").withStyle(ChatFormatting.GRAY))
-											.append(Component.literal(String.valueOf(pos.getZ())).withStyle(ChatFormatting.GOLD)), true);
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+											.append(Component.literal(String.valueOf(pos.getZ())).withStyle(ChatFormatting.GOLD)));
+			return InteractionResult.SUCCESS;
 		}
-		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+		return InteractionResult.PASS;
 	}
 }

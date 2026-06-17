@@ -24,18 +24,18 @@
 
 package reborncore.client.gui.config.elements;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.core.Direction;
+import net.minecraft.util.ColorRGBA;
 import reborncore.RebornCore;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.GuiSprites;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.blockentity.FluidConfiguration;
 import reborncore.common.network.serverbound.FluidConfigSavePayload;
 import reborncore.common.network.serverbound.FluidIoSavePayload;
 
 import java.util.Arrays;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Direction;
-import net.minecraft.util.ColorRGBA;
 
 public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 	ConfigFluidElement fluidElement;
@@ -54,7 +54,7 @@ public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 			case "INPUT" -> theme.ioInputColor().rgba();
 			case "OUTPUT" -> theme.ioOutputColor().rgba();
 			case "ALL" -> theme.ioBothColor().rgba();
-			default -> 0x80000000 | theme.warningTextColor().rgba();
+			default -> theme.warningTextColor().rgba() & 0xffffff | 0x80000000;
 		};
 	}
 
@@ -75,7 +75,7 @@ public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 		}
 		FluidConfiguration.FluidConfig newConfig = new FluidConfiguration.FluidConfig(side, fluidIO);
 
-		ClientNetworkingBridge.sendToServer(new FluidConfigSavePayload(guiBase.be.getBlockPos(), newConfig));
+		ClientPlayNetworking.send(new FluidConfigSavePayload(guiBase.be.getBlockPos(), newConfig));
 	}
 
 	public void updateCheckBox(String type, GuiBase<?> guiBase) {
@@ -89,11 +89,11 @@ public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 			output = !configHolder.autoOutput();
 		}
 
-		ClientNetworkingBridge.sendToServer(new FluidIoSavePayload(guiBase.be.getBlockPos(), input, output));
+		ClientPlayNetworking.send(new FluidIoSavePayload(guiBase.be.getBlockPos(), input, output));
 	}
 
 	@Override
-	protected void drawSateColor(GuiGraphics drawContext, GuiBase<?> gui, Direction side, int inx, int iny) {
+	protected void drawSateColor(GuiGraphicsExtractor drawContext, GuiBase<?> gui, Direction side, int inx, int iny) {
 		iny += 4;
 		int sx = inx + getX() + gui.getGuiLeft();
 		int sy = iny + getY() + gui.getGuiTop();

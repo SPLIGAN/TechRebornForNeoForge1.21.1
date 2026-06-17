@@ -31,23 +31,23 @@ import techreborn.items.tool.DrillItem;
 import techreborn.utils.TRItemUtils;
 import techreborn.utils.ToolsUtil;
 
-import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class IndustrialDrillItem extends DrillItem {
 
-	public IndustrialDrillItem() {
-		super(TRToolMaterials.INDUSTRIAL_DRILL, TechRebornConfig.industrialDrillCharge, RcEnergyTier.INSANE, TechRebornConfig.industrialDrillCost, 20.0F);
+	public IndustrialDrillItem(String name) {
+		super(TRToolMaterials.INDUSTRIAL_DRILL, TechRebornConfig.industrialDrillCharge, RcEnergyTier.INSANE, TechRebornConfig.industrialDrillCost, 20.0F, name);
 	}
 
 	private boolean shouldBreak(Player playerIn, Level worldIn, BlockPos originalPos, BlockPos pos) {
@@ -89,13 +89,13 @@ public class IndustrialDrillItem extends DrillItem {
 
 	// Item
 	@Override
-	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+	public InteractionResult use(final Level world, final Player player, final InteractionHand hand) {
 		final ItemStack stack = player.getItemInHand(hand);
 		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, cost, player);
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+			return InteractionResult.SUCCESS;
 		}
-		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class IndustrialDrillItem extends DrillItem {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 }

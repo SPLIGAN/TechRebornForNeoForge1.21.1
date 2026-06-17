@@ -57,9 +57,9 @@ public class PlayerDetectorBlock extends BlockMachineBase {
 
 	public static final EnumProperty<PlayerDetectorType> TYPE = EnumProperty.create("type", PlayerDetectorType.class);
 
-	public PlayerDetectorBlock() {
-		super(TRBlockSettings.playerDetector(), true);
-		registerDefaultState(getStateDefinition().any().setValue(TYPE, PlayerDetectorType.ALL));
+	public PlayerDetectorBlock(String name) {
+		super(TRBlockSettings.playerDetector(name), true);
+		this.registerDefaultState(this.getStateDefinition().any().setValue(TYPE, PlayerDetectorType.ALL));
 	}
 
 	// BlockMachineBase
@@ -72,8 +72,8 @@ public class PlayerDetectorBlock extends BlockMachineBase {
 	public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
 		super.setPlacedBy(worldIn, pos, state, placer, stack);
 		BlockEntity blockEntity = worldIn.getBlockEntity(pos);
-		if (blockEntity instanceof PlayerDetectorBlockEntity pde) {
-			pde.ownerUdid = placer.getStringUUID();
+		if (blockEntity instanceof PlayerDetectorBlockEntity) {
+			((PlayerDetectorBlockEntity) blockEntity).ownerUdid = placer.getUUID().toString();
 		}
 	}
 
@@ -95,16 +95,16 @@ public class PlayerDetectorBlock extends BlockMachineBase {
 		if (!stack.isEmpty() && ToolManager.INSTANCE.canHandleTool(stack)) {
 			if (ToolManager.INSTANCE.handleTool(stack, pos, worldIn, playerIn, hitResult.getDirection(), false)) {
 				if (playerIn.isShiftKeyDown()) {
-					if (blockEntity instanceof IToolDrop itool) {
-						ItemStack drop = itool.getToolDrop(playerIn);
+					if (blockEntity instanceof IToolDrop) {
+						ItemStack drop = ((IToolDrop) blockEntity).getToolDrop(playerIn);
 						if (drop == null) {
 							return InteractionResult.PASS;
 						}
 						if (!drop.isEmpty()) {
-							Block.popResource(worldIn, pos, drop);
+							popResource(worldIn, pos, drop);
 						}
-						if (!worldIn.isClientSide) {
-							worldIn.setBlock(pos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+						if (!worldIn.isClientSide()) {
+							worldIn.setBlock(pos, Blocks.AIR.defaultBlockState(), 2);
 						}
 						return InteractionResult.SUCCESS;
 					}
@@ -124,13 +124,13 @@ public class PlayerDetectorBlock extends BlockMachineBase {
 		}
 
 		if (playerIn instanceof ServerPlayer serverPlayerEntity) {
-			serverPlayerEntity.displayClientMessage(Component.translatable("techreborn.message.detects")
+			serverPlayerEntity.sendOverlayMessage(Component.translatable("techreborn.message.detects")
 											.withStyle(ChatFormatting.GRAY)
 											.append(" ")
 											.append(
 												Component.literal(StringUtils.toFirstCapital(newType.getSerializedName()))
 													.withStyle(color)
-											), true);
+											));
 		}
 
 		if (getGui() != null && !playerIn.isShiftKeyDown()) {
@@ -148,17 +148,19 @@ public class PlayerDetectorBlock extends BlockMachineBase {
 
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-		super.createBlockStateDefinition(builder);
 		builder.add(TYPE);
 	}
 
+	// AbstractBlock
+	@SuppressWarnings("deprecation")
 	@Override
-	protected boolean isSignalSource(BlockState state) {
+	public boolean isSignalSource(BlockState state) {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	protected int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side) {
+	public int getSignal(BlockState blockState, BlockGetter blockAccess, BlockPos pos, Direction side) {
 		BlockEntity entity = blockAccess.getBlockEntity(pos);
 		if (entity instanceof PlayerDetectorBlockEntity) {
 			return ((PlayerDetectorBlockEntity) entity).isProvidingPower() ? 15 : 0;

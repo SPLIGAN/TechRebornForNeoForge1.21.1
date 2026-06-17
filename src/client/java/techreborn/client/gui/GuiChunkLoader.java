@@ -24,7 +24,8 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -32,7 +33,6 @@ import reborncore.client.ClientChunkManager;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.widget.GuiButtonUpDown;
 import reborncore.client.gui.widget.GuiButtonUpDown.UpDownButtonType;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import techreborn.blockentity.machine.tier3.ChunkLoaderBlockEntity;
 import techreborn.packets.serverbound.ChunkloaderPayload;
@@ -54,16 +54,17 @@ public class GuiChunkLoader extends GuiBase<BuiltScreenHandler> {
 		addRenderableWidget(new GuiButtonUpDown(leftPos + 64 + 36, topPos + 40, this, b -> onClick(-5), UpDownButtonType.FASTREWIND));
 
 		addRenderableWidget(
-			Button.builder(getToggleText(ClientChunkManager.isShow()), button -> {
-				button.setMessage(getToggleText(!ClientChunkManager.isShow()));
+			Button.builder(getToogleText(ClientChunkManager.isShow()), button -> {
+				button.setMessage(getToogleText(!ClientChunkManager.isShow()));
 				ClientChunkManager.toggleLoadedChunks(blockEntity.getBlockPos());
 			})
-			.bounds(leftPos + 10, topPos + 70, 155, 20)
+			.pos(leftPos + 10, topPos + 70)
+			.size(155, 20)
 			.build()
 		);
 	}
 
-	private Component getToggleText(Boolean show) {
+	private Component getToogleText(Boolean show) {
 		if (show) {
 			return Component.translatable("gui.techreborn.chunk.hide_loaded_chunks");
 		} else {
@@ -72,8 +73,8 @@ public class GuiChunkLoader extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, float partialTicks, int mouseX, int mouseY) {
-		super.renderBg(drawContext, partialTicks, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float partialTicks) {
+		super.extractBackground(drawContext, mouseX, mouseY, partialTicks);
 		final Layer layer = Layer.BACKGROUND;
 
 		if (hideGuiElements()) return;
@@ -85,6 +86,6 @@ public class GuiChunkLoader extends GuiBase<BuiltScreenHandler> {
 	}
 
 	public void onClick(int amount) {
-		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getBlockPos(), amount, ClientChunkManager.hasChunksForLoader(blockEntity.getBlockPos())));
+		ClientPlayNetworking.send(new ChunkloaderPayload(blockEntity.getBlockPos(), amount, ClientChunkManager.hasChunksForLoader(blockEntity.getBlockPos())));
 	}
 }

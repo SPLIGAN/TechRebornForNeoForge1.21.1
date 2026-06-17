@@ -64,6 +64,11 @@ public class IndustrialBlastFurnaceBlockEntity extends GenericMachineBlockEntity
 	}
 
 	@Override
+	public boolean hasMultiblock() {
+		return true;
+	}
+
+	@Override
 	public void writeMultiblock(MultiblockWriter writer) {
 		Block basic = TRContent.MachineBlocks.BASIC.getCasing();
 		Block advanced = TRContent.MachineBlocks.ADVANCED.getCasing();
@@ -89,12 +94,12 @@ public class IndustrialBlastFurnaceBlockEntity extends GenericMachineBlockEntity
 	}
 
 	public int getHeat() {
-		if (!isMultiblockValid()) {
+		if (!isShapeValid()) {
 			return 0;
 		}
 
 		// Bottom center of multiblock
-		final BlockPos location = getBlockPos().relative(getFacing().getOpposite(), 2);
+		final BlockPos location = worldPosition.relative(getFacing().getOpposite(), 2);
 		final BlockEntity blockEntity = level.getBlockEntity(location);
 
 		if (blockEntity instanceof MachineCasingBlockEntity) {
@@ -139,7 +144,8 @@ public class IndustrialBlastFurnaceBlockEntity extends GenericMachineBlockEntity
 		return new ScreenHandlerBuilder("blastfurnace").player(player.getInventory()).inventory().hotbar().addInventory()
 				.blockEntity(this).slot(0, 50, 27).slot(1, 50, 47).outputSlot(2, 93, 37).outputSlot(3, 113, 37)
 				.energySlot(4, 8, 72).syncEnergyValue().syncCrafterValue()
-				.sync(ByteBufCodecs.INT, this::getHeat, this::setHeat).addInventory().create(this, syncID);
+				.sync(ByteBufCodecs.INT, this::getHeat, this::setHeat)
+				.syncShapeValue().addInventory().create(this, syncID);
 	}
 
 }

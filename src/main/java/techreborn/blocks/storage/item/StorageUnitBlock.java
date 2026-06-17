@@ -25,11 +25,12 @@
 package techreborn.blocks.storage.item;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.DiggerItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -50,8 +51,8 @@ public class StorageUnitBlock extends BlockMachineBase {
 
 	public final TRContent.StorageUnit unitType;
 
-	public StorageUnitBlock(TRContent.StorageUnit unitType) {
-		super(TRBlockSettings.storageUnit(unitType.name.equals("buffer") || unitType.name.equals("crude")));
+	public StorageUnitBlock(TRContent.StorageUnit unitType, String name) {
+		super(TRBlockSettings.storageUnit(unitType.name.equals("buffer") || unitType.name.equals("crude"), name));
 		this.unitType = unitType;
 	}
 
@@ -75,7 +76,7 @@ public class StorageUnitBlock extends BlockMachineBase {
 		}
 
 		ItemStack stackInHand = playerIn.getItemInHand(InteractionHand.MAIN_HAND);
-		if (!storageEntity.isStackValid(StorageUnitBaseBlockEntity.INPUT_SLOT, stackInHand)) {
+		if (!storageEntity.canPlaceItem(StorageUnitBaseBlockEntity.INPUT_SLOT, stackInHand)) {
 			return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 		}
 
@@ -96,7 +97,7 @@ public class StorageUnitBlock extends BlockMachineBase {
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		final StorageUnitBaseBlockEntity storageEntity = (StorageUnitBaseBlockEntity) world.getBlockEntity(pos);
 		if (storageEntity == null){
 			return 0;
@@ -122,14 +123,10 @@ public class StorageUnitBlock extends BlockMachineBase {
 		ItemStack stackInHand = player.getItemInHand(InteractionHand.MAIN_HAND);
 
 		// Let's assume that player is trying to break this block, rather than get an item from storage
-		if (stackInHand.getItem() instanceof DiggerItem) {
+		if (stackInHand.has(DataComponents.WEAPON)) {
 			return;
 		}
-		if (!(storageEntity.getInventory() instanceof RebornInventory<?> rawInv)) {
-			return;
-		}
-		@SuppressWarnings("unchecked")
-		RebornInventory<StorageUnitBaseBlockEntity> inventory = (RebornInventory<StorageUnitBaseBlockEntity>) rawInv;
+		RebornInventory<StorageUnitBaseBlockEntity> inventory = storageEntity.getInventory();
 		ItemStack out = inventory.getItem(StorageUnitBaseBlockEntity.OUTPUT_SLOT);
 
 		// Full stack if sneaking
@@ -143,7 +140,7 @@ public class StorageUnitBlock extends BlockMachineBase {
 			out.shrink(1);
 		}
 
-		inventory.setHashChanged();
+		inventory.setHasChanged();
 	}
 
 	@Override

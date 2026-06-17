@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.widget.GuiButtonExtended;
@@ -42,8 +42,8 @@ public class GuiVacuumFreezer extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, f, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float f) {
+		super.extractBackground(drawContext, mouseX, mouseY, f);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		// Battery slot
@@ -54,18 +54,18 @@ public class GuiVacuumFreezer extends GuiBase<BuiltScreenHandler> {
 		// Output slot
 		drawOutputSlot(drawContext, 101, 45, layer);
 
-		if (blockEntity.isMultiblockValid()) {
+		if (blockEntity.isShapeValid()) {
 			builder.drawHologramButton(drawContext, this, 6, 4, mouseX, mouseY, layer);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		builder.drawProgressBar(drawContext, this, blockEntity.getProgressScaled(100), 100, 76, 48, mouseX, mouseY, GuiBuilder.ProgressDirection.RIGHT, layer);
-		if (blockEntity.isMultiblockValid()) {
+		if (blockEntity.isShapeValid()) {
 			addHologramButton(6, 4, 212, layer).clickHandler(this::onClick);
 		} else {
 			builder.drawMultiblockMissingBar(drawContext, this, layer);

@@ -44,13 +44,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.ToolManager;
 import reborncore.common.BaseBlockEntityProvider;
+import reborncore.common.blocks.BlockMachineBase;
 import reborncore.common.blocks.BlockWrenchEventHandler;
 import reborncore.common.util.WrenchUtils;
 import techreborn.blockentity.machine.misc.AlarmBlockEntity;
@@ -58,21 +59,19 @@ import techreborn.init.TRBlockSettings;
 
 import java.util.List;
 
-import static net.minecraft.world.level.block.Block.box;
-
 public class BlockAlarm extends BaseBlockEntityProvider {
-	public static final DirectionProperty FACING = BlockStateProperties.FACING;
-	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
+	public static final BooleanProperty ACTIVE = BlockMachineBase.ACTIVE;
 	protected final VoxelShape[] shape;
 
-	public BlockAlarm() {
-		super(TRBlockSettings.alarm());
-		registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
-		this.shape = genCuboidShapes(3, 10);
+	public BlockAlarm(String name) {
+		super(TRBlockSettings.alarm(name));
+		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
+		this.shape = GenCuboidShapes(3, 10);
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);
 	}
 
-	private VoxelShape[] genCuboidShapes(double depth, double width) {
+	private VoxelShape[] GenCuboidShapes(double depth, double width) {
 		double culling = (16.0D - width) / 2;
 		return new VoxelShape[]{
 				box(culling, 16.0 - depth, culling, 16.0 - culling, 16.0D, 16.0 - culling),
@@ -102,12 +101,14 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 		world.setBlock(pos, state, 3);
 	}
 
+	// BaseTileBlock
 	@Nullable
 	@Override
 	public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
 		return new AlarmBlockEntity(pos, state);
 	}
 
+	// Block
 	@Override
 	protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
 		builder.add(FACING, ACTIVE);
@@ -126,10 +127,11 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 	}
 
 	@Override
-	protected InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
+	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
 		ItemStack stack = playerIn.getItemInHand(InteractionHand.MAIN_HAND);
 		BlockEntity blockEntity = worldIn.getBlockEntity(pos);
 
+		// We extended BaseTileBlock. Thus, we should always have blockEntity entity. I hope.
 		if (blockEntity == null) {
 			return InteractionResult.FAIL;
 		}
@@ -143,23 +145,27 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 		if (playerIn.isShiftKeyDown()) {
 			((AlarmBlockEntity) blockEntity).rightClick(playerIn);
 			return InteractionResult.SUCCESS;
+
 		}
 
 		return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 	}
 
 	@Override
-	protected RenderShape getRenderShape(BlockState state) {
+	public RenderShape getRenderShape(BlockState state) {
 		return RenderShape.MODEL;
 	}
 
+
 	@Override
-	protected VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext shapeContext) {
+	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext shapeContext) {
 		return shape[getFacing(state).ordinal()];
 	}
 
+
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
+	public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
 		tooltip.add(Component.translatable("techreborn.tooltip.alarm").withStyle(ChatFormatting.GRAY));
 	}
+
 }

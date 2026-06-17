@@ -24,6 +24,7 @@
 
 package techreborn.blockentity.storage.energy.lesu;
 
+import net.minecraft.server.level.ServerLevel;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.screen.BuiltScreenHandler;
@@ -38,12 +39,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements BuiltScreenHandlerProvider {
 
@@ -87,9 +88,9 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	// EnergyStorageBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel)) {
 			return;
 		}
 		if (getEnergy() > getMaxStoredPower()) {
@@ -101,16 +102,15 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	@Override
 	public void onLoad() {
 		super.onLoad();
-		if (level == null || level.isClientSide) return;
+		if (!(level instanceof ServerLevel)) return;
 
 		// 1. Collect information and change the relationship between surrounding blocks
 		byte flagInvalidNeighbors = 0b000000;
 		LinkedList<LSUStorageBlockEntity> canConnect = new LinkedList<>();
 		HashSet<BlockPos> visited = new HashSet<>();
-		BlockPos bp = getBlockPos();
 		for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
 			if ((neighbors & FLAGS[i]) != 0) {
-				if (level.getBlockEntity(bp.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity lsu_storage) {
+				if (level.getBlockEntity(worldPosition.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity lsu_storage) {
 					if (lsu_storage.master == null) {
 						canConnect.add(lsu_storage);
 						lsu_storage.addTo(visited);
@@ -150,6 +150,12 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 		setIORate();
 	}
 
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState oldState) {
+		disconnectNetwork();
+		super.preRemoveSideEffects(pos, oldState);
+	}
+
 	public void disconnectNetwork() {
 		if (level == null) return;
 
@@ -180,9 +186,8 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	public final void checkNeighbors() {
 		if (level == null) return;
-		BlockPos bp = getBlockPos();
 		for (int i = 0; i < DIRECTIONS_LENGTH; i++) {
-			if (level.getBlockEntity(bp.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
+			if (level.getBlockEntity(worldPosition.relative(DIRECTIONS[i])) instanceof LSUStorageBlockEntity) {
 				neighbors |= FLAGS[i];
 			}
 		}
@@ -193,7 +198,7 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 
 	public LSUStorageBlockEntity fastGetLSUS(Direction direction) {
 		assert level != null;
-		return (LSUStorageBlockEntity) level.getBlockEntity(getBlockPos().relative(direction));
+		return (LSUStorageBlockEntity) level.getBlockEntity(worldPosition.relative(direction));
 	}
 
 	// IContainerProvider
@@ -215,19 +220,14 @@ public class LapotronicSUBlockEntity extends EnergyStorageBlockEntity implements
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putByte("neighbors", neighbors);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putByte("neighbors", neighbors);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		if (tagCompound.contains("neighbors")) {
-			neighbors = tagCompound.getByte("neighbors");
-		} else {
-			// Compatible with older versions: judge not initialized
-			neighbors = 0b111111;
-		}
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		neighbors = view.getByteOr("neighbors", (byte) 0b111111);
 	}
 }

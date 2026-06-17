@@ -27,26 +27,25 @@ package techreborn.items;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import reborncore.common.network.NetworkManager;
+import techreborn.init.TRItemSettings;
 import techreborn.packets.clientbound.OpenManualPayload;
 
 public class ManualItem extends Item {
 
-	public ManualItem() {
-		super(new Item.Properties().stacksTo(1));
+	public ManualItem(String name) {
+		super(TRItemSettings.item(name).stacksTo(1));
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+	public InteractionResult use(final Level world, final Player player, final InteractionHand hand) {
 		if (player instanceof ServerPlayer serverPlayerEntity) {
 			NetworkManager.sendToPlayer(new OpenManualPayload(), serverPlayerEntity);
 		}
 
-		return new InteractionResultHolder<>(InteractionResult.SUCCESS, player.getItemInHand(hand));
+		return InteractionResult.SUCCESS;
 	}
 }

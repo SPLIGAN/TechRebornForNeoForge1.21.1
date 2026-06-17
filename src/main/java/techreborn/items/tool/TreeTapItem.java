@@ -25,10 +25,11 @@
 package techreborn.items.tool;
 
 import net.minecraft.world.item.Item;
+import techreborn.init.TRItemSettings;
 
 public class TreeTapItem extends Item {
 
-	public TreeTapItem() {
-		super(new Item.Properties().durability(20));
+	public TreeTapItem(String name) {
+		super(TRItemSettings.item(name).durability(20));
 	}
 }

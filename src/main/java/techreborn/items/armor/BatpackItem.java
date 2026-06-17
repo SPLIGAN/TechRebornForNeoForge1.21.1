@@ -24,44 +24,32 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
+import org.jspecify.annotations.Nullable;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 
-public class BatpackItem extends TREnergyArmourItem {
+public class BatpackItem extends TREnergyArmourItem implements RcEnergyItem {
 
-	public BatpackItem(long maxCharge, Holder<ArmorMaterial> material, RcEnergyTier tier) {
-		super(material, Type.CHESTPLATE, maxCharge, tier);
-	}
-
-	@Override
-	public long getEnergyCapacity(ItemStack stack) {
-		return maxCharge;
-	}
-
-	@Override
-	public long getEnergyMaxInput(ItemStack stack) {
-		return getEnergyTier().getMaxInput();
-	}
-
-	@Override
-	public long getEnergyMaxOutput(ItemStack stack) {
-		return getEnergyTier().getMaxOutput();
+	public BatpackItem(long maxCharge, ArmorMaterial material, RcEnergyTier tier, String name) {
+		super(material, ArmorType.CHESTPLATE, maxCharge, tier, name);
 	}
 
 	// Item
 	@Override
-	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
-		if (worldIn.isClientSide) {
+	public void inventoryTick(ItemStack stack, ServerLevel worldIn, Entity entityIn, @Nullable EquipmentSlot slot) {
+		if (worldIn.isClientSide()) {
 			return;
 		}
 		if (entityIn instanceof Player) {
-			ItemUtils.distributePowerToInventory((Player) entityIn, stack, this.getEnergyTier().getMaxOutput());
+			ItemUtils.distributePowerToInventory((Player) entityIn, stack, this.getTier().getMaxOutput());
 		}
 	}
 }

@@ -1,20 +1,19 @@
 {
-  "type": "minecraft:crafting_shaped",
-  "pattern": [
-    " T ",
-    "TWT",
-    " T "
-  ],
-  "key": {
-    "T": {
-      "tag": "c:ingots/tin"
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " T ",
+        "TWT",
+        " T "
+    ],
+    "key": {
+        "T": "#c:ingots/tin",
+        "W": {
+            "fabric:type": "reborncore:fluid_container",
+            "fluid": "minecraft:water"
+        }
     },
-    "W": {
-      "item": "minecraft:water_bucket"
+    "result": {
+        "id": "techreborn:water_coolant_cell_10k",
+        "count": 2
     }
-  },
-  "result": {
-    "id": "techreborn:water_coolant_cell_10k",
-    "count": 2
-  }
 }

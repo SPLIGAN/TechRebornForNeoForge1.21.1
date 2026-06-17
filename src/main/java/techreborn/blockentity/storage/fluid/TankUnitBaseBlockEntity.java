@@ -24,8 +24,10 @@
 
 package techreborn.blockentity.storage.fluid;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.component.TypedEntityData;
 import org.apache.commons.lang3.text.WordUtils;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
@@ -44,16 +46,19 @@ import techreborn.init.TRContent;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+
+import static techreborn.TechReborn.LOGGER;
 
 public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements InventoryProvider, IToolDrop, IListInfoProvider, BuiltScreenHandlerProvider {
 	protected Tank tank;
@@ -91,10 +96,10 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 
 	// MachineBaseBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
 
-		if (world == null || world.isClientSide()){
+		if (!(level instanceof ServerLevel)){
 			return;
 		}
 
@@ -129,20 +134,20 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 	}
 
 	@Override
-	public void loadAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		if (tagCompound.contains("unitType")) {
-			this.type = TRContent.TankUnit.valueOf(tagCompound.getString("unitType"));
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		view.getString("unitType").ifPresent(name -> {
+			this.type = TRContent.TankUnit.valueOf(name);
 			configureEntity(type);
-			tank.read(tagCompound, registryLookup);
-		}
+			tank.read(view);
+		});
 	}
 
 	@Override
-	public void saveAdditional(final CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
-		tagCompound.putString("unitType", this.type.name());
-		tank.write(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putString("unitType", this.type.name());
+		tank.write(view);
 	}
 
 	@Override
@@ -161,10 +166,12 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 	@Override
 	public ItemStack getToolDrop(Player playerEntity) {
 		ItemStack dropStack = new ItemStack(getBlockType(), 1);
-		final CompoundTag nbt = new CompoundTag();
 		if (level != null){
-			saveAdditional(nbt, level.registryAccess());
-			dropStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
+			try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(problemPath(), LOGGER)) {
+				TagValueOutput view = TagValueOutput.createWithContext(logging, level.registryAccess());
+				saveAdditional(view);
+				dropStack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(getType(), view.buildResult()));
+			}
 		}
 
 		return dropStack;

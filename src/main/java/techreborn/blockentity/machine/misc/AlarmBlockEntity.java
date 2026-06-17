@@ -26,8 +26,6 @@ package techreborn.blockentity.machine.misc;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -38,6 +36,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import reborncore.api.IToolDrop;
 import techreborn.blocks.misc.BlockAlarm;
 import techreborn.init.ModSounds;
@@ -62,24 +62,24 @@ public class AlarmBlockEntity extends BlockEntity
 		}
 
 		if (entity instanceof ServerPlayer serverPlayerEntity) {
-			serverPlayerEntity.displayClientMessage(Component.translatable("techreborn.message.alarm")
+			serverPlayerEntity.sendOverlayMessage(Component.translatable("techreborn.message.alarm")
 											.withStyle(ChatFormatting.GRAY)
 											.append(" Alarm ")
-											.append(String.valueOf(selectedSound)), true);
+											.append(String.valueOf(selectedSound)));
 		}
 	}
 
 	// BlockEntity
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(compound, registryLookup);
-		compound.putInt("selectedSound", this.selectedSound);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("selectedSound", this.selectedSound);
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag compound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(compound,registryLookup);
-		selectedSound = compound.getInt("selectedSound");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		selectedSound = view.getIntOr("selectedSound", 0);
 	}
 
 	// Tickable

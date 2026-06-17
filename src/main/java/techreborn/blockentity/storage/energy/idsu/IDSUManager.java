@@ -24,89 +24,90 @@
 
 package techreborn.blockentity.storage.energy.idsu;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
-import org.jetbrains.annotations.NotNull;
-import reborncore.common.util.NBTSerializable;
-import reborncore.common.energy.api.EnergyStorage;
-import reborncore.common.energy.api.base.SimpleEnergyStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import org.jspecify.annotations.NonNull;
+import team.reborn.energy.api.EnergyStorage;
+import team.reborn.energy.api.base.SimpleEnergyStorage;
 import techreborn.config.TechRebornConfig;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class IDSUManager extends SavedData {
-	private static final SavedData.Factory<IDSUManager> TYPE = new Factory<>(IDSUManager::new, IDSUManager::createFromTag, null);
+	public static Codec<IDSUManager> CODEC = Codec.list(IDSUPlayer.CODEC).xmap(IDSUManager::fromIDSUPlayers, IDSUManager::getPlayers);
+	private static final SavedDataType<IDSUManager> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath("techreborn", "idsu"), IDSUManager::new, CODEC, null);
 	private static final String KEY = "techreborn_idsu";
 
 	private IDSUManager() {
 	}
 
-	@NotNull
+	@NonNull
 	public static IDSUPlayer getPlayer(MinecraftServer server, String uuid) {
 		return get(server).getPlayer(uuid);
 	}
 
 	private static IDSUManager get(MinecraftServer server) {
 		ServerLevel serverWorld = server.getLevel(Level.OVERWORLD);
-		return serverWorld.getDataStorage().computeIfAbsent(TYPE, KEY);
+		return serverWorld.getDataStorage().computeIfAbsent(TYPE);
 	}
 
 	private final HashMap<String, IDSUPlayer> playerHashMap = new HashMap<>();
 
-	@NotNull
+	@NonNull
 	public IDSUPlayer getPlayer(String uuid) {
-		return playerHashMap.computeIfAbsent(uuid, s -> new IDSUPlayer());
+		return playerHashMap.computeIfAbsent(uuid, s -> new IDSUPlayer(uuid, this::setDirty));
 	}
 
-	public static IDSUManager createFromTag(CompoundTag tag, HolderLookup.Provider registryLookup) {
+	public static IDSUManager fromIDSUPlayers(List<IDSUPlayer> list) {
 		IDSUManager	idsuManager = new IDSUManager();
-		idsuManager.fromTag(tag);
+		for (IDSUPlayer player : list) {
+			player.setMarkDirty(idsuManager::setDirty);
+			idsuManager.playerHashMap.put(player.getUUID(), player);
+		}
 		return idsuManager;
 	}
 
-	public void fromTag(CompoundTag tag) {
-		for (String uuid : tag.getAllKeys()) {
-			playerHashMap.put(uuid, new IDSUPlayer(tag.getCompound(uuid)));
-		}
+	public List<IDSUPlayer> getPlayers() {
+		return playerHashMap.values().stream().toList();
 	}
 
-	@Override
-	public CompoundTag save(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		playerHashMap.forEach((uuid, player) -> tag.put(uuid, player.write()));
-		return tag;
-	}
 
-	public class IDSUPlayer implements NBTSerializable {
+	public static class IDSUPlayer {
+		public static Codec<IDSUPlayer> CODEC = RecordCodecBuilder.create(instance ->
+			instance.group(
+				Codec.STRING.fieldOf("uuid").forGetter(IDSUPlayer::getUUID),
+				Codec.LONG.fieldOf("energy").forGetter(IDSUPlayer::getEnergy)
+				)
+				.apply(instance, IDSUPlayer::new));
+		private String uuid;
+		private Runnable markDirty = () -> {};
 		// This storage is never exposed directly, it's always wrapped behind getMaxInput()/getMaxOutput() checks
 		private final SimpleEnergyStorage storage = new SimpleEnergyStorage(TechRebornConfig.idsuMaxEnergy, Long.MAX_VALUE, Long.MAX_VALUE) {
 			@Override
-			protected void onSnapshotCommitted() {
-				setDirty();
+			protected void onFinalCommit() {
+				markDirty.run();
 			}
 		};
 
-		private IDSUPlayer() {
+		private IDSUPlayer(String uuid, Runnable markDirty) {
+			this.uuid = uuid;
+			this.markDirty = markDirty;
 		}
 
-		private IDSUPlayer(CompoundTag compoundTag) {
-			read(compoundTag);
+		public IDSUPlayer(String uuid, Long energy) {
+			this.uuid = uuid;
+			storage.amount = energy;
 		}
 
-		@NotNull
-		@Override
-		public CompoundTag write() {
-			CompoundTag tag = new CompoundTag();
-			tag.putLong("energy", storage.amount);
-			return tag;
-		}
-
-		@Override
-		public void read(@NotNull CompoundTag tag) {
-			storage.amount = tag.getLong("energy");
+		public void setMarkDirty(Runnable markDirty) {
+			this.markDirty = markDirty;
 		}
 
 		public EnergyStorage getStorage() {
@@ -117,9 +118,13 @@ public class IDSUManager extends SavedData {
 			return storage.amount;
 		}
 
+		public String getUUID() {
+			return uuid;
+		}
+
 		public void setEnergy(long energy) {
 			storage.amount = energy;
-			setDirty();
+			markDirty.run();
 		}
 	}
 

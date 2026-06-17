@@ -24,49 +24,53 @@
 
 package techreborn.items;
 
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import org.jspecify.annotations.Nullable;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
+import techreborn.init.TRItemSettings;
 import techreborn.utils.TRItemUtils;
 
-import java.util.List;
+import java.util.function.Consumer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-public class BatteryItem extends Item implements RcFabricEnergyItem {
+public class BatteryItem extends Item implements RcEnergyItem {
 
 	private final int maxEnergy;
 	private final RcEnergyTier tier;
 
-	public BatteryItem(int maxEnergy, RcEnergyTier tier) {
-		super(new Item.Properties().stacksTo(1));
+	public BatteryItem(int maxEnergy, RcEnergyTier tier, String name) {
+		super(TRItemSettings.item(name).stacksTo(1));
 		this.maxEnergy = maxEnergy;
 		this.tier = tier;
 	}
 
 	// Item
 	@Override
-	public InteractionResultHolder<ItemStack> use(final Level world, final Player player, final InteractionHand hand) {
+	public InteractionResult use(final Level world, final Player player, final InteractionHand hand) {
 		final ItemStack stack = player.getItemInHand(hand);
 		if (player.isShiftKeyDown()) {
 			TRItemUtils.switchActive(stack, 1, player);
-			return new InteractionResultHolder<>(InteractionResult.SUCCESS, stack);
+			return InteractionResult.SUCCESS;
 		}
-		return new InteractionResultHolder<>(InteractionResult.PASS, stack);
+		return InteractionResult.PASS;
 	}
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level world, Entity entity, int slot, boolean selected) {
+	public void inventoryTick(ItemStack stack, ServerLevel world, Entity entity, @Nullable EquipmentSlot slot) {
 		TRItemUtils.checkActive(stack, 1, entity);
-		if (world.isClientSide) {
+		if (world.isClientSide()) {
 			return;
 		}
 		if (!TRItemUtils.isActive(stack)){
@@ -78,7 +82,7 @@ public class BatteryItem extends Item implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag type) {
+	public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay displayComponent, Consumer<Component> tooltip, TooltipFlag type) {
 		TRItemUtils.buildActiveTooltip(stack, tooltip);
 	}
 
@@ -106,7 +110,7 @@ public class BatteryItem extends Item implements RcFabricEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return tier;
 	}
 

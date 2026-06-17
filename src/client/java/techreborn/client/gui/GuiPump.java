@@ -24,12 +24,12 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.widget.GuiButtonUpDown;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import techreborn.blockentity.machine.tier2.PumpBlockEntity;
 import techreborn.packets.serverbound.PumpDepthPayload;
@@ -60,16 +60,16 @@ public class GuiPump extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void onClickDepth(int amount) {
-		ClientNetworkingBridge.sendToServer(new PumpDepthPayload(blockEntity.getBlockPos(), amount));
+		ClientPlayNetworking.send(new PumpDepthPayload(blockEntity.getBlockPos(), amount));
 	}
 
 	private void onClick(int amount) {
-		ClientNetworkingBridge.sendToServer(new PumpRangePayload(blockEntity.getBlockPos(), amount));
+		ClientPlayNetworking.send(new PumpRangePayload(blockEntity.getBlockPos(), amount));
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float partialTicks, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, partialTicks, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float partialTicks) {
+		super.extractBackground(drawContext, mouseX, mouseY, partialTicks);
 		final Layer layer = Layer.BACKGROUND;
 
 		if (hideGuiElements()) return;
@@ -79,20 +79,20 @@ public class GuiPump extends GuiBase<BuiltScreenHandler> {
 		drawText(drawContext,
 			Component.translatable("gui.techreborn.pump.depth", Integer.toString(PumpBlockEntity.MIN_DEPTH), Integer.toString(PumpBlockEntity.MAX_DEPTH))
 				.append(Integer.toString(blockEntity.getDepth())),
-			80, 20, 0x404040, layer);
+			80, 20, 0xff404040, layer);
 		drawText(drawContext,
 			Component.translatable("gui.techreborn.pump.range", Integer.toString(PumpBlockEntity.MIN_RANGE), Integer.toString(PumpBlockEntity.MAX_RANGE))
 				.append(Integer.toString(blockEntity.getRange())),
-			80, 45, 0x404040, layer);
+			80, 45, 0xff404040, layer);
 
 		if (blockEntity.getExhausted()) {
-			drawText(drawContext, Component.translatable("gui.techreborn.pump.exhausted"), 80, 75, 0x800000, layer);
+			drawText(drawContext, Component.translatable("gui.techreborn.pump.exhausted"), 80, 75, 0xff800000, layer);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final Layer layer = Layer.FOREGROUND;
 
 		builder.drawTank(drawContext, this, 33, 25, mouseX, mouseY, blockEntity.getTank().getFluidInstance(), blockEntity.getTank().getFluidValueCapacity(), blockEntity.getTank().isEmpty(), layer);

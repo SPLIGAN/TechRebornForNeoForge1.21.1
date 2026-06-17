@@ -24,13 +24,17 @@
 
 package techreborn.client.gui;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import org.apache.commons.lang3.tuple.Pair;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.GuiBuilder;
 import reborncore.client.gui.widget.GuiButtonExtended;
 import reborncore.client.gui.widget.GuiButtonUpDown;
 import reborncore.client.gui.widget.GuiButtonUpDown.UpDownButtonType;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.powerSystem.PowerSystem;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.util.Color;
@@ -39,10 +43,6 @@ import techreborn.blockentity.machine.multiblock.FusionControlComputerBlockEntit
 import techreborn.packets.serverbound.FusionControlSizePayload;
 
 import java.util.Optional;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
 
 public class GuiFusionReactor extends GuiBase<BuiltScreenHandler> {
 
@@ -63,28 +63,28 @@ public class GuiFusionReactor extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float partialTicks, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, partialTicks, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float partialTicks) {
+		super.extractBackground(drawContext, mouseX, mouseY, partialTicks);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		drawSlot(drawContext, 34, 47, layer);
 		drawSlot(drawContext, 126, 47, layer);
 		drawOutputSlot(drawContext, 80, 47, layer);
 
-		if (blockEntity.isMultiblockValid()) {
+		if (blockEntity.isShapeValid()) {
 			builder.drawHologramButton(drawContext, this, 6, 4, mouseX, mouseY, layer);
 		}
 
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		builder.drawProgressBar(drawContext, this, blockEntity.getProgressScaled(100), 100, 55, 51, mouseX, mouseY, GuiBuilder.ProgressDirection.RIGHT, layer);
 		builder.drawProgressBar(drawContext, this, blockEntity.getProgressScaled(100), 100, 105, 51, mouseX, mouseY, GuiBuilder.ProgressDirection.LEFT, layer);
-		if (blockEntity.isMultiblockValid()) {
+		if (blockEntity.isShapeValid()) {
 			addHologramButton(6, 4, 212, layer).clickHandler(this::hologramToggle);
 			drawCentredText(drawContext, blockEntity.getStateText(), 20, Color.BLUE.darker().getColor(), layer);
 			if (blockEntity.state == 2) {
@@ -104,15 +104,15 @@ public class GuiFusionReactor extends GuiBase<BuiltScreenHandler> {
 									.append(String.valueOf(stackSize.get().getLeft()))
 									.append("x64 +")
 									.append(String.valueOf(stackSize.get().getRight()))
-							, 25, 0xFFFFFF, layer);
+							, 25, 0xFFFFFFFF, layer);
 				} else {
-					drawCentredText(drawContext, Component.literal("Required Coils: ").append(String.valueOf(stackSize.get().getRight())), 25, 0xFFFFFF, layer);
+					drawCentredText(drawContext, Component.literal("Required Coils: ").append(String.valueOf(stackSize.get().getRight())), 25, 0xFFFFFFFF, layer);
 				}
 
 			}
 		}
-		drawContext.drawString(this.font, Component.literal("Size: ").append(String.valueOf(blockEntity.size)), 83, 81, 0xFFFFFF, true);
-		drawContext.drawString(this.font, Component.literal(String.valueOf(blockEntity.getPowerMultiplier())).append("x"), 10, 81, 0xFFFFFF, true);
+		drawContext.text(this.font, Component.literal("Size: ").append(String.valueOf(blockEntity.size)), 83, 81, 0xFFFFFFFF, true);
+		drawContext.text(this.font, Component.literal(String.valueOf(blockEntity.getPowerMultiplier())).append("x"), 10, 81, 0xFFFFFFFF, true);
 
 		builder.drawMultiEnergyBar(drawContext, this, 9, 19, this.blockEntity.getEnergy(), this.blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);
 	}
@@ -122,7 +122,7 @@ public class GuiFusionReactor extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void sendSizeChange(int sizeDelta) {
-		ClientNetworkingBridge.sendToServer(new FusionControlSizePayload(blockEntity.getBlockPos(), sizeDelta));
+		ClientPlayNetworking.send(new FusionControlSizePayload(blockEntity.getBlockPos(), sizeDelta));
 	}
 
 	public Optional<Pair<Integer, Integer>> getCoilStackCount() {

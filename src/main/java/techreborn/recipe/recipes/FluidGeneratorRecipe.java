@@ -27,6 +27,7 @@ package techreborn.recipe.recipes;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import reborncore.common.crafting.RebornRecipe;
+import reborncore.common.crafting.RebornRecipeDisplay;
 import reborncore.common.crafting.SizedIngredient;
 import techreborn.init.ModRecipes;
 import techreborn.init.TRContent;
@@ -41,10 +42,13 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.display.RecipeDisplay;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.material.Fluid;
 
-public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) implements RebornRecipe {
+public record FluidGeneratorRecipe(RecipeType<? extends FluidGeneratorRecipe> type, int power, Fluid fluid) implements RebornRecipe {
 	public static Function<RecipeType<FluidGeneratorRecipe>, MapCodec<FluidGeneratorRecipe>> CODEC = type -> RecordCodecBuilder.mapCodec(instance -> instance.group(
 		ExtraCodecs.POSITIVE_INT.fieldOf("power").forGetter(RebornRecipe::power),
 		BuiltInRegistries.FLUID.holderByNameCodec().fieldOf("fluid").forGetter(FluidGeneratorRecipe::fluidRegistryEntry)
@@ -55,7 +59,7 @@ public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) i
 		(power, fluid) -> new FluidGeneratorRecipe(type, power, fluid)
 	);
 
-	public FluidGeneratorRecipe(RecipeType<?> type, int power, Holder<Fluid> fluid) {
+	public FluidGeneratorRecipe(RecipeType<? extends FluidGeneratorRecipe> type, int power, Holder<Fluid> fluid) {
 		this(type, power, fluid.value());
 	}
 
@@ -65,7 +69,7 @@ public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) i
 	}
 
 	@Override
-	public List<ItemStack> outputs() {
+	public List<ItemStackTemplate> outputs() {
 		return List.of();
 	}
 
@@ -74,22 +78,27 @@ public record FluidGeneratorRecipe(RecipeType<?> type, int power, Fluid fluid) i
 		return 0;
 	}
 
-	public ItemStack getToastSymbol() {
+	@Override
+	public List<RecipeDisplay> display() {
 		final RecipeType<?> type = getType();
+		ItemStack stack = null;
 
 		if (type == ModRecipes.THERMAL_GENERATOR) {
-			return new ItemStack(TRContent.Machine.THERMAL_GENERATOR);
+			stack = new ItemStack(TRContent.Machine.THERMAL_GENERATOR);
 		} else if (type == ModRecipes.GAS_GENERATOR) {
-			return new ItemStack(TRContent.Machine.GAS_TURBINE);
+			stack = new ItemStack(TRContent.Machine.GAS_TURBINE);
 		} else if (type == ModRecipes.DIESEL_GENERATOR) {
-			return new ItemStack(TRContent.Machine.DIESEL_GENERATOR);
+			stack = new ItemStack(TRContent.Machine.DIESEL_GENERATOR);
 		} else if (type == ModRecipes.SEMI_FLUID_GENERATOR) {
-			return new ItemStack(TRContent.Machine.SEMI_FLUID_GENERATOR);
+			stack = new ItemStack(TRContent.Machine.SEMI_FLUID_GENERATOR);
 		} else if (type == ModRecipes.PLASMA_GENERATOR) {
-			return new ItemStack(TRContent.Machine.PLASMA_GENERATOR);
+			stack = new ItemStack(TRContent.Machine.PLASMA_GENERATOR);
+		}
+		if (stack != null) {
+			return List.of(new RebornRecipeDisplay(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(stack))));
 		}
 
-		return ItemStack.EMPTY;
+		return RebornRecipe.super.display();
 	}
 
 	public Fluid getFluid() {

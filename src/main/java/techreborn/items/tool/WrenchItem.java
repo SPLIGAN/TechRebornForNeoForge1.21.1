@@ -32,19 +32,20 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import reborncore.api.IToolHandler;
+import techreborn.init.TRItemSettings;
 
 /**
  * Created by modmuss50 on 26/02/2016.
  */
 public class WrenchItem extends Item implements IToolHandler {
 
-	public WrenchItem() {
-		super(new Item.Properties().stacksTo(1));
+	public WrenchItem(String name) {
+		super(TRItemSettings.item(name).stacksTo(1));
 	}
 
 	@Override
 	public boolean handleTool(ItemStack stack, BlockPos pos, Level world, Player player, Direction side, boolean damage) {
-		if (!player.level().isClientSide && damage) {
+		if (!player.level().isClientSide() && damage) {
 			stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
 		}
 		return true;

@@ -26,6 +26,7 @@ package techreborn.items.armor;
 
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.equipment.ArmorType;
 import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.api.items.ArmorRemoveHandler;
 import reborncore.common.powerSystem.RcEnergyTier;
@@ -34,8 +35,8 @@ import techreborn.init.TRArmorMaterials;
 
 public class CloakingDeviceItem extends TREnergyArmourItem implements ArmorBlockEntityTicker, ArmorRemoveHandler {
 	// 40M FE capacity with 8k FE\t charge rate
-	public CloakingDeviceItem() {
-		super(TRArmorMaterials.CLOAKING_DEVICE, Type.CHESTPLATE, TechRebornConfig.cloakingDeviceCharge, RcEnergyTier.INSANE);
+	public CloakingDeviceItem(String name) {
+		super(TRArmorMaterials.CLOAKING_DEVICE, ArmorType.CHESTPLATE, TechRebornConfig.cloakingDeviceCharge, RcEnergyTier.INSANE, name);
 	}
 
 	// TREnergyArmourItem

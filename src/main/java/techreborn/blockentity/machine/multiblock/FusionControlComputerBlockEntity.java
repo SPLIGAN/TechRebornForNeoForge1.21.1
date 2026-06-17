@@ -26,18 +26,18 @@ package techreborn.blockentity.machine.multiblock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.MultiblockWriter;
 import reborncore.common.crafting.RebornRecipe;
@@ -60,6 +60,7 @@ import techreborn.init.TRContent;
 public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity implements BuiltScreenHandlerProvider {
 
 	public int craftingTickTime = 0;
+	public int craftingTotalTime = 0;
 	public int neededPower = 0;
 	public int size = 6;
 	public int state = -1;
@@ -69,11 +70,17 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	RecipeHolder<FusionReactorRecipe> currentRecipeEntry = null;
 	boolean hasStartedCrafting = false;
 	boolean checkNBTRecipe = false;
+	String activeRecipeId = "";
 	long lastTick = -1;
 
 	public FusionControlComputerBlockEntity(BlockPos pos, BlockState state) {
 		super(TRBlockEntities.FUSION_CONTROL_COMPUTER, pos, state, "FusionControlComputer", -1, -1, TRContent.Machine.FUSION_CONTROL_COMPUTER.block, -1);
 		this.inventory = new RebornInventory<>(3, "FusionControlComputerBlockEntity", 64, this);
+	}
+
+	@Override
+	public boolean hasMultiblock() {
+		return true;
 	}
 
 	public Component getStateText() {
@@ -82,10 +89,10 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 		} else if (state == 0) {
 			return Component.translatable("gui.techreborn.fusion.norecipe");
 		} else if (state == 1) {
-			if (currentRecipeEntry == null) {
+			if (neededPower == 0) {
 				return Component.translatable("gui.techreborn.fusion.charging");
 			}
-			int percentage = percentage(currentRecipeEntry.value().getStartEnergy(), getEnergy());
+			int percentage = percentage(neededPower, getEnergy());
 			return Component.translatable("gui.techreborn.fusion.chargingdetailed", StringUtils.getPercentageText(percentage));
 		} else if (state == 2) {
 			return Component.translatable("gui.techreborn.fusion.crafting");
@@ -108,7 +115,9 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	 */
 	private void resetCrafter() {
 		currentRecipeEntry = null;
+		activeRecipeId = "";
 		craftingTickTime = 0;
+		craftingTotalTime = 0;
 		neededPower = 0;
 		hasStartedCrafting = false;
 	}
@@ -142,13 +151,35 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	private void updateCurrentRecipe() {
 		for (RecipeHolder<FusionReactorRecipe> entry : RecipeUtils.getRecipeEntries(level, ModRecipes.FUSION_REACTOR)) {
 			if (validateRecipe(entry)) {
-				currentRecipeEntry = entry;
-				craftingTickTime = 0;
-				neededPower = entry.value().getStartEnergy();
-				hasStartedCrafting = false;
+				setCurrentRecipe(entry);
 				break;
 			}
 		}
+	}
+
+	private void setCurrentRecipe(RecipeHolder<FusionReactorRecipe> entry) {
+		currentRecipeEntry = entry;
+		activeRecipeId = entry.id() == null ? "" : entry.id().identifier().toString();
+		craftingTickTime = 0;
+		craftingTotalTime = entry.value().time();
+		neededPower = entry.value().getStartEnergy();
+		hasStartedCrafting = false;
+	}
+
+	private void restoreCurrentRecipe(ServerLevel level) {
+		for (RecipeHolder<FusionReactorRecipe> entry : RecipeUtils.getRecipeEntries(level, ModRecipes.FUSION_REACTOR)) {
+			String recipeId = entry.id() == null ? "" : entry.id().identifier().toString();
+			if (!activeRecipeId.isEmpty() && activeRecipeId.equals(recipeId)) {
+				currentRecipeEntry = entry;
+				return;
+			}
+			if (activeRecipeId.isEmpty() && validateRecipe(entry)) {
+				currentRecipeEntry = entry;
+				activeRecipeId = recipeId;
+				return;
+			}
+		}
+		resetCrafter();
 	}
 
 	/**
@@ -159,7 +190,7 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	 */
 	private boolean validateRecipe(RecipeHolder<FusionReactorRecipe> entry) {
 		FusionReactorRecipe recipe = entry.value();
-		return hasAllInputs(recipe) && canFitStack(recipe.outputs().getFirst(), outputStackSlot, true);
+		return hasAllInputs(recipe) && canFitStack(recipe.outputs().getFirst().create(), outputStackSlot, true);
 	}
 
 	/**
@@ -209,8 +240,8 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	// GenericMachineBlockEntity
 	@Override
 	public int getProgressScaled(int scale) {
-		if (craftingTickTime != 0 && currentRecipeEntry != null && currentRecipeEntry.value().time() != 0) {
-			return craftingTickTime * scale / currentRecipeEntry.value().time();
+		if (craftingTickTime != 0 && craftingTotalTime != 0) {
+			return craftingTickTime * scale / craftingTotalTime;
 		}
 		return 0;
 	}
@@ -238,35 +269,31 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 
 	// PowerAcceptorBlockEntity
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
 
-		if (world == null || world.isClientSide) {
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
 		// Move this to here from the nbt read method, as it now requires the world as of 1.14
 		if (checkNBTRecipe) {
 			checkNBTRecipe = false;
-			for (RecipeHolder<FusionReactorRecipe> entry : RecipeUtils.getRecipeEntries(level, ModRecipes.FUSION_REACTOR)) {
-				if (validateRecipe(entry)) {
-					this.currentRecipeEntry = entry;
-				}
-			}
+			restoreCurrentRecipe(serverLevel);
 		}
 
-		if (lastTick == world.getGameTime()) {
+		if (lastTick == serverLevel.getGameTime()) {
 			// Prevent tick accelerators, blame obstinate for this.
 			return;
 		}
-		lastTick = world.getGameTime();
+		lastTick = serverLevel.getGameTime();
 
 		// Force check every second
-		if (world.getGameTime() % 20 == 0) {
-			inventory.setHashChanged();
+		if (serverLevel.getGameTime() % 20 == 0) {
+			inventory.setHasChanged();
 		}
 
-		if (!isMultiblockValid()) {
+		if (!isShapeValid()) {
 			resetCrafter();
 			return;
 		}
@@ -298,7 +325,7 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 				// Power gen
 				if (recipePower > 0) {
 					// Waste power if it has nowhere to go
-					long power = (long) (Math.abs(recipePower) * getPowerMultiplier());
+					long power = (long) (Math.abs(currentRecipe.power()) * getPowerMultiplier());
 					addEnergy(power);
 					powerChange = (power);
 					craftingTickTime++;
@@ -307,7 +334,7 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 					craftingTickTime++;
 				}
 			} else if (craftingTickTime >= currentRecipe.time()) {
-				ItemStack result = currentRecipe.outputs().getFirst();
+				ItemStack result = currentRecipe.outputs().getFirst().create();
 				if (canFitStack(result, outputStackSlot, true)) {
 					if (inventory.getItem(outputStackSlot).isEmpty()) {
 						inventory.setItem(outputStackSlot, result.copy());
@@ -342,29 +369,31 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
-		this.craftingTickTime = tagCompound.getInt("craftingTickTime");
-		this.neededPower = tagCompound.getInt("neededPower");
-		this.hasStartedCrafting = tagCompound.getBoolean("hasStartedCrafting");
-		if (tagCompound.contains("hasActiveRecipe") && tagCompound.getBoolean("hasActiveRecipe") && this.currentRecipeEntry == null) {
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		this.craftingTickTime = view.getIntOr("craftingTickTime", 0);
+		this.craftingTotalTime = view.getIntOr("craftingTotalTime", 0);
+		this.neededPower = view.getIntOr("neededPower", 0);
+		this.hasStartedCrafting = view.getBooleanOr("hasStartedCrafting", false);
+		this.activeRecipeId = view.getStringOr("activeRecipeId", "");
+		if (view.getBooleanOr("hasActiveRecipe", false) && this.currentRecipeEntry == null) {
 			checkNBTRecipe = true;
 		}
-		if (tagCompound.contains("size")) {
-			this.size = tagCompound.getInt("size");
-		}
+		this.size = view.getIntOr("size", 0);
 		//Done here to force the smaller size, will be useful if people lag out on a large one.
 		this.size = Math.min(size, TechRebornConfig.fusionControlComputerMaxCoilSize);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound,registryLookup);
-		tagCompound.putInt("craftingTickTime", this.craftingTickTime);
-		tagCompound.putInt("neededPower", this.neededPower);
-		tagCompound.putBoolean("hasStartedCrafting", this.hasStartedCrafting);
-		tagCompound.putBoolean("hasActiveRecipe", this.currentRecipeEntry != null);
-		tagCompound.putInt("size", size);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.putInt("craftingTickTime", this.craftingTickTime);
+		view.putInt("craftingTotalTime", this.craftingTotalTime);
+		view.putInt("neededPower", this.neededPower);
+		view.putBoolean("hasStartedCrafting", this.hasStartedCrafting);
+		view.putBoolean("hasActiveRecipe", this.currentRecipeEntry != null);
+		view.putString("activeRecipeId", this.activeRecipeId);
+		view.putInt("size", size);
 	}
 
 	// MachineBaseBlockEntity
@@ -391,10 +420,11 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 		return new ScreenHandlerBuilder("fusionreactor").player(player.getInventory()).inventory().hotbar()
 				.addInventory().blockEntity(this).slot(0, 34, 47).slot(1, 126, 47).outputSlot(2, 80, 47).syncEnergyValue()
 				.sync(ByteBufCodecs.INT, this::getCraftingTickTime, this::setCraftingTickTime)
+				.sync(ByteBufCodecs.INT, this::getCraftingTotalTime, this::setCraftingTotalTime)
 				.sync(ByteBufCodecs.INT, this::getSize, this::setSize)
 				.sync(ByteBufCodecs.INT, this::getState, this::setState)
 				.sync(ByteBufCodecs.INT, this::getNeededPower, this::setNeededPower)
-				.sync(ResourceLocation.STREAM_CODEC, this::getCurrentRecipeID, this::setCurrentRecipeID)
+				.syncShapeValue()
 				.addInventory()
 				.create(this, syncID);
 	}
@@ -405,6 +435,14 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 
 	public void setCraftingTickTime(int craftingTickTime) {
 		this.craftingTickTime = craftingTickTime;
+	}
+
+	public int getCraftingTotalTime() {
+		return craftingTotalTime;
+	}
+
+	public void setCraftingTotalTime(int craftingTotalTime) {
+		this.craftingTotalTime = craftingTotalTime;
 	}
 
 	public int getSize() {
@@ -435,29 +473,5 @@ public class FusionControlComputerBlockEntity extends GenericMachineBlockEntity 
 
 	public void setNeededPower(int neededPower) {
 		this.neededPower = neededPower;
-	}
-
-	public ResourceLocation getCurrentRecipeID() {
-		if (currentRecipeEntry == null) {
-			return ResourceLocation.fromNamespaceAndPath("null", "null");
-		}
-
-		return currentRecipeEntry.id();
-	}
-
-	public void setCurrentRecipeID(ResourceLocation currentRecipeID) {
-		if (currentRecipeID.getPath().equals("null")) {
-			currentRecipeEntry = null;
-			return;
-		}
-
-		this.currentRecipeEntry = getRecipeFromID(currentRecipeID);
-	}
-
-	private RecipeHolder<FusionReactorRecipe> getRecipeFromID(ResourceLocation identifier) {
-		return RecipeUtils.getRecipeEntries(level, ModRecipes.FUSION_REACTOR).stream()
-			.filter(recipe -> recipe.id().equals(identifier))
-			.findFirst()
-			.orElse(null);
 	}
 }

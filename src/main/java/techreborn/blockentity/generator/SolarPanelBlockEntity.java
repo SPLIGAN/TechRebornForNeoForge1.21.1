@@ -24,7 +24,8 @@
 
 package techreborn.blockentity.generator;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.server.level.ServerLevel;
+import org.jspecify.annotations.Nullable;
 import reborncore.api.IToolDrop;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blocks.BlockMachineBase;
@@ -45,23 +46,20 @@ import java.util.Objects;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements IToolDrop, BuiltScreenHandlerProvider {
 
 	private boolean generating = false;
-
-	// Range of panel between day/night production; we calculate this only when panel is updated
-	private int dayNightRange = 0;
 
 	private SolarPanels panel;
 
@@ -75,15 +73,13 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	private void updatePanel() {
-		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
-		BlockPos bp = getBlockPos();
+		Objects.requireNonNull(level, "World may not be null.");
 
-		Block panelBlock = level.getBlockState(bp).getBlock();
+		Block panelBlock = level.getBlockState(worldPosition).getBlock();
 		if (panelBlock instanceof BlockSolarPanel solarPanelBlock) {
 			panel = solarPanelBlock.panelType;
 		}
 
-		dayNightRange = getPanel().generationRateD - getPanel().generationRateN;
 	}
 
 	// Setters/getters that provide boolean interface to underlying generating int; something about
@@ -91,11 +87,11 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	// this ugly approach
 	public boolean isGenerating() { return generating; }
 	private void setIsGenerating(boolean isGenerating) {
-		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
-		BlockPos bp = getBlockPos();
+		Objects.requireNonNull(level, "World may not be null.");
 
 		if (isGenerating != isGenerating()) {
-			level.setBlock(bp, level.getBlockState(bp).setValue(BlockMachineBase.ACTIVE, isGenerating), Block.UPDATE_ALL);
+			// Update block state if necessary
+			level.setBlockAndUpdate(worldPosition, level.getBlockState(worldPosition).setValue(BlockMachineBase.ACTIVE, isGenerating));
 		}
 		this.generating = isGenerating;
 	}
@@ -108,48 +104,43 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	private void updateState() {
-		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
+		Objects.requireNonNull(level, "World may not be null.");
 
-		setIsGenerating(level.canSeeSky(getBlockPos().above()));
+		// Generation is only possible if sky is visible above us
+		setIsGenerating(level.canSeeSky(worldPosition.above()));
 	}
 
 	public int getGenerationRate() {
-		Level level = Objects.requireNonNull(getLevel(), "Level may not be null.");
+		Objects.requireNonNull(level, "World may not be null.");
 
 		if (!isGenerating()) {
 			return 0;
 		}
 
-		float skyAngle = level.getSunAngle(1f) / ((float) Math.PI * 2f);
-
-		if (!level.dimensionType().hasSkyLight()
-			|| (skyAngle > 0.25 && skyAngle < 0.75)
-			|| (level.isRaining() || level.isThundering())) {
+		// Ok, we are actively generating power, but check for a few conditions that would restrict
+		// the generation to minimal production...
+		if (!level.dimensionType().hasSkyLight() || // No light source in dimension (e.g. nether or end)
+			(level.isRaining() || level.isThundering())) { // Weather is present
 			return getPanel().generationRateN;
 		}
 
 		// At this point, we know a light source is present, and it's clear weather. We need to determine
-		// the level of generation based on % of time through the day, with peak production at noon and
-		// a smooth transition to night production as sun rises/sets
-		float multiplier;
-		if (skyAngle > 0.75) {
-			// Morning to noon
-			multiplier = (0.25f - (1 - skyAngle)) / 0.25f;
-		} else {
-			// Noon to sunset
-			multiplier = (0.25f - skyAngle) / 0.25f;
-		}
+		// the level of generation based on the actual vanilla sun angle, with peak production at noon
+		// and a smooth transition to night production as sun rises/sets.
+		float sunAngle = level.environmentAttributes().getValue(EnvironmentAttributes.SUN_ANGLE, worldPosition) * (float)(Math.PI / 180.0);
+		float daylightMultiplier = Math.max(0, (float)Math.cos(sunAngle));
+		SolarPanels panel = getPanel();
 
-		return (int)Math.ceil(getPanel().generationRateN + (dayNightRange * multiplier));
+		return (int)Math.ceil(panel.generationRateN + ((panel.generationRateD - panel.generationRateN) * daylightMultiplier));
 	}
 
 
 	// Overrides
 
 	@Override
-	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
-		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+	public void tick(Level level, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
+		super.tick(level, pos, state, blockEntity);
+		if (!(level instanceof ServerLevel serverLevel)) {
 			return;
 		}
 
@@ -157,7 +148,7 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 			checkOverfill = false;
 			setEnergy(Integer.MAX_VALUE);
 			for (Direction side : Direction.values()) {
-				BlockEntity to = world.getBlockEntity(pos.relative(side));
+				BlockEntity to = serverLevel.getBlockEntity(pos.relative(side));
 				if (to instanceof PowerAcceptorBlockEntity receiver) {
 					if (receiver.getMaxInput(side.getOpposite()) > 0){
 						receiver.setStored(receiver.getMaxStoredPower());
@@ -168,7 +159,7 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 		}
 
 		// State checking and updating
-		if (world.getGameTime() % 20 == 0) {
+		if (serverLevel.getGameTime() % 20 == 0) {
 			checkOverfill = true;
 			updateState();
 		}
@@ -267,13 +258,14 @@ public class SolarPanelBlockEntity extends PowerAcceptorBlockEntity implements I
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
+	public void loadAdditional(ValueInput view) {
 		if (level == null) {
+			// We are in BlockEntity.create method during chunk load.
 			this.checkOverfill = false;
 			return;
 		}
 		updatePanel();
-		super.loadAdditional(tag, registryLookup);
+		super.loadAdditional(view);
 	}
 
 	// MachineBaseBlockEntity

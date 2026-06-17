@@ -26,13 +26,14 @@ package techreborn.client.render.entitys;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.TntMinecartRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.state.TntRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.util.Mth;
 import techreborn.entities.EntityNukePrimed;
 import techreborn.init.TRContent;
@@ -40,26 +41,27 @@ import techreborn.init.TRContent;
 /**
  * Created by Mark on 13/03/2016.
  */
-public class NukeRenderer extends EntityRenderer<EntityNukePrimed> {
-	private final BlockRenderDispatcher blockRenderManager;
+public class NukeRenderer extends EntityRenderer<EntityNukePrimed, TntRenderState> {
+	public static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
+	private final BlockModelResolver blockModelResolver;
 
 	public NukeRenderer(EntityRendererProvider.Context ctx) {
 		super(ctx);
 		this.shadowRadius = 0.5F;
-		this.blockRenderManager = ctx.getBlockRenderDispatcher();
+		this.blockModelResolver = ctx.getBlockModelResolver();
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(EntityNukePrimed entityNukePrimed) {
-		return TextureAtlas.LOCATION_BLOCKS;
+	public TntRenderState createRenderState() {
+		return new TntRenderState();
 	}
 
 	@Override
-	public void render(EntityNukePrimed entity, float f, float g, PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int i) {
+	public void submit(TntRenderState state, PoseStack matrixStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
 		matrixStack.pushPose();
 		matrixStack.translate(1D, 0.5D, 0);
-		if ((float) entity.getFuse() - g + 1.0F < 10.0F) {
-			float h = 1.0F - ((float) entity.getFuse() - g + 1.0F) / 10.0F;
+		if (state.fuseRemainingInTicks < 10.0F) {
+			float h = 1.0F - state.fuseRemainingInTicks / 10.0F;
 			h = Mth.clamp(h, 0.0F, 1.0F);
 			h *= h;
 			h *= h;
@@ -69,8 +71,17 @@ public class NukeRenderer extends EntityRenderer<EntityNukePrimed> {
 
 		matrixStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
 		matrixStack.translate(-0.5D, -0.5D, 0.5D);
-		TntMinecartRenderer.renderWhiteSolidBlock(blockRenderManager, TRContent.NUKE.defaultBlockState(), matrixStack, vertexConsumerProvider, i, entity.getFuse() / 5 % 2 == 0);
+		if (!state.blockState.isEmpty()) {
+			TntMinecartRenderer.submitWhiteSolidBlock(state.blockState, matrixStack, submitNodeCollector, state.lightCoords, (int) state.fuseRemainingInTicks / 5 % 2 == 0, state.outlineColor);
+		}
 		matrixStack.popPose();
-		super.render(entity, f, g, matrixStack, vertexConsumerProvider, i);
+		super.submit(state, matrixStack, submitNodeCollector, cameraRenderState);
+	}
+
+	@Override
+	public void extractRenderState(EntityNukePrimed entity, TntRenderState state, float f) {
+		super.extractRenderState(entity, state, f);
+		state.fuseRemainingInTicks = (float) entity.getFuse() - f + 1.0F;
+		blockModelResolver.update(state.blockState, TRContent.NUKE.defaultBlockState(), BLOCK_DISPLAY_CONTEXT);
 	}
 }

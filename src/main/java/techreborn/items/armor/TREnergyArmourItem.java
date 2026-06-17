@@ -24,29 +24,27 @@
 
 package techreborn.items.armor;
 
-import net.minecraft.core.Holder;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.Equippable;
+import org.jspecify.annotations.Nullable;
+import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
+import techreborn.init.TRItemSettings;
 
-public abstract class TREnergyArmourItem extends ArmorItem implements RcFabricEnergyItem {
+public abstract class TREnergyArmourItem extends Item implements RcEnergyItem {
 	public final long maxCharge;
 	private final RcEnergyTier energyTier;
 
-	public TREnergyArmourItem(Holder<ArmorMaterial> material, Type slot, long maxCharge, RcEnergyTier energyTier) {
-		super(material, slot, new Item.Properties().stacksTo(1));
+	public TREnergyArmourItem(ArmorMaterial material, ArmorType slot, long maxCharge, RcEnergyTier energyTier, String name) {
+		super(TRItemSettings.unbreakable(name).stacksTo(1).humanoidArmor(material, slot));
 		this.maxCharge = maxCharge;
 		this.energyTier = energyTier;
-	}
-
-	// ArmorItem
-	@Override
-	public boolean isValidRepairItem(ItemStack stack, ItemStack ingredient) {
-		return false;
 	}
 
 	// Item
@@ -57,11 +55,6 @@ public abstract class TREnergyArmourItem extends ArmorItem implements RcFabricEn
 
 	@Override
 	public boolean isBarVisible(ItemStack stack) {
-		return true;
-	}
-
-	@Override
-	public boolean isEnchantable(ItemStack stack) {
 		return true;
 	}
 
@@ -77,17 +70,13 @@ public abstract class TREnergyArmourItem extends ArmorItem implements RcFabricEn
 	}
 
 	@Override
-	public RcEnergyTier getEnergyTier() {
+	public RcEnergyTier getTier() {
 		return energyTier;
 	}
 
-	@Override
-	public long getEnergyMaxInput(ItemStack stack) {
-		return energyTier.getMaxInput();
-	}
-
-	@Override
-	public long getEnergyMaxOutput(ItemStack stack) {
-		return energyTier.getMaxOutput();
+	@Nullable
+	public EquipmentSlot getSlotType() {
+		Equippable equippableComponent = this.components().get(DataComponents.EQUIPPABLE);
+		return equippableComponent != null ? equippableComponent.slot() : null;
 	}
 }

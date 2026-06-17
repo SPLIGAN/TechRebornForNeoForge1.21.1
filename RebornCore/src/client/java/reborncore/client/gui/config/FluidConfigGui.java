@@ -24,13 +24,13 @@
 
 package reborncore.client.gui.config;
 
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.config.elements.ConfigFluidElement;
 import reborncore.client.gui.config.elements.SlotType;
 
 import java.util.Objects;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.material.Fluids;
 
@@ -68,7 +68,7 @@ public class FluidConfigGui extends GuiTab {
 	}
 
 	@Override
-	public void draw(GuiGraphics drawContext, int x, int y) {
+	public void draw(GuiGraphicsExtractor drawContext, int x, int y) {
 		Objects.requireNonNull(fluidConfigElement).draw(drawContext, guiBase, x, y);
 	}
 

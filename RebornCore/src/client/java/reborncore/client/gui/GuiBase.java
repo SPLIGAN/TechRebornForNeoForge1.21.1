@@ -24,7 +24,12 @@
 
 package reborncore.client.gui;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.client.gui.components.Renderable;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.resources.model.sprite.SpriteId;
+import net.minecraft.world.item.ItemStackTemplate;
+import org.jspecify.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import reborncore.api.blockentity.IUpgradeable;
 import reborncore.client.gui.config.GuiTab;
@@ -36,11 +41,13 @@ import reborncore.common.screen.slot.PlayerInventorySlot;
 import java.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -49,11 +56,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.material.Fluid;
 
-public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> {
+public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerScreen<T> implements RenderTarget {
 	public static FluidCellProvider fluidCellProvider = fluid -> ItemStack.EMPTY;
-	public static ItemStack wrenchStack = ItemStack.EMPTY;
+	public static ItemStackTemplate wrenchStack = null;
 
-	public GuiBuilder builder = new GuiBuilder();
+	public GuiBuilder builder = GuiBuilder.INSTANCE;
 	public BlockEntity be;
 	@Nullable
 	public BuiltScreenHandler builtScreenHandler;
@@ -68,7 +75,11 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	public boolean upgrades;
 
 	public GuiBase(Player player, BlockEntity blockEntity, T screenHandler) {
-		super(screenHandler, player.getInventory(), Component.literal(I18n.get(blockEntity.getBlockState().getBlock().getDescriptionId())));
+		this(player, blockEntity, screenHandler, 176, 166);
+	}
+
+	public GuiBase(Player player, BlockEntity blockEntity, T screenHandler, int imageWidth, int imageHeight) {
+		super(screenHandler, player.getInventory(), Component.literal(I18n.get(blockEntity.getBlockState().getBlock().getDescriptionId())), imageWidth, imageHeight);
 		this.be = blockEntity;
 		this.builtScreenHandler = (BuiltScreenHandler) screenHandler;
 		tabs = GuiTab.TABS.stream()
@@ -82,7 +93,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		return imageWidth;
 	}
 
-	public void drawSlot(GuiGraphics drawContext, int x, int y, Layer layer) {
+	public void drawSlot(GuiGraphicsExtractor drawContext, int x, int y, Layer layer) {
 		if (layer == Layer.BACKGROUND) {
 			x += this.leftPos;
 			y += this.topPos;
@@ -90,7 +101,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		builder.drawSlot(drawContext, x - 1, y - 1);
 	}
 
-	public void drawOutputSlotBar(GuiGraphics drawContext, int x, int y, int count, Layer layer) {
+	public void drawOutputSlotBar(GuiGraphicsExtractor drawContext, int x, int y, int count, Layer layer) {
 		if (layer == Layer.BACKGROUND) {
 			x += this.leftPos;
 			y += this.topPos;
@@ -98,7 +109,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		builder.drawOutputSlotBar(drawContext, x - 4, y - 4, count);
 	}
 
-	public void drawArmourSlots(GuiGraphics drawContext, int x, int y, Layer layer) {
+	public void drawArmourSlots(GuiGraphicsExtractor drawContext, int x, int y, Layer layer) {
 		if (layer == Layer.BACKGROUND) {
 			x += this.leftPos;
 			y += this.topPos;
@@ -109,7 +120,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		builder.drawSlot(drawContext, x - 1, y - 1 + 18 + 18 + 18);
 	}
 
-	public void drawOutputSlot(GuiGraphics drawContext, int x, int y, Layer layer) {
+	public void drawOutputSlot(GuiGraphicsExtractor drawContext, int x, int y, Layer layer) {
 		if (layer == Layer.BACKGROUND) {
 			x += this.leftPos;
 			y += this.topPos;
@@ -120,14 +131,14 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	@Override
 	public void init() {
 		super.init();
-		for (GuiTab tab : tabs) {
+		for (GuiTab tab : getTabs()) {
 			tab.open();
 		}
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, float lastFrameDuration, int mouseX, int mouseY) {
-		drawContext.blit(INVENTORY_LOCATION, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight);
+	public void extractBackground(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float lastFrameDuration) {
+		drawContext.blit(RenderPipelines.GUI_TEXTURED, INVENTORY_LOCATION, leftPos, topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 		boolean drawPlayerSlots = selectedTab == null && drawPlayerSlots();
 		updateSlotDraw(drawPlayerSlots);
 		builder.drawDefaultBackground(drawContext, leftPos, topPos, xSize, ySize);
@@ -173,60 +184,70 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, int mouseX, int mouseY) {
+	protected void extractLabels(GuiGraphicsExtractor drawContext, int mouseX, int mouseY) {
 		drawTitle(drawContext);
 	}
 
 	@Override
-	public void render(GuiGraphics drawContext, int mouseX, int mouseY, float partialTicks) {
-		super.render(drawContext, mouseX, mouseY, partialTicks);
-		this.renderTooltip(drawContext, mouseX, mouseY);
+	public void extractRenderState(GuiGraphicsExtractor drawContext, int mouseX, int mouseY, float partialTicks) {
+		super.extractRenderState(drawContext, mouseX, mouseY, partialTicks);
+		this.extractTooltip(drawContext, mouseX, mouseY);
 
-		drawContext.pose().pushPose();
-		drawContext.pose().translate(this.leftPos, this.topPos, 900);
+		drawContext.pose().pushMatrix();
+		drawContext.pose().translate(this.leftPos, this.topPos);
 		getTab().ifPresent(guiTab -> guiTab.draw(drawContext, mouseX, mouseY));
-		drawContext.pose().popPose();
+		drawContext.pose().popMatrix();
 	}
 
 	@Override
-	protected void renderTooltip(GuiGraphics drawContext, int mouseX, int mouseY) {
+	protected void extractTooltip(GuiGraphicsExtractor drawContext, int mouseX, int mouseY) {
 		if (isHovering(-25, 6, 24, 80, mouseX, mouseY) && upgrades
 				&& this.hoveredSlot != null && !this.hoveredSlot.hasItem()) {
 			List<Component> list = new ArrayList<>();
 			list.add(Component.translatable("reborncore.gui.tooltip.upgrades"));
-			drawContext.renderComponentTooltip(Minecraft.getInstance().font, list, mouseX, mouseY);
+			drawContext.setComponentTooltipForNextFrame(Minecraft.getInstance().font, list, mouseX, mouseY);
 		}
 		int offset = upgrades ? 82 : 0;
-		for (GuiTab tab : tabs) {
+		for (GuiTab tab : getTabs()) {
 			if (isHovering(-26, 6 + offset, 24, 23, mouseX, mouseY)) {
-				drawContext.renderComponentTooltip(Minecraft.getInstance().font, Collections.singletonList(Component.translatable(tab.name())), mouseX, mouseY);
+				drawContext.setComponentTooltipForNextFrame(Minecraft.getInstance().font, Collections.singletonList(Component.translatable(tab.name())), mouseX, mouseY);
 			}
 			offset += 24;
 		}
 
-		super.renderTooltip(drawContext, mouseX, mouseY);
+		for (NarratableEntry selectable : narratables) {
+			if (selectable instanceof AbstractWidget clickable) {
+				if (clickable.isHovered()) {
+					// TODO 1.19.3
+					// clickable.renderTooltip(matrixStack, mouseX, mouseY);
+					break;
+				}
+			}
+
+		}
+		super.extractTooltip(drawContext, mouseX, mouseY);
 	}
 
-	protected void drawTitle(GuiGraphics drawContext) {
+	protected void drawTitle(GuiGraphicsExtractor drawContext) {
 		drawCentredText(drawContext, Component.translatable(be.getBlockState().getBlock().getDescriptionId()), 6, theme.titleColor().rgba(), Layer.FOREGROUND);
 	}
 
-	public void drawCentredText(GuiGraphics drawContext, Component text, int y, int colour, Layer layer) {
-		drawText(drawContext, text, (imageWidth / 2 - getTextRenderer().width(text) / 2), y, colour, layer);
+	public void drawCentredText(GuiGraphicsExtractor drawContext, Component text, int y, int colour, Layer layer) {
+		drawText(drawContext, text, (imageWidth / 2 - getFont().width(text) / 2), y, colour, layer);
 	}
 
-	public void drawCentredText(GuiGraphics drawContext, Component text, int y, int colour, int modifier, Layer layer) {
-		drawText(drawContext, text, (imageWidth / 2 - (getTextRenderer().width(text)) / 2) + modifier, y, colour, layer);
+	public void drawCentredText(GuiGraphicsExtractor drawContext, Component text, int y, int colour, int modifier, Layer layer) {
+		drawText(drawContext, text, (imageWidth / 2 - (getFont().width(text)) / 2) + modifier, y, colour, layer);
 	}
 
-	public void drawText(GuiGraphics drawContext, Component text, int x, int y, int colour, Layer layer) {
+	public void drawText(GuiGraphicsExtractor drawContext, Component text, int x, int y, int colour, Layer layer) {
 		int factorX = 0;
 		int factorY = 0;
 		if (layer == Layer.BACKGROUND) {
 			factorX = this.leftPos;
 			factorY = this.topPos;
 		}
-		drawContext.drawString(Minecraft.getInstance().font, text, x + factorX, y + factorY, colour, false);
+		drawContext.text(Minecraft.getInstance().font, text, x + factorX, y + factorY, colour, false);
 	}
 
 	public GuiButtonHologram addHologramButton(int x, int y, int id, Layer layer) {
@@ -237,22 +258,22 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		if (getTab().map(guiTab -> guiTab.click(mouseX, mouseY, mouseButton)).orElse(false)) {
+	public boolean mouseClicked(MouseButtonEvent mouse, boolean doubled) {
+		if (getTab().map(guiTab -> guiTab.click(mouse.x(), mouse.y(), mouse.button())).orElse(false)) {
 			return true;
 		}
-		return super.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouse, doubled);
 	}
 
 	@Override
-	public boolean mouseReleased(double mouseX, double mouseY, int state) {
-		getTab().ifPresent(guiTab -> guiTab.mouseReleased(mouseX, mouseY, state));
+	public boolean mouseReleased(MouseButtonEvent mouse) {
+		getTab().ifPresent(guiTab -> guiTab.mouseReleased(mouse.x(), mouse.y(), mouse.button()));
 		int offset = 0;
 		if (!upgrades) {
 			offset = 80;
 		}
-		for (GuiTab tab : tabs) {
-			if (isHovering(-26, 84 - offset, 30, 23, mouseX, mouseY)) {
+		for (GuiTab tab : getTabs()) {
+			if (isHovering(-26, 84 - offset, 30, 23, mouse.x(), mouse.y())) {
 				if (selectedTab == tab) {
 					closeSelectedTab();
 				} else {
@@ -263,19 +284,19 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 			offset -= 24;
 		}
 
-		return super.mouseReleased(mouseX, mouseY, state);
+		return super.mouseReleased(mouse);
 	}
 
 	@Override
-	public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-		if (getTab().map(guiTab -> guiTab.keyPress(keyCode, scanCode, modifiers)).orElse(false)) {
+	public boolean keyPressed(KeyEvent key) {
+		if (getTab().map(guiTab -> guiTab.keyPress(key)).orElse(false)) {
 			return true;
 		}
-		if (selectedTab != null && keyCode == GLFW.GLFW_KEY_ESCAPE) {
+		if (selectedTab != null && key.key() == GLFW.GLFW_KEY_ESCAPE) {
 			closeSelectedTab();
 			return true;
 		}
-		return super.keyPressed(keyCode, scanCode, modifiers);
+		return super.keyPressed(key);
 	}
 
 	@Override
@@ -297,6 +318,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	 * @param pointY     {@code int} Mouse pointer
 	 * @return {@code boolean} Returns true if mouse pointer is in region specified
 	 */
+	@Override
 	public boolean isPointInRect(int rectX, int rectY, int rectWidth, int rectHeight, double pointX, double pointY) {
 		return super.isHovering(rectX, rectY, rectWidth, rectHeight, pointX, pointY);
 	}
@@ -313,10 +335,12 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		return be instanceof MachineBaseBlockEntity && builtScreenHandler != null;
 	}
 
+	@Override
 	public int getGuiLeft() {
 		return leftPos;
 	}
 
+	@Override
 	public int getGuiTop() {
 		return topPos;
 	}
@@ -329,7 +353,8 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		return this.minecraft;
 	}
 
-	public Font getTextRenderer() {
+	@Override
+	public Font getFont() {
 		return this.font;
 	}
 
@@ -344,6 +369,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 		return selectedTab != null;
 	}
 
+	@Override
 	public boolean hideGuiElements() {
 		return selectedTab != null && selectedTab.hideGuiElements();
 	}
@@ -367,16 +393,21 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	}
 
 	@Override
-	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top, int mouseButton) {
+	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
 		// Upgrades are normally outside the bounds, so let's pretend we are within the bounds if there is a slot here.
-		return hoveredSlot == null && super.hasClickedOutside(mouseX, mouseY, left, top, mouseButton);
+		return getHoveredSlot(mouseX, mouseY) == null && super.hasClickedOutside(mouseX, mouseY, left, top);
 	}
 
 	public List<GuiTab> getTabs() {
 		return tabs;
 	}
 
-	public static TextureAtlasSprite getSprite(Material spriteIdentifier) {
-		return Minecraft.getInstance().getGuiSprites().getSprite(spriteIdentifier.texture());
+	public static TextureAtlasSprite getSprite(SpriteId spriteIdentifier) {
+		return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(spriteIdentifier.atlasLocation()).getSprite(spriteIdentifier.texture());
+	}
+
+	@Override
+	public <T extends Renderable> T addRenderableOnly(T renderable) {
+		return super.addRenderableOnly(renderable);
 	}
 }

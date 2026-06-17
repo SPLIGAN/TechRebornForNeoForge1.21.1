@@ -24,17 +24,15 @@
 
 package reborncore.client.multiblock;
 
+import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import reborncore.common.blockentity.MultiblockWriter;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+
 import java.util.function.BiPredicate;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
@@ -44,32 +42,23 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 
 /**
- * Renders a hologram
+ * Renders a hologram of a multiblock structure.
  */
-public
-record HologramRenderer(Level view, PoseStack matrix, MultiBufferSource vertexConsumerProvider,
-						float scale) implements MultiblockWriter {
-	private static final BlockPos OUT_OF_WORLD_POS = new BlockPos(0, 260, 0); // Bad hack; disables lighting
+public record HologramRenderer(BlockModelResolver blockModelResolver, ItemModelResolver itemModelResolver, Level view, MultiblockRenderer.MultiblockRenderState renderState) implements MultiblockWriter {
+	private static final BlockDisplayContext BLOCK_DISPLAY_CONTEXT = BlockDisplayContext.create();
 
 	@Override
 	public MultiblockWriter add(int x, int y, int z, BiPredicate<BlockGetter, BlockPos> predicate, BlockState state) {
-		final BlockRenderDispatcher blockRenderManager = Minecraft.getInstance().getBlockRenderer();
-		matrix.pushPose();
-		matrix.translate(x, y, z);
-		matrix.translate(0.5, 0.5, 0.5);
-		matrix.scale(scale, scale, scale);
-
-
 		if (state.getBlock() instanceof LiquidBlock) {
 			FluidState fluidState = state.getFluidState();
-			Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(fluidState.getType().getBucket()), ItemDisplayContext.FIXED, 15728880, OverlayTexture.NO_OVERLAY, matrix, vertexConsumerProvider, view, 0);
+			ItemStackRenderState item = renderState.nextItemStackRenderState();
+			itemModelResolver.updateForTopItem(item, new ItemStack(fluidState.getType().getBucket()), ItemDisplayContext.FIXED, view, null, 0);
+			renderState.states.add(new HologramRenderState.FluidItem(x, y, z, item));
 		} else {
-			matrix.translate(-0.5, -0.5, -0.5);
-			VertexConsumer consumer = vertexConsumerProvider.getBuffer(ItemBlockRenderTypes.getChunkRenderType(state));
-			blockRenderManager.renderBatched(state, OUT_OF_WORLD_POS, view, matrix, consumer, false, RandomSource.create());
+			var blockModelRenderState = renderState.nextBlockModelRenderState();
+			blockModelResolver.update(blockModelRenderState, state, BLOCK_DISPLAY_CONTEXT);
+			renderState.states.add(new HologramRenderState.Block(x, y, z, blockModelRenderState));
 		}
-
-		matrix.popPose();
 		return this;
 	}
 }

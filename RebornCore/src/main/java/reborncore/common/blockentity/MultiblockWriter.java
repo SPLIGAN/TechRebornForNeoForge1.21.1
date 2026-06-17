@@ -24,6 +24,8 @@
 
 package reborncore.common.blockentity;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.BiPredicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -231,4 +233,23 @@ public interface MultiblockWriter {
 		}
 	}
 
+	class MultiblockShapeFormer implements MultiblockWriter {
+		private final BlockPos relative;
+		private final Set<BlockPos> pos = new HashSet<>();
+
+		public MultiblockShapeFormer(BlockPos relative) {
+			this.relative = relative;
+		}
+
+		@Override
+		public MultiblockWriter add(int x, int y, int z, BiPredicate<BlockGetter, BlockPos> predicate, BlockState state) {
+			pos.add(relative.offset(x, y, z));
+
+			return this;
+		}
+
+		public Set<BlockPos> getPos() {
+			return pos;
+		}
+	}
 }

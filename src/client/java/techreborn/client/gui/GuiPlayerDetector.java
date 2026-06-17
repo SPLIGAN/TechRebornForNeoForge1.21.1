@@ -24,12 +24,12 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.widget.GuiButtonUpDown;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import techreborn.blockentity.machine.tier1.PlayerDetectorBlockEntity;
 import techreborn.packets.serverbound.DetectorRadiusPayload;
@@ -44,7 +44,7 @@ public class GuiPlayerDetector extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void onClick(int amount) {
-		ClientNetworkingBridge.sendToServer(new DetectorRadiusPayload(blockEntity.getBlockPos(), amount));
+		ClientPlayNetworking.send(new DetectorRadiusPayload(blockEntity.getBlockPos(), amount));
 	}
 
 	@Override
@@ -58,8 +58,8 @@ public class GuiPlayerDetector extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, float partialTicks, int mouseX, int mouseY) {
-		super.renderBg(drawContext, partialTicks, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float partialTicks) {
+		super.extractBackground(drawContext, mouseX, mouseY, partialTicks);
 		final Layer layer = Layer.BACKGROUND;
 
 		if (hideGuiElements()) return;
@@ -69,8 +69,8 @@ public class GuiPlayerDetector extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final Layer layer = Layer.FOREGROUND;
 
 		builder.drawMultiEnergyBar(drawContext, this, 9, 19, (int) blockEntity.getEnergy(), (int) blockEntity.getMaxStoredPower(), mouseX, mouseY, 0, layer);

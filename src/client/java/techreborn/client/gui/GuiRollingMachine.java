@@ -24,11 +24,12 @@
 
 package techreborn.client.gui;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.player.Player;
 import reborncore.client.gui.GuiBase;
 import reborncore.client.gui.GuiBuilder;
-import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import techreborn.blockentity.machine.tier1.RollingMachineBlockEntity;
 import techreborn.packets.serverbound.RollingMachineLockPayload;
@@ -43,8 +44,8 @@ public class GuiRollingMachine extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics drawContext, final float f, final int mouseX, final int mouseY) {
-		super.renderBg(drawContext, f, mouseX, mouseY);
+	public void extractBackground(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY, final float f) {
+		super.extractBackground(drawContext, mouseX, mouseY, f);
 		final GuiBase.Layer layer = GuiBase.Layer.BACKGROUND;
 
 		int gridYPos = 22;
@@ -65,8 +66,8 @@ public class GuiRollingMachine extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics drawContext, final int mouseX, final int mouseY) {
-		super.renderLabels(drawContext, mouseX, mouseY);
+	protected void extractLabels(GuiGraphicsExtractor drawContext, final int mouseX, final int mouseY) {
+		super.extractLabels(drawContext, mouseX, mouseY);
 		final GuiBase.Layer layer = GuiBase.Layer.FOREGROUND;
 
 		builder.drawProgressBar(drawContext, this, rollingMachine.getProgressScaled(100), 100, 92, 43, mouseX, mouseY, GuiBuilder.ProgressDirection.RIGHT, layer);
@@ -74,12 +75,12 @@ public class GuiRollingMachine extends GuiBase<BuiltScreenHandler> {
 	}
 
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int mouseButton) {
-		if (isPointInRect(130, 4, 20, 12, mouseX, mouseY)) {
-			ClientNetworkingBridge.sendToServer(new RollingMachineLockPayload(rollingMachine.getBlockPos(), !rollingMachine.locked));
+	public boolean mouseClicked(MouseButtonEvent mouse, boolean doubled) {
+		if (isPointInRect(130, 4, 20, 12, mouse.x(), mouse.y())) {
+			ClientPlayNetworking.send(new RollingMachineLockPayload(rollingMachine.getBlockPos(), !rollingMachine.locked));
 			return true;
 		}
-		return super.mouseClicked(mouseX, mouseY, mouseButton);
+		return super.mouseClicked(mouse, doubled);
 	}
 
 }
