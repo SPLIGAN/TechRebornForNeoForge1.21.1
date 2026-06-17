@@ -4,6 +4,7 @@ plugins {
 	id 'idea'
 	id 'eclipse'
 	id 'maven-publish'
+	id 'net.neoforged.gradle.userdev' apply false
 	id 'com.diffplug.spotless' version '6.19.0'
 	id 'me.modmuss50.mod-publish-plugin' version '0.7.4'
 }
