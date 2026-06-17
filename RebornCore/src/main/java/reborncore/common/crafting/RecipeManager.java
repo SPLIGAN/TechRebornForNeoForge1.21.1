@@ -31,7 +31,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 
@@ -40,33 +40,25 @@ public class RecipeManager {
 	public record RecipeTypeRegistration<R extends RebornRecipe>(RecipeType<R> type, RecipeSerializer<R> serializer) {
 	}
 
-	private record Serializer<R extends RebornRecipe>(MapCodec<R> codec, StreamCodec<RegistryFriendlyByteBuf, R> packetCodec) implements RecipeSerializer<R> {
-		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, R> streamCodec() {
-			return packetCodec;
-		}
-	}
-
-	public static RecipeTypeRegistration<RebornRecipe> createRecipeRegistration(ResourceLocation name) {
+	public static RecipeTypeRegistration<RebornRecipe> createRecipeRegistration(Identifier name) {
 		return createRecipeRegistration(name, RebornRecipe.CODEC, RebornRecipe.PACKET_CODEC);
 	}
 
-	public static <R extends RebornRecipe> RecipeTypeRegistration<R> createRecipeRegistration(ResourceLocation name, Function<RecipeType<R>, MapCodec<R>> codec, Function<RecipeType<R>, StreamCodec<RegistryFriendlyByteBuf, R>> packetCodec) {
+	public static <R extends RebornRecipe> RecipeTypeRegistration<R> createRecipeRegistration(Identifier name, Function<RecipeType<R>, MapCodec<R>> codec, Function<RecipeType<R>, StreamCodec<RegistryFriendlyByteBuf, R>> packetCodec) {
 		RecipeType<R> type = new RecipeType<R>() {
 			@Override
 			public String toString() {
 				return name.toString();
 			}
 		};
-		Serializer<R> serializer = new Serializer<>(codec.apply(type), packetCodec.apply(type));
+		RecipeSerializer<R> serializer = new RecipeSerializer<>(codec.apply(type), packetCodec.apply(type));
 		return new RecipeTypeRegistration<>(type, serializer);
 	}
 
 	public static List<RecipeType<?>> getRecipeTypes(String namespace) {
-		//noinspection unchecked
 		return BuiltInRegistries.RECIPE_TYPE.registryKeySet().stream()
-			.filter(key -> key.location().getNamespace().startsWith(namespace))
-			.map((Function<ResourceKey<RecipeType<?>>, RecipeType<?>>) key -> BuiltInRegistries.RECIPE_TYPE.get(key.location()))
+			.filter(key -> key.identifier().getNamespace().startsWith(namespace))
+			.map((Function<ResourceKey<RecipeType<?>>, RecipeType<?>>) key -> BuiltInRegistries.RECIPE_TYPE.getValue(key.identifier()))
 			.toList();
 	}
 }

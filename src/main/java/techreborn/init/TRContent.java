@@ -27,7 +27,7 @@ package techreborn.init;
 import com.google.common.base.Preconditions;
 import net.minecraft.world.level.block.*;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Tuple;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -79,6 +79,8 @@ import techreborn.blocks.GenericMachineBlock;
 import techreborn.blocks.cable.CableBlock;
 import techreborn.blocks.generator.BlockFusionCoil;
 import techreborn.blocks.generator.BlockFusionControlComputer;
+import techreborn.blocks.generator.nuclear.NuclearReactorBlock;
+import techreborn.blocks.generator.nuclear.ReactorChamberBlock;
 import techreborn.blocks.generator.BlockSolarPanel;
 import techreborn.blocks.generator.GenericGeneratorBlock;
 import techreborn.blocks.lighting.LampBlock;
@@ -99,6 +101,13 @@ import techreborn.entities.EntityNukePrimed;
 import techreborn.items.DynamicCellItem;
 import techreborn.items.UpgradeItem;
 import techreborn.items.UpgraderItem;
+import techreborn.items.reactor.CoolantCellItem;
+import techreborn.items.reactor.DepletedFuelRodItem;
+import techreborn.items.reactor.FuelRodItem;
+import techreborn.items.reactor.HeatExchangerItem;
+import techreborn.items.reactor.HeatVentItem;
+import techreborn.items.reactor.NeutronReflectorItem;
+import techreborn.items.reactor.ReactorPlatingItem;
 import techreborn.items.armor.NanoSuitItem;
 import techreborn.items.armor.QuantumSuitItem;
 import techreborn.utils.InitUtils;
@@ -111,8 +120,8 @@ import java.util.stream.Stream;
 
 public class TRContent {
 	public static final Marker DATAGEN = MarkerFactory.getMarker("datagen");
-	public static final BlockSetType RUBBER_WOOD_SET_TYPE = WoodTypeBridge.createBlockSetType(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), BlockSetType.OAK);
-	public static final WoodType RUBBER_WOOD_TYPE = WoodTypeBridge.registerWoodType(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), WoodType.OAK, RUBBER_WOOD_SET_TYPE);
+	public static final BlockSetType RUBBER_WOOD_SET_TYPE = WoodTypeBridge.createBlockSetType(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), BlockSetType.OAK);
+	public static final WoodType RUBBER_WOOD_TYPE = WoodTypeBridge.registerWoodType(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), WoodType.OAK, RUBBER_WOOD_SET_TYPE);
 
 	// Misc Blocks
 	public static Block COMPUTER_CUBE;
@@ -236,28 +245,32 @@ public class TRContent {
 	public static Item STEEL_BOOTS;
 
 	public final static class BlockTags {
-		public static final TagKey<Block> RUBBER_LOGS = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
-		public static final TagKey<Block> OMNI_TOOL_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/omni_tool"));
-		public static final TagKey<Block> JACKHAMMER_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/jackhammer"));
-		public static final TagKey<Block> DRILL_MINEABLE = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/drill"));
-		public static final TagKey<Block> NONE_SOLID_COVERS = TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "none_solid_covers"));
+		public static final TagKey<Block> RUBBER_LOGS = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
+		public static final TagKey<Block> OMNI_TOOL_MINEABLE = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/omni_tool"));
+		public static final TagKey<Block> JACKHAMMER_MINEABLE = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/jackhammer"));
+		public static final TagKey<Block> DRILL_MINEABLE = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "mineable/drill"));
+		public static final TagKey<Block> NONE_SOLID_COVERS = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "none_solid_covers"));
 
 		private BlockTags() {
 		}
 	}
 
 	public final static class ItemTags {
-		public static final TagKey<Item> RUBBER_LOGS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
-		public static final TagKey<Item> INGOTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ingots"));
-		public static final TagKey<Item> ORES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ores"));
-		public static final TagKey<Item> STORAGE_BLOCK = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_blocks"));
-		public static final TagKey<Item> DUSTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "dusts"));
-		public static final TagKey<Item> RAW_METALS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "raw_metals"));
-		public static final TagKey<Item> SMALL_DUSTS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "small_dusts"));
-		public static final TagKey<Item> GEMS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "gems"));
-		public static final TagKey<Item> NUGGETS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuggets"));
-		public static final TagKey<Item> PLATES = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "plates"));
-		public static final TagKey<Item> STORAGE_UNITS = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_units"));
+		public static final TagKey<Item> RUBBER_LOGS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_logs"));
+		public static final TagKey<Item> INGOTS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "ingots"));
+		public static final TagKey<Item> ORES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "ores"));
+		public static final TagKey<Item> STORAGE_BLOCK = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_blocks"));
+		public static final TagKey<Item> DUSTS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "dusts"));
+		public static final TagKey<Item> RAW_METALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "raw_metals"));
+		public static final TagKey<Item> SMALL_DUSTS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "small_dusts"));
+		public static final TagKey<Item> GEMS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "gems"));
+		public static final TagKey<Item> NUGGETS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "nuggets"));
+		public static final TagKey<Item> PLATES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "plates"));
+		public static final TagKey<Item> STORAGE_UNITS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_units"));
+		public static final TagKey<Item> BRONZE_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "bronze_tool_materials"));
+		public static final TagKey<Item> RUBY_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ruby_tool_materials"));
+		public static final TagKey<Item> SAPPHIRE_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "sapphire_tool_materials"));
+		public static final TagKey<Item> PERIDOT_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "peridot_tool_materials"));
 
 		private ItemTags() {
 		}
@@ -319,18 +332,14 @@ public class TRContent {
 
 		StorageUnit(int capacity, boolean upgradable) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			block = new StorageUnitBlock(this);
+			block = new StorageUnitBlock(this, name.equals("buffer") ? "storage_buffer" : name + "_storage_unit");
 			this.capacity = capacity;
 
-			if (name.equals("buffer"))
-				InitUtils.setup(block, "storage_buffer");
-			else
-				InitUtils.setup(block, name + "_storage_unit");
 			if (upgradable) {
 				if (name.equals("buffer"))
-					upgrader = InitUtils.setup(new UpgraderItem(), "storage_buffer_upgrader");
+					upgrader = InitUtils.setup(new UpgraderItem("storage_buffer_upgrader"), "storage_buffer_upgrader");
 				else
-					upgrader = InitUtils.setup(new UpgraderItem(), name + "_unit_upgrader");
+					upgrader = InitUtils.setup(new UpgraderItem(name + "_unit_upgrader"), name + "_unit_upgrader");
 			}
 			else
 				upgrader = null;
@@ -442,7 +451,7 @@ public class TRContent {
 			this.canKill = canKill;
 			this.defaultCanKill = canKill;
 			this.tier = tier;
-			this.block = new CableBlock(this);
+			this.block = new CableBlock(this, name + "_cable");
 			InitUtils.setup(block, name + "_cable");
 		}
 
@@ -504,7 +513,7 @@ public class TRContent {
 			block = new DropExperienceBlock(distribution != null ? distribution.experienceDropped : experienceDroppedFallback, TRBlockSettings.ore(name.startsWith("deepslate")));
 			this.industrial = industrial;
 			InitUtils.setup(block, name + "_ore");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ores/" +
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ores/" +
 					(name.startsWith("deepslate_") ? name.substring(name.indexOf('_')+1): name)));
 			this.distribution = distribution;
 		}
@@ -604,7 +613,7 @@ public class TRContent {
 			name = this.toString().toLowerCase(Locale.ROOT);
 			block = new BlockStorage(isHot, hardness, resistance);
 			InitUtils.setup(block, name + "_storage_block");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "storage_blocks/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "storage_blocks/" + Objects.requireNonNullElse(tagNameBase, name)));
 
 			stairsBlock = new TechRebornStairsBlock(block.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(block));
 			InitUtils.setup(stairsBlock, name + "_storage_block_stairs");
@@ -744,6 +753,8 @@ public class TRContent {
 		THERMAL_GENERATOR(new GenericGeneratorBlock(GuiType.THERMAL_GENERATOR, ThermalGeneratorBlockEntity::new)),
 		WATER_MILL(new GenericGeneratorBlock(null, WaterMillBlockEntity::new)),
 		WIND_MILL(new GenericGeneratorBlock(null, WindMillBlockEntity::new)),
+		NUCLEAR_REACTOR(new NuclearReactorBlock("nuclear_reactor")),
+		REACTOR_CHAMBER(new ReactorChamberBlock("reactor_chamber")),
 
 		DRAIN(new GenericMachineBlock(null, DrainBlockEntity::new)),
 		PUMP(new GenericMachineBlock(GuiType.PUMP, PumpBlockEntity::new)),
@@ -764,7 +775,7 @@ public class TRContent {
 		CHUNK_LOADER(new GenericMachineBlock(GuiType.CHUNK_LOADER, ChunkLoaderBlockEntity::new)),
 		LAMP_INCANDESCENT(new LampBlock(4, 10, 8)),
 		LAMP_LED(new LampBlock(1, 1, 12)),
-		PLAYER_DETECTOR(new PlayerDetectorBlock());
+		PLAYER_DETECTOR(new PlayerDetectorBlock("player_detector"));
 
 		public final String name;
 		public final Block block;
@@ -785,6 +796,70 @@ public class TRContent {
 		}
 	}
 
+	public enum NuclearReactorComponents implements ItemLike, TagConvertible<Item> {
+		URANIUM_FUEL_PELLET(new Item(TRItemSettings.item("uranium_fuel_pellet"))),
+		EMPTY_FUEL_ROD(new Item(TRItemSettings.item("empty_fuel_rod"))),
+		URANIUM_FUEL_ROD(new FuelRodItem("uranium_fuel_rod", 20_000, 1, 5, 4)),
+		DUAL_URANIUM_FUEL_ROD(new FuelRodItem("dual_uranium_fuel_rod", 20_000, 2, 5, 4)),
+		QUAD_URANIUM_FUEL_ROD(new FuelRodItem("quad_uranium_fuel_rod", 20_000, 4, 5, 4)),
+		DEPLETED_URANIUM_FUEL_ROD(new DepletedFuelRodItem("depleted_uranium_fuel_rod", 1)),
+		DUAL_DEPLETED_URANIUM_FUEL_ROD(new DepletedFuelRodItem("dual_depleted_uranium_fuel_rod", 2)),
+		QUAD_DEPLETED_URANIUM_FUEL_ROD(new DepletedFuelRodItem("quad_depleted_uranium_fuel_rod", 4)),
+		WATER_COOLANT_CELL_10K(new CoolantCellItem("water_coolant_cell_10k", 10_000)),
+		WATER_COOLANT_CELL_30K(new CoolantCellItem("water_coolant_cell_30k", 30_000)),
+		WATER_COOLANT_CELL_60K(new CoolantCellItem("water_coolant_cell_60k", 60_000)),
+		HELIUM_COOLANT_CELL_60K(new CoolantCellItem("helium_coolant_cell_60k", 60_000)),
+		HELIUM_COOLANT_CELL_180K(new CoolantCellItem("helium_coolant_cell_180k", 180_000)),
+		HELIUM_COOLANT_CELL_360K(new CoolantCellItem("helium_coolant_cell_360k", 360_000)),
+		NAK_COOLANT_CELL_60K(new CoolantCellItem("nak_coolant_cell_60k", 60_000)),
+		NAK_COOLANT_CELL_180K(new CoolantCellItem("nak_coolant_cell_180k", 180_000)),
+		NAK_COOLANT_CELL_360K(new CoolantCellItem("nak_coolant_cell_360k", 360_000)),
+		HEAT_VENT(new HeatVentItem("heat_vent", 1000, 6, 0, 0)),
+		ADVANCED_HEAT_VENT(new HeatVentItem("advanced_heat_vent", 1000, 12, 0, 0)),
+		REACTOR_HEAT_VENT(new HeatVentItem("reactor_heat_vent", 1000, 5, 5, 0)),
+		OVERCLOCKED_HEAT_VENT(new HeatVentItem("overclocked_heat_vent", 1000, 20, 36, 0)),
+		COMPONENT_HEAT_VENT(new HeatVentItem("component_heat_vent", 0, 0, 0, 4)),
+		HEAT_EXCHANGER(new HeatExchangerItem("heat_exchanger", 2500, 12, 4)),
+		ADVANCED_HEAT_EXCHANGER(new HeatExchangerItem("advanced_heat_exchanger", 10000, 24, 8)),
+		REACTOR_HEAT_EXCHANGER(new HeatExchangerItem("reactor_heat_exchanger", 5000, 0, 72)),
+		COMPONENT_HEAT_EXCHANGER(new HeatExchangerItem("component_heat_exchanger", 5000, 36, 0)),
+		NEUTRON_REFLECTOR(new NeutronReflectorItem("neutron_reflector", 30_000)),
+		THICK_NEUTRON_REFLECTOR(new NeutronReflectorItem("thick_neutron_reflector", 120_000)),
+		IRIDIUM_NEUTRON_REFLECTOR(new NeutronReflectorItem("iridium_neutron_reflector", -1)),
+		REACTOR_PLATING(new ReactorPlatingItem("reactor_plating", 1000, 0.95f)),
+		HEAT_CAPACITY_REACTOR_PLATING(new ReactorPlatingItem("heat_capacity_reactor_plating", 1700, 0.99f)),
+		CONTAINMENT_REACTOR_PLATING(new ReactorPlatingItem("containment_reactor_plating", 500, 0.9f));
+
+		private final String name;
+		private final Item item;
+		private final TagKey<Item> tag;
+
+		NuclearReactorComponents(Item item) {
+			this.item = item;
+			this.name = this.toString().toLowerCase(Locale.ROOT);
+			InitUtils.setup(item, name);
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "reactor_components/" + name));
+		}
+
+		public ItemStack getStack() {
+			return new ItemStack(item);
+		}
+
+		public ItemStack getStack(int amount) {
+			return new ItemStack(item, amount);
+		}
+
+		@Override
+		public Item asItem() {
+			return item;
+		}
+
+		@Override
+		public TagKey<Item> asTag() {
+			return tag;
+		}
+	}
+
 	public enum Dusts implements ItemLike, TagConvertible<Item> {
 		ALMANDINE, ALUMINUM, AMETHYST, ANDESITE, ANDRADITE, ASHES, BASALT, BAUXITE, BRASS, BRONZE, CALCITE, CHARCOAL, CHROME(CHROME_TAG_NAME_BASE),
 		CINNABAR, CLAY, COAL, DARK_ASHES, DIAMOND, DIORITE, ELECTRUM, EMERALD, ENDER_EYE, ENDER_PEARL, ENDSTONE,
@@ -800,7 +875,7 @@ public class TRContent {
 			name = this.toString().toLowerCase(Locale.ROOT);
 			item = new Item(new Item.Properties());
 			InitUtils.setup(item, name + "_dust");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		Dusts() {
@@ -857,7 +932,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, "raw_" + name);
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "raw_materials/" + name));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "raw_materials/" + name));
 		}
 
 		@Override
@@ -929,7 +1004,7 @@ public class TRContent {
 				}
 			dust = dustVariant;
 			InitUtils.setup(item, name + "_small_dust");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "small_dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "small_dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		SmallDusts(String tagNameBase) {
@@ -1022,7 +1097,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, name + "_gem");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "gems/" + name));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "gems/" + name));
 		}
 
 		public ItemStack getStack() {
@@ -1120,7 +1195,7 @@ public class TRContent {
 			}
 			storageBlock = blockVariant;
 			InitUtils.setup(item, name + "_ingot");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "ingots/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ingots/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		Ingots() {
@@ -1204,7 +1279,7 @@ public class TRContent {
 			ingot = ingotVariant;
 			this.ofGem = ofGem;
 			InitUtils.setup(item, name + "_nugget");
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "nuggets/" + Objects.requireNonNullElse(tagNameBase, name)));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "nuggets/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
 
 		Nuggets(ItemLike ingotVariant, boolean ofGem) {
@@ -1284,23 +1359,6 @@ public class TRContent {
 		CUPRONICKEL_HEATING_COIL,
 		KANTHAL_HEATING_COIL,
 		NICHROME_HEATING_COIL,
-
-		NEUTRON_REFLECTOR,
-		THICK_NEUTRON_REFLECTOR,
-		IRIDIUM_NEUTRON_REFLECTOR,
-
-		//java vars can't start with numbers, so these get suffixes
-		WATER_COOLANT_CELL_10K,
-		WATER_COOLANT_CELL_30K,
-		WATER_COOLANT_CELL_60K,
-
-		HELIUM_COOLANT_CELL_60K,
-		HELIUM_COOLANT_CELL_180K,
-		HELIUM_COOLANT_CELL_360K,
-
-		NAK_COOLANT_CELL_60K,
-		NAK_COOLANT_CELL_180K,
-		NAK_COOLANT_CELL_360K,
 
 		RUBBER,
 		SAP,
@@ -1431,7 +1489,7 @@ public class TRContent {
 				tagNameBase = name;
 			}
 
-			tag = TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", "plates/" + tagNameBase));
+			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "plates/" + tagNameBase));
 		}
 
 		Plates(String tagNameBase) {
@@ -1549,7 +1607,7 @@ public class TRContent {
 	public static EntityType<EntityNukePrimed> ENTITY_NUKE;
 
 	public static void registerEntityTypes(RegisterEvent event) {
-		event.register(Registries.ENTITY_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "nuke"), () -> {
+		event.register(Registries.ENTITY_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "nuke"), () -> {
 			ENTITY_NUKE = EntityTypeBridge.createNukeType();
 			return ENTITY_NUKE;
 		});

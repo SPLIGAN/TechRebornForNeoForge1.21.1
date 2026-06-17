@@ -25,13 +25,13 @@
 package reborncore.client.network;
 
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 public final class ClientNetworkingBridge {
 	private ClientNetworkingBridge() {
 	}
 
 	public static void sendToServer(CustomPacketPayload payload) {
-		PacketDistributor.sendToServer(payload);
+		ClientPacketDistributor.sendToServer(payload);
 	}
 }

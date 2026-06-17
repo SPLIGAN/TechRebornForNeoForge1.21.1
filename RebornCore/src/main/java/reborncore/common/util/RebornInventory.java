@@ -24,11 +24,10 @@
 
 package reborncore.common.util;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import reborncore.api.items.InventoryBase;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.SlotConfiguration;
@@ -68,9 +67,9 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	}
 
 	@Override
-	public void setItem(int slot, @NotNull ItemStack stack) {
+	public void setItem(int slot, ItemStack stack) {
 		super.setItem(slot, stack);
-		setHashChanged();
+		setHasChanged();
 	}
 
 	@Override
@@ -78,7 +77,7 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 		ItemStack stack = super.removeItem(i, i1);
 
 		if (!stack.isEmpty()) {
-			setHashChanged();
+			setHasChanged();
 		}
 
 		return stack;
@@ -92,26 +91,27 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 	public ItemStack shrinkSlot(int slot, int count) {
 		ItemStack stack = getItem(slot);
 		stack.shrink(count);
-		setHashChanged();
+		setHasChanged();
 		return stack;
 	}
 
-	public void read(CompoundTag data, HolderLookup.Provider registryLookup) {
-		read(data, "Items", registryLookup);
+	public void read(ValueInput view) {
+		read(view, "Items");
 	}
 
-	public void read(CompoundTag data, String tag, HolderLookup.Provider registryLookup) {
-		CompoundTag nbtTagList = data.getCompound(tag);
-		deserializeNBT(nbtTagList, registryLookup);
-		hasChanged = true;
+	public void read(ValueInput view, String tag) {
+		view.child(tag).ifPresent(data -> {
+			readData(data);
+			hasChanged = true;
+		});
 	}
 
-	public void write(CompoundTag data, HolderLookup.Provider registryLookup) {
-		write(data, "Items", registryLookup);
+	public void write(ValueOutput view) {
+		write(view, "Items");
 	}
 
-	public void write(CompoundTag data, String tag, HolderLookup.Provider registryLookup) {
-		data.put(tag, serializeNBT(registryLookup));
+	public void write(ValueOutput view, String tag) {
+		writeData(view.child(tag));
 	}
 
 
@@ -134,12 +134,12 @@ public class RebornInventory<T extends MachineBaseBlockEntity> extends Inventory
 		return hasChanged;
 	}
 
-	public void setHashChanged() {
+	public void setHasChanged() {
 		this.hasChanged = true;
 		this.setChanged();
 	}
 
-	public void setHashChanged(boolean changed) {
+	public void setHasChanged(boolean changed) {
 		this.hasChanged = changed;
 	}
 

@@ -109,7 +109,7 @@ public class CableBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
 	public final TRContent.Cables type;
 
 	public CableBlock(TRContent.Cables type, String name) {
-		super(TRBlockSettings.cable(name));
+		super(TRBlockSettings.cable());
 		this.type = type;
 		registerDefaultState(this.getStateDefinition().any().setValue(EAST, false).setValue(WEST, false).setValue(NORTH, false)
 				.setValue(SOUTH, false).setValue(UP, false).setValue(DOWN, false).setValue(WATERLOGGED, false).setValue(COVERED, false));
@@ -285,15 +285,11 @@ public class CableBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
 	@Override
 	public BlockState getAppearance(BlockState state, BlockAndLightGetter renderView, BlockPos pos, Direction side, @Nullable BlockState sourceState, @Nullable BlockPos sourcePos) {
 		if (state.getValue(COVERED)) {
-			final BlockState cover;
-
-			if (renderView.getBlockEntityRenderData(pos) instanceof BlockState blockState) {
-				cover = blockState;
-			} else {
-				cover = Blocks.OAK_PLANKS.defaultBlockState();
+			final BlockState cover = RenderDataBridge.getRenderAttachment(renderView, pos);
+			if (cover != null) {
+				return cover;
 			}
-
-			return cover;
+			return Blocks.OAK_PLANKS.defaultBlockState();
 		}
 
 		return super.getAppearance(state, renderView, pos, side, sourceState, sourcePos);

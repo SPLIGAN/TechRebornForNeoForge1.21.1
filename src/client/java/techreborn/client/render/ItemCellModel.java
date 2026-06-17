@@ -48,10 +48,9 @@ import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.color.block.BlockTintSources;
-import net.minecraft.data.worldgen.biome.OverworldBiomes;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.fabricmc.fabric.impl.client.rendering.fluid.FluidRenderingRegistryImpl;
+import techreborn.client.compat.FluidModelLookupBridge;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.jspecify.annotations.Nullable;
@@ -136,15 +135,14 @@ public class ItemCellModel implements ItemModel {
 			Map<FluidModel.Unbaked, TextureAtlasSprite> spriteCache = new IdentityHashMap<>();
 
 			// Include vanilla fluids that are not in Fabric's registry
-			Map<Fluid, FluidModel.Unbaked> allFluidModels = new IdentityHashMap<>(FluidRenderingRegistryImpl.getUnbakedModels());
-			// BlockTintSources.water() returns -1 (white) without biome context,
-			// which leaves the grayscale water texture untinted. Use the standard
-			// overworld water color from OverworldBiomes instead.
+			Map<Fluid, FluidModel.Unbaked> allFluidModels = new IdentityHashMap<>(FluidModelLookupBridge.getUnbakedModels());
+			// BlockTintSources.water() returns -1 (white) without biome context;
+			// use the standard overworld water tint instead of protected OverworldBiomes field.
 			FluidModel.Unbaked waterModel = new FluidModel.Unbaked(
 				new Material(Identifier.withDefaultNamespace("block/water_still")),
 				new Material(Identifier.withDefaultNamespace("block/water_flow")),
 				new Material(Identifier.withDefaultNamespace("block/water_overlay")),
-				BlockTintSources.constant(OverworldBiomes.NORMAL_WATER_COLOR)
+				BlockTintSources.constant(0x3F76E4)
 			);
 			FluidModel.Unbaked lavaModel = new FluidModel.Unbaked(
 				new Material(Identifier.withDefaultNamespace("block/lava_still")),
@@ -179,26 +177,9 @@ public class ItemCellModel implements ItemModel {
 			if (fluid == Fluids.EMPTY) {
 				return null;
 			}
-			FluidModel.Unbaked unbaked = FluidRenderingRegistryImpl.getUnbakedModels().get(fluid);
+			FluidModel.Unbaked unbaked = FluidModelLookupBridge.getUnbaked(fluid);
 			if (unbaked == null) {
-				// Vanilla fluids are not in Fabric's registry
-				if (fluid == Fluids.WATER) {
-					unbaked = new FluidModel.Unbaked(
-						new Material(Identifier.withDefaultNamespace("block/water_still")),
-						new Material(Identifier.withDefaultNamespace("block/water_flow")),
-						new Material(Identifier.withDefaultNamespace("block/water_overlay")),
-						BlockTintSources.constant(OverworldBiomes.NORMAL_WATER_COLOR)
-					);
-				} else if (fluid == Fluids.LAVA) {
-					unbaked = new FluidModel.Unbaked(
-						new Material(Identifier.withDefaultNamespace("block/lava_still")),
-						new Material(Identifier.withDefaultNamespace("block/lava_flow")),
-						null,
-						null
-					);
-				} else {
-					return null;
-				}
+				return null;
 			}
 			TextureAtlasSprite sprite = baker.materials().get(unbaked.stillMaterial(), () -> "fluid").sprite();
 			int tint = unbaked.tintSource() != null

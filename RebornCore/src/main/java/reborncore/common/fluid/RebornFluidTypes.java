@@ -25,7 +25,7 @@
 package reborncore.common.fluid;
 
 import java.util.function.Consumer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.common.SoundActions;
@@ -40,23 +40,21 @@ public final class RebornFluidTypes {
 	}
 
 	public static FluidType create(FluidSettings settings) {
+		FluidSettings textureSettings = settings;
 		return new FluidType(FluidType.Properties.create()
 				.density(1000)
 				.viscosity(1000)
 				.sound(SoundActions.BUCKET_FILL, SoundEvents.BUCKET_FILL)
 				.sound(SoundActions.BUCKET_EMPTY, SoundEvents.BUCKET_EMPTY)) {
 
-			@Override
 			public void initializeClient(Consumer<IClientFluidTypeExtensions> consumer) {
 				consumer.accept(new IClientFluidTypeExtensions() {
-					@Override
-					public ResourceLocation getStillTexture() {
-						return settings.getStillTexture();
+					public Identifier getStillTexture() {
+						return textureSettings.getStillTexture();
 					}
 
-					@Override
-					public ResourceLocation getFlowingTexture() {
-						return settings.getFlowingTexture();
+					public Identifier getFlowingTexture() {
+						return textureSettings.getFlowingTexture();
 					}
 				});
 			}

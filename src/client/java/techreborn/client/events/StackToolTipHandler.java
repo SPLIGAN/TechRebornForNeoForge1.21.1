@@ -45,7 +45,6 @@ import java.util.Locale;
 import java.util.Map;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -104,7 +103,7 @@ public class StackToolTipHandler implements TooltipAppender {
 
 		if (item instanceof UpgradeItem upgrade) {
 			ToolTipAssistUtils.addInfo(item.getDescriptionId(), lines, false);
-			lines.addAll(ToolTipAssistUtils.getUpgradeStats(TRContent.Upgrades.valueOf(upgrade.name.toUpperCase()), stack.getCount(), Screen.hasShiftDown()));
+			lines.addAll(ToolTipAssistUtils.getUpgradeStats(TRContent.Upgrades.valueOf(upgrade.name.toUpperCase()), stack.getCount(), Minecraft.getInstance().hasShiftDown()));
 		}
 
 		if (item instanceof DynamicCellItem cell) {
@@ -113,7 +112,7 @@ public class StackToolTipHandler implements TooltipAppender {
 				ToolTipAssistUtils.addInfo("unplaceable_fluid", lines, false);
 		}
 
-		if (item == TRContent.Upgrades.SUPERCONDUCTOR.item && Screen.hasControlDown()) {
+		if (item == TRContent.Upgrades.SUPERCONDUCTOR.item && Minecraft.getInstance().hasControlDown()) {
 			lines.add(Component.literal(ChatFormatting.GOLD + "Blame obstinate_3 for this"));
 		}
 
@@ -121,7 +120,7 @@ public class StackToolTipHandler implements TooltipAppender {
 			lines.add(Component.literal(ChatFormatting.YELLOW + I18n.get("techreborn.tooltip.omnitool_motto")));
 		}
 
-		if (block == TRContent.Machine.INDUSTRIAL_CENTRIFUGE.block && Screen.hasControlDown()) {
+		if (block == TRContent.Machine.INDUSTRIAL_CENTRIFUGE.block && Minecraft.getInstance().hasControlDown()) {
 			lines.add(Component.literal("Round and round it goes"));
 		}
 
@@ -134,9 +133,9 @@ public class StackToolTipHandler implements TooltipAppender {
 		}
 
 		if (item instanceof NanoSuitItem suit) {
-			suit.appendArmorTooltip(stack, lines, Screen.hasShiftDown());
+			suit.appendArmorTooltip(stack, lines, Minecraft.getInstance().hasShiftDown());
 		} else if (item instanceof QuantumSuitItem suit) {
-			suit.appendArmorTooltip(stack, lines, Screen.hasShiftDown());
+			suit.appendArmorTooltip(stack, lines, Minecraft.getInstance().hasShiftDown());
 		}
 	}
 

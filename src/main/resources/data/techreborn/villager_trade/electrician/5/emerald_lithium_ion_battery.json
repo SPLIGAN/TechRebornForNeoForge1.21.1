@@ -1,0 +1,6 @@
+﻿{
+  "gives": { "count": 1, "id": "techreborn:lithium_ion_battery" },
+  "max_uses": 8.0,
+  "wants": { "count": 30, "id": "minecraft:emerald" },
+  "xp": 30.0
+}

@@ -17,7 +17,7 @@ base {
 	archivesName = 'techreborn'
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 subprojects {
 	apply plugin: 'com.diffplug.spotless'
@@ -60,6 +60,7 @@ sourceSets {
 	main {
 		java.srcDirs += ['src/client/java']
 		java.exclude('**/compat/pal/PalQuantumSuitFlightHandler.java')
+		java.exclude('**/compat/rei/**')
 		resources.srcDirs += ['src/main/resources', 'src/client/resources', 'src/main/generated']
 	}
 }
@@ -199,7 +200,7 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
-	options.release = 21
+	options.release = 25
 }
 
 // Single NeoGradle pipeline in :RebornCore; reuse its compile deps for the root mod (no second userdev).
@@ -218,8 +219,8 @@ tasks.named('compileGametestJava', JavaCompile).configure {
 
 java {
 	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.named('sourcesJar', Jar).configure {
@@ -311,9 +312,13 @@ project(':RebornCore').afterEvaluate {
 	def mainSourceSet = rc.sourceSets.main
 	def rcCompile = rc.configurations.named(mainSourceSet.compileClasspathConfigurationName).get()
 	def rcRuntime = rc.configurations.named(mainSourceSet.runtimeClasspathConfigurationName).get()
-	rootProject.idea.module.scopes.COMPILE.plus += [rcCompile]
-	rootProject.idea.module.scopes.RUNTIME.plus += [rcRuntime]
-	rootProject.eclipse.classpath.plusConfigurations += [rcCompile]
+	if (rootProject.plugins.hasPlugin('idea')) {
+		rootProject.idea.module.scopes.COMPILE.plus += [rcCompile]
+		rootProject.idea.module.scopes.RUNTIME.plus += [rcRuntime]
+	}
+	if (rootProject.plugins.hasPlugin('eclipse')) {
+		rootProject.eclipse.classpath.plusConfigurations += [rcCompile]
+	}
 
 	rootProject.tasks.named('jar', Jar).configure {
 		dependsOn(rootProject.tasks.named('generateJarJarMetadata'), rc.tasks.named('jar'))

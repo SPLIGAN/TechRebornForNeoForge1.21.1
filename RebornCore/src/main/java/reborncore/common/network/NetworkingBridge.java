@@ -59,7 +59,7 @@ public final class NetworkingBridge {
 		if (!(blockEntity.getLevel() instanceof ServerLevel serverLevel)) {
 			return List.of();
 		}
-		ChunkPos chunkPos = new ChunkPos(blockEntity.getBlockPos());
+		ChunkPos chunkPos = ChunkPos.containing(blockEntity.getBlockPos());
 		return new ArrayList<>(serverLevel.getChunkSource().chunkMap.getPlayers(chunkPos, false));
 	}
 }

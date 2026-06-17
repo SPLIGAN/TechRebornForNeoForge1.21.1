@@ -29,7 +29,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import techreborn.recipe.recipes.FluidGeneratorRecipe;
 
 import java.util.List;
@@ -40,7 +40,7 @@ public class FluidGeneratorRecipeDisplay implements Display {
 	private final CategoryIdentifier<?> category;
 	private final int totalEnergy;
 
-	public FluidGeneratorRecipeDisplay(FluidGeneratorRecipe recipe, ResourceLocation category) {
+	public FluidGeneratorRecipeDisplay(FluidGeneratorRecipe recipe, Identifier category) {
 		this.category = CategoryIdentifier.of(category);
 		this.inputs = Lists.newArrayList();
 		this.totalEnergy = recipe.power() * 1000;

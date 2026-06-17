@@ -25,7 +25,6 @@
 package techreborn.client.render;
 
 
-import net.fabricmc.fabric.api.client.model.loading.v1.BlockStateResolver;
 import net.minecraft.client.renderer.block.dispatch.BlockModelRotation;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
@@ -49,8 +48,7 @@ import java.util.List;
 public record MachineCasingModel(BlockStateModelPart part) implements BlockStateModel {
 	public static final String MODEL_PATH = "block/machines/structure/";
 
-	public static void resolveBlockStates(BlockStateResolver.Context context) {
-		BlockMachineCasing block = (BlockMachineCasing) context.block();
+	public static MachineCasingModel.Unbaked unbakedFor(BlockMachineCasing block, BlockState state) {
 		Identifier model = BuiltInRegistries.BLOCK.getKey(block).withPrefix(MODEL_PATH);
 		Material alone = new Material(model);
 		Material start = new Material(model.withSuffix("_start"));
@@ -59,18 +57,16 @@ public record MachineCasingModel(BlockStateModelPart part) implements BlockState
 		TextureSlots.Data.Builder builder = new TextureSlots.Data.Builder();
 		builder.addTexture(Direction.DOWN.getName(), alone);
 		builder.addTexture(Direction.UP.getName(), alone);
-		block.getStateDefinition().getPossibleStates().forEach(state -> {
-			for (Direction direction : Direction.Plane.HORIZONTAL) {
-				switch (DirectionUtils.getHorizontalPart(direction, state.getValue(DirectionUtils.HORIZONTAL_NEIGHBORS))) {
-					case ALONE -> builder.addTexture(direction.getName(), alone);
-					case START -> builder.addTexture(direction.getName(), start);
-					case MIDDLE -> builder.addTexture(direction.getName(), middle);
-					case END -> builder.addTexture(direction.getName(), end);
-				}
+		for (Direction direction : Direction.Plane.HORIZONTAL) {
+			switch (DirectionUtils.getHorizontalPart(direction, state.getValue(DirectionUtils.HORIZONTAL_NEIGHBORS))) {
+				case ALONE -> builder.addTexture(direction.getName(), alone);
+				case START -> builder.addTexture(direction.getName(), start);
+				case MIDDLE -> builder.addTexture(direction.getName(), middle);
+				case END -> builder.addTexture(direction.getName(), end);
 			}
-			TextureSlots textures = new TextureSlots.Resolver().addLast(builder.build()).resolve(null);
-			context.setModel(state, new Unbaked(model, textures, alone));
-		});
+		}
+		TextureSlots textures = new TextureSlots.Resolver().addLast(builder.build()).resolve(null);
+		return new Unbaked(model, textures, alone);
 	}
 
 	@Override

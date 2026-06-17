@@ -29,7 +29,7 @@ import java.util.function.Consumer;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.neoforged.neoforge.registries.RegisterEvent;
@@ -47,8 +47,8 @@ import techreborn.recipe.recipes.RollingMachineRecipe;
 
 public class ModRecipes {
 
-	private static final LinkedHashMap<ResourceLocation, RecipeType<?>> RECIPE_TYPES_BY_ID = new LinkedHashMap<>();
-	private static final LinkedHashMap<ResourceLocation, RecipeSerializer<?>> RECIPE_SERIALIZERS_BY_ID = new LinkedHashMap<>();
+	private static final LinkedHashMap<Identifier, RecipeType<?>> RECIPE_TYPES_BY_ID = new LinkedHashMap<>();
+	private static final LinkedHashMap<Identifier, RecipeSerializer<?>> RECIPE_SERIALIZERS_BY_ID = new LinkedHashMap<>();
 	private static volatile boolean prepared;
 
 	public static RecipeType<RebornRecipe> ALLOY_SMELTER;
@@ -81,7 +81,7 @@ public class ModRecipes {
 	private ModRecipes() {
 	}
 
-	private static <R extends RebornRecipe> void add(ResourceLocation id, RecipeManager.RecipeTypeRegistration<R> reg, Consumer<RecipeType<R>> assignField) {
+	private static <R extends RebornRecipe> void add(Identifier id, RecipeManager.RecipeTypeRegistration<R> reg, Consumer<RecipeType<R>> assignField) {
 		assignField.accept(reg.type());
 		RECIPE_TYPES_BY_ID.put(id, reg.type());
 		RECIPE_SERIALIZERS_BY_ID.put(id, reg.serializer());
@@ -92,58 +92,58 @@ public class ModRecipes {
 			if (prepared) {
 				return;
 			}
-			ResourceLocation id;
-			id = ResourceLocation.parse("techreborn:alloy_smelter");
+			Identifier id;
+			id = Identifier.parse("techreborn:alloy_smelter");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> ALLOY_SMELTER = t);
-			id = ResourceLocation.parse("techreborn:assembling_machine");
+			id = Identifier.parse("techreborn:assembling_machine");
 			add(id, RecipeManager.createRecipeRegistration(id, AssemblingMachineRecipe.CODEC, AssemblingMachineRecipe.PACKET_CODEC), t -> ASSEMBLING_MACHINE = t);
-			id = ResourceLocation.parse("techreborn:blast_furnace");
+			id = Identifier.parse("techreborn:blast_furnace");
 			add(id, RecipeManager.createRecipeRegistration(id, BlastFurnaceRecipe.CODEC, BlastFurnaceRecipe.PACKET_CODEC), t -> BLAST_FURNACE = t);
-			id = ResourceLocation.parse("techreborn:centrifuge");
+			id = Identifier.parse("techreborn:centrifuge");
 			add(id, RecipeManager.createRecipeRegistration(id, CentrifugeRecipe.CODEC, CentrifugeRecipe.PACKET_CODEC), t -> CENTRIFUGE = t);
-			id = ResourceLocation.parse("techreborn:chemical_reactor");
+			id = Identifier.parse("techreborn:chemical_reactor");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> CHEMICAL_REACTOR = t);
-			id = ResourceLocation.parse("techreborn:compressor");
+			id = Identifier.parse("techreborn:compressor");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> COMPRESSOR = t);
-			id = ResourceLocation.parse("techreborn:distillation_tower");
+			id = Identifier.parse("techreborn:distillation_tower");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> DISTILLATION_TOWER = t);
-			id = ResourceLocation.parse("techreborn:extractor");
+			id = Identifier.parse("techreborn:extractor");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> EXTRACTOR = t);
-			id = ResourceLocation.parse("techreborn:grinder");
+			id = Identifier.parse("techreborn:grinder");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> GRINDER = t);
-			id = ResourceLocation.parse("techreborn:implosion_compressor");
+			id = Identifier.parse("techreborn:implosion_compressor");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> IMPLOSION_COMPRESSOR = t);
-			id = ResourceLocation.parse("techreborn:industrial_electrolyzer");
+			id = Identifier.parse("techreborn:industrial_electrolyzer");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> INDUSTRIAL_ELECTROLYZER = t);
-			id = ResourceLocation.parse("techreborn:industrial_grinder");
+			id = Identifier.parse("techreborn:industrial_grinder");
 			add(id, RecipeManager.createRecipeRegistration(id, IndustrialGrinderRecipe.CODEC, IndustrialGrinderRecipe.PACKET_CODEC), t -> INDUSTRIAL_GRINDER = t);
-			id = ResourceLocation.parse("techreborn:industrial_sawmill");
+			id = Identifier.parse("techreborn:industrial_sawmill");
 			add(id, RecipeManager.createRecipeRegistration(id, IndustrialSawmillRecipe.CODEC, IndustrialSawmillRecipe.PACKET_CODEC), t -> INDUSTRIAL_SAWMILL = t);
-			id = ResourceLocation.parse("techreborn:recycler");
+			id = Identifier.parse("techreborn:recycler");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> RECYCLER = t);
-			id = ResourceLocation.parse("techreborn:scrapbox");
+			id = Identifier.parse("techreborn:scrapbox");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> SCRAPBOX = t);
-			id = ResourceLocation.parse("techreborn:vacuum_freezer");
+			id = Identifier.parse("techreborn:vacuum_freezer");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> VACUUM_FREEZER = t);
-			id = ResourceLocation.parse("techreborn:fluid_replicator");
+			id = Identifier.parse("techreborn:fluid_replicator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidReplicatorRecipe.CODEC, FluidReplicatorRecipe.PACKET_CODEC), t -> FLUID_REPLICATOR = t);
-			id = ResourceLocation.parse("techreborn:fusion_reactor");
+			id = Identifier.parse("techreborn:fusion_reactor");
 			add(id, RecipeManager.createRecipeRegistration(id, FusionReactorRecipe.CODEC, FusionReactorRecipe.PACKET_CODEC), t -> FUSION_REACTOR = t);
-			id = ResourceLocation.parse("techreborn:rolling_machine");
+			id = Identifier.parse("techreborn:rolling_machine");
 			add(id, RecipeManager.createRecipeRegistration(id, RollingMachineRecipe.CODEC, RollingMachineRecipe.PACKET_CODEC), t -> ROLLING_MACHINE = t);
-			id = ResourceLocation.parse("techreborn:solid_canning_machine");
+			id = Identifier.parse("techreborn:solid_canning_machine");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> SOLID_CANNING_MACHINE = t);
-			id = ResourceLocation.parse("techreborn:wire_mill");
+			id = Identifier.parse("techreborn:wire_mill");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> WIRE_MILL = t);
-			id = ResourceLocation.parse("techreborn:thermal_generator");
+			id = Identifier.parse("techreborn:thermal_generator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidGeneratorRecipe.CODEC, FluidGeneratorRecipe.PACKET_CODEC), t -> THERMAL_GENERATOR = t);
-			id = ResourceLocation.parse("techreborn:gas_generator");
+			id = Identifier.parse("techreborn:gas_generator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidGeneratorRecipe.CODEC, FluidGeneratorRecipe.PACKET_CODEC), t -> GAS_GENERATOR = t);
-			id = ResourceLocation.parse("techreborn:diesel_generator");
+			id = Identifier.parse("techreborn:diesel_generator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidGeneratorRecipe.CODEC, FluidGeneratorRecipe.PACKET_CODEC), t -> DIESEL_GENERATOR = t);
-			id = ResourceLocation.parse("techreborn:semi_fluid_generator");
+			id = Identifier.parse("techreborn:semi_fluid_generator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidGeneratorRecipe.CODEC, FluidGeneratorRecipe.PACKET_CODEC), t -> SEMI_FLUID_GENERATOR = t);
-			id = ResourceLocation.parse("techreborn:plasma_generator");
+			id = Identifier.parse("techreborn:plasma_generator");
 			add(id, RecipeManager.createRecipeRegistration(id, FluidGeneratorRecipe.CODEC, FluidGeneratorRecipe.PACKET_CODEC), t -> PLASMA_GENERATOR = t);
 			prepared = true;
 		}

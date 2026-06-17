@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -44,7 +44,7 @@ public class GuiLaunchpad extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void onClick(int amount) {
-		ClientPlayNetworking.send(new LaunchSpeedPayload(blockEntity.getBlockPos(), amount));
+		ClientNetworkingBridge.sendToServer(new LaunchSpeedPayload(blockEntity.getBlockPos(), amount));
 	}
 
 	@Override

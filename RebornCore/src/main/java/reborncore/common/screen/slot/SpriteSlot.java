@@ -24,24 +24,22 @@
 
 package reborncore.common.screen.slot;
 
-import com.mojang.datafixers.util.Pair;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
-import net.minecraft.world.inventory.InventoryMenu;
 import org.jetbrains.annotations.Nullable;
 
 public class SpriteSlot extends FilteredSlot {
 
-	private final ResourceLocation spriteName;
+	private final Identifier spriteName;
 	int stackSize;
 
-	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final ResourceLocation sprite, final int stackSize) {
+	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final Identifier sprite, final int stackSize) {
 		super(inventory, index, xPosition, yPosition);
 		this.spriteName = sprite;
 		this.stackSize = stackSize;
 	}
 
-	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final ResourceLocation sprite) {
+	public SpriteSlot(final Container inventory, final int index, final int xPosition, final int yPosition, final Identifier sprite) {
 		this(inventory, index, xPosition, yPosition, sprite, 64);
 	}
 
@@ -52,7 +50,7 @@ public class SpriteSlot extends FilteredSlot {
 
 	@Override
 	@Nullable
-	public Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
-		return Pair.of(InventoryMenu.BLOCK_ATLAS, spriteName);
+	public Identifier getNoItemIcon() {
+		return spriteName;
 	}
 }

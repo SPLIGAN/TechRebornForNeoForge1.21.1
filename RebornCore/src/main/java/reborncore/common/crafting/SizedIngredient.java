@@ -27,7 +27,6 @@ package reborncore.common.crafting;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -67,9 +66,8 @@ public record SizedIngredient(int count, Ingredient ingredient) implements Predi
 	}
 
 	public List<ItemStack> getPreviewStacks() {
-		return Arrays.stream(ingredient.getItems())
-			.map(ItemStack::copy)
-			.peek(itemStack -> itemStack.setCount(count))
+		return ingredient.items()
+			.map(holder -> new ItemStack(holder.value(), count))
 			.toList();
 	}
 }

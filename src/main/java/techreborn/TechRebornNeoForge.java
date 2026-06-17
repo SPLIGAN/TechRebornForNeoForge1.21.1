@@ -41,6 +41,7 @@ import techreborn.events.ModRegistry;
 import techreborn.init.TRContent;
 import techreborn.init.TechRebornCapabilities;
 import techreborn.events.OreDepthSyncHandler;
+import techreborn.events.TRRecipeHandler;
 import techreborn.packets.Packets;
 import techreborn.packets.ServerboundPackets;
 import techreborn.client.ClientGuiType;
@@ -59,7 +60,7 @@ public final class TechRebornNeoForge {
 		modBus.addListener(this::registerPayloads);
 		modBus.addListener(OreDepthSyncHandler::registerConfigurationTasks);
 		modBus.addListener(this::commonSetup);
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			TechRebornNeoForgeClient.subscribeModBus(modBus);
 			TechRebornNeoForgeClient.subscribeGameBus();
 			modBus.addListener(RegisterKeyMappingsEvent.class, KeyBindings::registerKeys);
@@ -79,6 +80,7 @@ public final class TechRebornNeoForge {
 		event.enqueueWork(() -> {
 			new PlayerAbilityLibCompat().onInitialize();
 			new TechReborn().onInitialize();
+			TRRecipeHandler.registerNeoForge();
 		});
 	}
 

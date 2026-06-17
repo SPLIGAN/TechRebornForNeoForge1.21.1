@@ -44,7 +44,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.util.WorldUtils;
@@ -62,7 +62,7 @@ import techreborn.items.tool.basic.ElectricTreetapItem;
  */
 public class BlockRubberLog extends RotatedPillarBlock {
 
-	public static final DirectionProperty SAP_SIDE = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> SAP_SIDE = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty HAS_SAP = BooleanProperty.create("hassap");
 	public static final BooleanProperty SHOULD_SAP = BooleanProperty.create("shouldsap");
 
@@ -130,7 +130,7 @@ public class BlockRubberLog extends RotatedPillarBlock {
 			if (state.getValue(HAS_SAP) && state.getValue(SAP_SIDE) == hitResult.getDirection()) {
 				worldIn.setBlockAndUpdate(pos, state.setValue(HAS_SAP, false).setValue(SAP_SIDE, Direction.from2DDataValue(0)));
 				worldIn.playSound(playerIn, pos, ModSounds.SAP_EXTRACT, SoundSource.BLOCKS, 0.6F, 1F);
-				if (worldIn.isClientSide) {
+				if (worldIn.isClientSide()) {
 					return InteractionResult.SUCCESS;
 				}
 				if (stack.getItem() instanceof ElectricTreetapItem item) {

@@ -29,7 +29,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -46,7 +46,7 @@ public final class NeoForgeExtendedScreenHandlerBridge {
 	}
 
 	public static <D> MenuType<BuiltScreenHandler> registerExtended(
-			ResourceLocation id,
+			Identifier id,
 			StreamCodec<? super RegistryFriendlyByteBuf, D> packetCodec,
 			ScreenHandlerBridge.ScreenHandlerDataFactory<D> factory) {
 		return Registry.register(
@@ -61,7 +61,7 @@ public final class NeoForgeExtendedScreenHandlerBridge {
 			Component displayName,
 			ScreenHandlerBridge.MenuFactory menuFactory,
 			StreamCodec<? super RegistryFriendlyByteBuf, D> packetCodec) {
-		if (player.level().isClientSide || !(player instanceof ServerPlayer serverPlayer)) {
+		if (player.level().isClientSide() || !(player instanceof ServerPlayer serverPlayer)) {
 			return;
 		}
 

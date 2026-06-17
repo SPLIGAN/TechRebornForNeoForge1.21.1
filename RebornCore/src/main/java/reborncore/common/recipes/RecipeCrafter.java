@@ -24,6 +24,8 @@
 
 package reborncore.common.recipes;
 
+import net.minecraft.core.RegistryAccess;
+
 import org.jetbrains.annotations.Nullable;
 import reborncore.RebornCore;
 import reborncore.api.recipe.IRecipeCrafterProvider;
@@ -39,12 +41,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 /**
  * Use this in your blockEntity entity to craft things
@@ -130,7 +133,7 @@ public class RecipeCrafter implements IUpgradeHandler {
 	 * Call this on the blockEntity tick
 	 */
 	public void updateEntity() {
-		if (blockEntity.getLevel() == null || blockEntity.getLevel().isClientSide) {
+		if (blockEntity.getLevel() == null || blockEntity.getLevel().isClientSide()) {
 			return;
 		}
 		ticksSinceLastChange++;
@@ -157,7 +160,7 @@ public class RecipeCrafter implements IUpgradeHandler {
 			}
 			// If it has reached the recipe tick time
 			if (currentRecipe != null && currentTickTime >= currentNeededTicks && hasAllInputs()) {
-				final List<ItemStack> outputs = currentRecipe.outputs();
+				final List<ItemStack> outputs = currentRecipe.outputs().stream().map(ItemStackTemplate::create).toList();
 
 				boolean canGiveInvAll = true;
 				// Checks to see if it can fit the output
@@ -212,7 +215,7 @@ public class RecipeCrafter implements IUpgradeHandler {
 			if (!hasAllInputs(recipe)) continue;
 			if (!recipe.canCraft(blockEntity)) continue;
 
-			final List<ItemStack> outputs = recipe.outputs();
+			final List<ItemStack> outputs = recipe.outputs().stream().map(ItemStackTemplate::create).toList();
 
 			// This checks to see if it can fit all the outputs
 			boolean hasOutputSpace = true;
@@ -300,27 +303,22 @@ public class RecipeCrafter implements IUpgradeHandler {
 		}
 	}
 
-	public void read(CompoundTag tag) {
-		CompoundTag data = tag.getCompound("Crater");
-
-		if (data.contains("currentTickTime")) {
-			currentTickTime = data.getInt("currentTickTime");
+	public void read(ValueInput view) {
+		if (view.child("Crafter").isPresent()) {
+			view.child("Crafter").ifPresent(data -> currentTickTime = data.getIntOr("currentTickTime", 0));
+		} else {
+			view.child("Crater").ifPresent(data -> currentTickTime = data.getIntOr("currentTickTime", 0));
 		}
 
-		if (blockEntity != null && blockEntity.getLevel() != null && blockEntity.getLevel().isClientSide) {
+		if (blockEntity != null && blockEntity.getLevel() != null && blockEntity.getLevel().isClientSide()) {
 			blockEntity.getLevel().sendBlockUpdated(blockEntity.getBlockPos(),
 					blockEntity.getLevel().getBlockState(blockEntity.getBlockPos()),
 					blockEntity.getLevel().getBlockState(blockEntity.getBlockPos()), 3);
 		}
 	}
 
-	public void write(CompoundTag tag) {
-
-		CompoundTag data = new CompoundTag();
-
-		data.putDouble("currentTickTime", currentTickTime);
-
-		tag.put("Crater", data);
+	public void write(ValueOutput view) {
+		view.child("Crafter").putInt("currentTickTime", currentTickTime);
 	}
 
 	private boolean isActive() {
@@ -330,7 +328,7 @@ public class RecipeCrafter implements IUpgradeHandler {
 	public boolean canCraftAgain() {
 		for (RebornRecipe recipe : RecipeUtils.getRecipes(blockEntity.getLevel(), recipeType)) {
 			if (recipe.canCraft(blockEntity) && hasAllInputs(recipe)) {
-				final List<ItemStack> outputs = recipe.outputs();
+				final List<ItemStack> outputs = recipe.outputs().stream().map(ItemStackTemplate::create).toList();
 
 				for (int i = 0; i < outputs.size(); i++) {
 					if (!canFitOutput(outputs.get(i), outputSlots[i])) {
@@ -368,7 +366,7 @@ public class RecipeCrafter implements IUpgradeHandler {
 	}
 
 	public void setInvDirty(boolean isDirty) {
-		inventory.setHashChanged(isDirty);
+		inventory.setHasChanged(isDirty);
 	}
 
 	public boolean isStackValidInput(ItemStack stack) {

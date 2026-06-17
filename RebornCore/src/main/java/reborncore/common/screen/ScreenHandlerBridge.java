@@ -27,7 +27,7 @@ package reborncore.common.screen;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -39,7 +39,7 @@ public final class ScreenHandlerBridge {
 	}
 
 	public static <D> MenuType<BuiltScreenHandler> registerExtended(
-			ResourceLocation id,
+			Identifier id,
 			StreamCodec<? super RegistryFriendlyByteBuf, D> packetCodec,
 			ScreenHandlerDataFactory<D> factory) {
 		return NeoForgeExtendedScreenHandlerBridge.registerExtended(id, packetCodec, factory);

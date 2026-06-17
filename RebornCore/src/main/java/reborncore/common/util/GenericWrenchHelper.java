@@ -27,7 +27,7 @@ package reborncore.common.util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,10 +36,10 @@ import reborncore.api.ICustomToolHandler;
 
 public class GenericWrenchHelper implements ICustomToolHandler {
 
-	ResourceLocation itemLocation;
+	Identifier itemLocation;
 	boolean damage;
 
-	public GenericWrenchHelper(ResourceLocation itemLocation, boolean damage) {
+	public GenericWrenchHelper(Identifier itemLocation, boolean damage) {
 		this.itemLocation = itemLocation;
 		this.damage = damage;
 	}
@@ -51,7 +51,7 @@ public class GenericWrenchHelper implements ICustomToolHandler {
 
 	@Override
 	public boolean handleTool(ItemStack stack, BlockPos pos, Level world, Player player, Direction side, boolean damage) {
-		if (this.damage && damage && !world.isClientSide) {
+		if (this.damage && damage && !world.isClientSide()) {
 			stack.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
 		}
 		return true;

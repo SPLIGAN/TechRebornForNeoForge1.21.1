@@ -60,7 +60,7 @@ public class TRBlockSettings {
 			.sound(SoundType.WOOD);
 
 		if (noCollision) {
-			settings.noCollission();
+			settings.noCollision();
 		}
 
 		return settings;
@@ -248,5 +248,13 @@ public class TRBlockSettings {
 	public static BlockBehaviour.Properties lightBlock() {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.REDSTONE_BLOCK)
 			.strength(2f, 2f);
+	}
+
+	public static BlockBehaviour.Properties nuclearReactor(String name) {
+		return metal();
+	}
+
+	public static BlockBehaviour.Properties reactorChamber(String name) {
+		return metal();
 	}
 }

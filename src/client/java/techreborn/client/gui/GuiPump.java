@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -60,11 +60,11 @@ public class GuiPump extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void onClickDepth(int amount) {
-		ClientPlayNetworking.send(new PumpDepthPayload(blockEntity.getBlockPos(), amount));
+		ClientNetworkingBridge.sendToServer(new PumpDepthPayload(blockEntity.getBlockPos(), amount));
 	}
 
 	private void onClick(int amount) {
-		ClientPlayNetworking.send(new PumpRangePayload(blockEntity.getBlockPos(), amount));
+		ClientNetworkingBridge.sendToServer(new PumpRangePayload(blockEntity.getBlockPos(), amount));
 	}
 
 	@Override

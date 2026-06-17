@@ -24,13 +24,20 @@
 
 package techreborn.client.screen.builder.slot;
 
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.Container;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.level.block.entity.FuelValues;
 import reborncore.common.screen.slot.BaseSlot;
 
 public class FurnaceFuelSlot extends BaseSlot {
+	private static final FuelValues VANILLA_FUEL = FuelValues.vanillaBurnTimes(
+		RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY),
+		FeatureFlags.VANILLA_SET
+	);
 
 	public FurnaceFuelSlot(Container inventoryIn, int index, int xPosition, int yPosition) {
 		super(inventoryIn, index, xPosition, yPosition);
@@ -38,7 +45,7 @@ public class FurnaceFuelSlot extends BaseSlot {
 
 	@Override
 	public boolean mayPlace(ItemStack stack) {
-		return super.mayPlace(stack) && (AbstractFurnaceBlockEntity.isFuel(stack) || isBucket(stack));
+		return super.mayPlace(stack) && (VANILLA_FUEL.isFuel(stack) || isBucket(stack));
 	}
 
 	@Override

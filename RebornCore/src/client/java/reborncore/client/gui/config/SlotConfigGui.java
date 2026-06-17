@@ -26,7 +26,7 @@ package reborncore.client.gui.config;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.KeyEvent;
@@ -190,7 +190,7 @@ public class SlotConfigGui extends GuiTab {
 		String json = client.keyboardHandler.getClipboard();
 		try {
 			machine.getSlotConfiguration().readJson(json, machine.getClass().getCanonicalName(), client.level.registryAccess());
-			ClientPlayNetworking.send(new SlotConfigSavePayload(machine.getBlockPos(), machine.getSlotConfiguration()));
+			ClientNetworkingBridge.sendToServer(new SlotConfigSavePayload(machine.getBlockPos(), machine.getSlotConfiguration()));
 			ClientChatUtils.addHudMessage(Component.literal("Slot configuration loaded from clipboard"));
 		} catch (UnsupportedOperationException e) {
 			ClientChatUtils.addHudMessage(Component.literal(e.getMessage()));

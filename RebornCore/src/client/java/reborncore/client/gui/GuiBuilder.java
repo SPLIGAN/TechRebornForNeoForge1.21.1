@@ -25,7 +25,7 @@
 package reborncore.client.gui;
 
 import com.google.common.collect.Lists;
-import net.fabricmc.fabric.api.transfer.v1.client.fluid.FluidVariantRendering;
+import reborncore.client.compat.FluidVariantRenderingBridge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -625,7 +625,7 @@ public class GuiBuilder {
 			.get(fluid.fluid().defaultFluidState())
 			.stillMaterial()
 			.sprite();
-		int color = FluidVariantRendering.getColor(fluid.fluidVariant());
+		int color = FluidVariantRenderingBridge.getColor(fluid.fluid());
 
 		final int drawHeight = (int) (fluid.getAmount().getRawValue() / (maxCapacity * 1F) * height);
 		y += height - drawHeight;

@@ -1,6 +1,7 @@
 /bin
 /out
 /run/*
+/RebornCore/run/
 /build
 /eclipse
 /.gradle
@@ -32,4 +33,9 @@ changelog.txt
 /RebornCore/build
 /RebornCore/out
 /RebornCore/bin
+
+# Local scratch / decompile caches (not for version control)
+.tmp-neoforge-cap/
+.tmp-neoforge-src/
+rc-compile.txt
 

@@ -24,10 +24,10 @@
 
 package reborncore.common.util;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import reborncore.common.fluid.FluidValue;
 import reborncore.common.fluid.container.FluidInstance;
@@ -36,7 +36,6 @@ import reborncore.common.transfer.RcFluidVariant;
 import reborncore.common.transfer.RcSnapshotParticipant;
 import reborncore.common.transfer.RcStoragePreconditions;
 import reborncore.common.transfer.RcTransactionContext;
-import reborncore.common.util.serialization.SerializationUtil;
 
 import java.util.function.UnaryOperator;
 
@@ -81,10 +80,8 @@ public class Tank extends RcSnapshotParticipant<FluidInstance> implements Syncab
 		return !getFluidInstance().isEmpty() && getFluidInstance().getAmount().equalOrMoreThan(getFluidValueCapacity());
 	}
 
-	public final CompoundTag write(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
-		CompoundTag tankData = SerializationUtil.writeNbt(FluidInstance.CODEC, fluidInstance, wrapperLookup);
-		nbt.put(name, tankData);
-		return nbt;
+	public final void write(ValueOutput view) {
+		view.store(name, FluidInstance.CODEC, fluidInstance);
 	}
 
 	public void setFluidAmount(FluidValue amount) {
@@ -93,13 +90,11 @@ public class Tank extends RcSnapshotParticipant<FluidInstance> implements Syncab
 		}
 	}
 
-	public final Tank read(CompoundTag nbt, HolderLookup.Provider wrapperLookup) {
-		if (nbt.contains(name)) {
+	public final Tank read(ValueInput view) {
+		view.read(name, FluidInstance.CODEC).ifPresent(fluid -> {
 			setFluid(Fluids.EMPTY);
-
-			CompoundTag tankData = nbt.getCompound(name);
-			fluidInstance = SerializationUtil.parseNbt(FluidInstance.CODEC, tankData, wrapperLookup, () -> FluidInstance.EMPTY, "tank data");
-		}
+			fluidInstance = fluid;
+		});
 		return this;
 	}
 

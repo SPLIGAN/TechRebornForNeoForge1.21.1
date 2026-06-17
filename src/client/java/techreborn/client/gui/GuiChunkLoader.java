@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -86,6 +86,6 @@ public class GuiChunkLoader extends GuiBase<BuiltScreenHandler> {
 	}
 
 	public void onClick(int amount) {
-		ClientPlayNetworking.send(new ChunkloaderPayload(blockEntity.getBlockPos(), amount, ClientChunkManager.hasChunksForLoader(blockEntity.getBlockPos())));
+		ClientNetworkingBridge.sendToServer(new ChunkloaderPayload(blockEntity.getBlockPos(), amount, ClientChunkManager.hasChunksForLoader(blockEntity.getBlockPos())));
 	}
 }

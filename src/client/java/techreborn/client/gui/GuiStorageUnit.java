@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
@@ -87,7 +87,7 @@ public class GuiStorageUnit extends GuiBase<BuiltScreenHandler> {
 	@Override
 	public boolean mouseClicked(MouseButtonEvent mouse, boolean doubled) {
 		if (isPointInRect(150, 4, 20, 12, mouse.x(), mouse.y()) && storageEntity.canModifyLocking()) {
-			ClientPlayNetworking.send(new StorageUnitLockPayload(storageEntity.getBlockPos(), !storageEntity.isLocked()));
+			ClientNetworkingBridge.sendToServer(new StorageUnitLockPayload(storageEntity.getBlockPos(), !storageEntity.isLocked()));
 			return true;
 		}
 		return super.mouseClicked(mouse, doubled);

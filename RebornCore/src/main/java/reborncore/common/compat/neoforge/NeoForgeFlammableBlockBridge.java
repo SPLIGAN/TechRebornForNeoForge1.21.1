@@ -25,17 +25,35 @@
 package reborncore.common.compat.neoforge;
 
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.FireBlock;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Vanilla {@link FireBlock} flammability table (Forge/NeoForge expose {@link FireBlock#setFlammable} publicly).
+ * 26.1: {@code FireBlock#setFlammable} is private. Stores flammability for blocks that override
+ * {@link net.neoforged.neoforge.common.extensions.IBlockExtension} fire hooks (VIL/WLD follow-up).
  */
 public final class NeoForgeFlammableBlockBridge {
+	private static final Map<Block, int[]> FLAMMABILITY = new ConcurrentHashMap<>();
+
 	private NeoForgeFlammableBlockBridge() {
 	}
 
 	public static void register(Block block, int burnChance, int spreadChance) {
-		((FireBlock) Blocks.FIRE).setFlammable(block, burnChance, spreadChance);
+		FLAMMABILITY.put(block, new int[]{burnChance, spreadChance});
+	}
+
+	public static int getBurnChance(Block block) {
+		int[] values = FLAMMABILITY.get(block);
+		return values == null ? 0 : values[0];
+	}
+
+	public static int getSpreadChance(Block block) {
+		int[] values = FLAMMABILITY.get(block);
+		return values == null ? 0 : values[1];
+	}
+
+	public static boolean isRegistered(Block block) {
+		return FLAMMABILITY.containsKey(block);
 	}
 }

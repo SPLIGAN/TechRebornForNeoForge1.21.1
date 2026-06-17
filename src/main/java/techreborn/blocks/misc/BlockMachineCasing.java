@@ -43,8 +43,8 @@ public class BlockMachineCasing extends BlockMultiblockBase {
 
 	public final int heatCapacity;
 
-	public BlockMachineCasing(int heatCapacity, String name) {
-		super(TRBlockSettings.machineCasing(name));
+	public BlockMachineCasing(int heatCapacity) {
+		super(TRBlockSettings.machineCasing());
 		registerDefaultState(defaultBlockState().setValue(DirectionUtils.HORIZONTAL_NEIGHBORS, 0));
 		this.heatCapacity = heatCapacity;
 	}

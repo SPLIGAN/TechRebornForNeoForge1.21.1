@@ -34,6 +34,8 @@ import techreborn.blockentity.generator.advanced.*;
 import techreborn.blockentity.generator.basic.SolidFuelGeneratorBlockEntity;
 import techreborn.blockentity.generator.basic.WaterMillBlockEntity;
 import techreborn.blockentity.generator.basic.WindMillBlockEntity;
+import techreborn.blockentity.generator.nuclear.NuclearReactorBlockEntity;
+import techreborn.blockentity.generator.nuclear.ReactorChamberBlockEntity;
 import techreborn.blockentity.lighting.LampBlockEntity;
 import techreborn.blockentity.machine.iron.IronAlloyFurnaceBlockEntity;
 import techreborn.blockentity.machine.iron.IronFurnaceBlockEntity;
@@ -68,12 +70,13 @@ import techreborn.blockentity.transformers.MVTransformerBlockEntity;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -131,6 +134,8 @@ public class TRBlockEntities {
 	public static BlockEntityType<SolarPanelBlockEntity> SOLAR_PANEL;
 	public static BlockEntityType<WaterMillBlockEntity> WATER_MILL;
 	public static BlockEntityType<WindMillBlockEntity> WIND_MILL;
+	public static BlockEntityType<NuclearReactorBlockEntity> NUCLEAR_REACTOR;
+	public static BlockEntityType<ReactorChamberBlockEntity> REACTOR_CHAMBER;
 	public static BlockEntityType<RecyclerBlockEntity> RECYCLER;
 	public static BlockEntityType<LowVoltageSUBlockEntity> LOW_VOLTAGE_SU;
 	public static BlockEntityType<MediumVoltageSUBlockEntity> MEDIUM_VOLTAGE_SU;
@@ -165,7 +170,7 @@ public class TRBlockEntities {
 
 	private static <T extends BlockEntity> BlockEntityType<T> create(BiFunction<BlockPos, BlockState, T> supplier, Block... blocks) {
 		Validate.isTrue(blocks.length > 0, "no blocks for blockEntity entity type!");
-		return BlockEntityType.Builder.of(supplier::apply, blocks).build(null);
+		return new BlockEntityType<>(supplier::apply, Set.of(blocks));
 	}
 
 	private static void prepare() {
@@ -215,6 +220,8 @@ public class TRBlockEntities {
 			SOLAR_PANEL = create(SolarPanelBlockEntity::new, TRContent.SolarPanels.values());
 			WATER_MILL = create(WaterMillBlockEntity::new, TRContent.Machine.WATER_MILL);
 			WIND_MILL = create(WindMillBlockEntity::new, TRContent.Machine.WIND_MILL);
+			NUCLEAR_REACTOR = create(NuclearReactorBlockEntity::new, TRContent.Machine.NUCLEAR_REACTOR);
+			REACTOR_CHAMBER = create(ReactorChamberBlockEntity::new, TRContent.Machine.REACTOR_CHAMBER);
 			RECYCLER = create(RecyclerBlockEntity::new, TRContent.Machine.RECYCLER);
 			LOW_VOLTAGE_SU = create(LowVoltageSUBlockEntity::new, TRContent.Machine.LOW_VOLTAGE_SU);
 			MEDIUM_VOLTAGE_SU = create(MediumVoltageSUBlockEntity::new, TRContent.Machine.MEDIUM_VOLTAGE_SU);
@@ -249,7 +256,7 @@ public class TRBlockEntities {
 				IRON_ALLOY_FURNACE, CHEMICAL_REACTOR, INTERDIMENSIONAL_SU, ADJUSTABLE_SU, LAPOTRONIC_SU,
 				LSU_STORAGE, DISTILLATION_TOWER, VACUUM_FREEZER, FUSION_CONTROL_COMPUTER, LIGHTNING_ROD,
 				INDUSTRIAL_SAWMILL, GRINDER, SOLID_FUEL_GENERATOR, EXTRACTOR, RESIN_BASIN, COMPRESSOR,
-				ELECTRIC_FURNACE, SOLAR_PANEL, WATER_MILL, WIND_MILL, RECYCLER, LOW_VOLTAGE_SU, MEDIUM_VOLTAGE_SU,
+				ELECTRIC_FURNACE, SOLAR_PANEL, WATER_MILL, WIND_MILL, NUCLEAR_REACTOR, REACTOR_CHAMBER, RECYCLER, LOW_VOLTAGE_SU, MEDIUM_VOLTAGE_SU,
 				HIGH_VOLTAGE_SU, LV_TRANSFORMER, MV_TRANSFORMER, HV_TRANSFORMER, EV_TRANSFORMER,
 				AUTO_CRAFTING_TABLE, IRON_FURNACE, SCRAPBOXINATOR, PLASMA_GENERATOR, LAMP, ALARM,
 				FLUID_REPLICATOR, SOLID_CANNING_MACHINE, WIRE_MILL, GREENHOUSE_CONTROLLER, BLOCK_BREAKER,
@@ -258,8 +265,8 @@ public class TRBlockEntities {
 		}
 	}
 
-	private static ResourceLocation id(String path) {
-		return ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, path);
+	private static Identifier id(String path) {
+		return Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, path);
 	}
 
 	private static void registerType(RegisterEvent event, String path, BlockEntityType<?> type) {
@@ -314,6 +321,8 @@ public class TRBlockEntities {
 		registerType(event, "solar_panel", SOLAR_PANEL);
 		registerType(event, "water_mill", WATER_MILL);
 		registerType(event, "wind_mill", WIND_MILL);
+		registerType(event, "nuclear_reactor", NUCLEAR_REACTOR);
+		registerType(event, "reactor_chamber", REACTOR_CHAMBER);
 		registerType(event, "recycler", RECYCLER);
 		registerType(event, "low_voltage_su", LOW_VOLTAGE_SU);
 		registerType(event, "medium_voltage_su", MEDIUM_VOLTAGE_SU);

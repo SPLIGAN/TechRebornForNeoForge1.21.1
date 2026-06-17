@@ -30,6 +30,7 @@ import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -38,23 +39,22 @@ import net.minecraft.world.item.crafting.RecipeType;
 import org.jetbrains.annotations.Nullable;
 import techreborn.recipe.recipes.FluidGeneratorRecipe;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class FluidGeneratorJeiCategory implements IRecipeCategory<RecipeHolder<FluidGeneratorRecipe>> {
 	private static final int WIDTH = 130;
 	private static final int HEIGHT = 56;
 
-	private final mezz.jei.api.recipe.RecipeType jeiRecipeType;
+	private final IRecipeHolderType<FluidGeneratorRecipe> jeiRecipeType;
 	private final RecipeType<FluidGeneratorRecipe> minecraftRecipeType;
 	private final IDrawable icon;
 
 	public FluidGeneratorJeiCategory(IGuiHelper guiHelper, RecipeType<FluidGeneratorRecipe> minecraftRecipeType, ItemStack iconStack) {
 		this.minecraftRecipeType = minecraftRecipeType;
-		this.jeiRecipeType = mezz.jei.api.recipe.RecipeType.createFromVanilla(minecraftRecipeType);
+		this.jeiRecipeType = IRecipeHolderType.create(minecraftRecipeType);
 		this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, iconStack);
 	}
 
 	@Override
-	public mezz.jei.api.recipe.RecipeType getRecipeType() {
+	public IRecipeHolderType<FluidGeneratorRecipe> getRecipeType() {
 		return jeiRecipeType;
 	}
 
@@ -83,7 +83,7 @@ public class FluidGeneratorJeiCategory implements IRecipeCategory<RecipeHolder<F
 		FluidGeneratorRecipe recipe = holder.value();
 		int totalEnergy = recipe.power() * 1000;
 		builder.addInputSlot(52, 12)
-			.addFluidStack(recipe.getFluid(), 1000)
+			.add(recipe.getFluid(), 1000)
 			.addRichTooltipCallback((recipeSlotView, tooltip) -> {
 				tooltip.add(Component.translatable("techreborn.jei.recipe.energy"));
 				tooltip.add(Component.translatable("techreborn.jei.recipe.generator.total", totalEnergy).withStyle(ChatFormatting.GRAY));

@@ -27,7 +27,6 @@ package reborncore.common.util;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.fml.loading.FMLLoader;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforgespi.language.IModInfo;
 
@@ -49,7 +48,7 @@ public final class LoaderBridge {
 	}
 
 	public static boolean isDevelopmentEnvironment() {
-		return !FMLLoader.isProduction();
+		return !FMLEnvironment.isProduction();
 	}
 
 	public static Path getConfigDir() {
@@ -69,6 +68,6 @@ public final class LoaderBridge {
 	}
 
 	public static Side getEnvironmentType() {
-		return FMLEnvironment.dist == Dist.CLIENT ? Side.CLIENT : Side.SERVER;
+		return FMLEnvironment.getDist() == Dist.CLIENT ? Side.CLIENT : Side.SERVER;
 	}
 }

@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.util.Util;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -74,7 +74,7 @@ public class GuiManual extends Screen {
 		if (TechRebornConfig.allowManualRefund) {
 			addRenderableWidget(
 				Button.builder(Component.translatable("techreborn.manual.refundbtn"), button -> {
-					ClientPlayNetworking.send(new RefundPayload());
+					ClientNetworkingBridge.sendToServer(new RefundPayload());
 					minecraft.setScreen(null);
 				}).bounds((width / 2 - 30), y + 160, 60, 20).build()
 			);

@@ -40,9 +40,9 @@ public class TorchHelper {
 			return InteractionResult.FAIL;
 		}
 
-		for (int i = 0; i < player.getInventory().items.size(); i++) {
+		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
 			ItemStack torchStack = player.getInventory().getItem(i);
-			if (torchStack.isEmpty() || !torchStack.getDescriptionId().toLowerCase(Locale.ROOT).contains("torch")) {
+			if (torchStack.isEmpty() || !torchStack.getItem().getDescriptionId().toLowerCase(Locale.ROOT).contains("torch")) {
 				continue;
 			}
 			if (!(torchStack.getItem() instanceof BlockItem)) {

@@ -65,7 +65,7 @@ public class ElectricTreetapItem extends Item implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

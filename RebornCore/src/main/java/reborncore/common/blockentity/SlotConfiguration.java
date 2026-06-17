@@ -27,21 +27,30 @@ package reborncore.common.blockentity;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.netty.buffer.ByteBuf;
 import reborncore.common.compat.TransferApiBridge;
+
+
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.Nullable;
-import reborncore.RebornCore;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.util.NBTSerializable;
 import reborncore.common.util.RebornInventory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.TagParser;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.ItemStack;
+
+import static reborncore.RebornCore.LOGGER;
 
 public class SlotConfiguration implements NBTSerializable {
 	public static final StreamCodec<ByteBuf, SlotConfiguration> PACKET_CODEC = SlotConfigHolder.PACKET_CODEC
@@ -74,19 +83,19 @@ public class SlotConfiguration implements NBTSerializable {
 			for (int i = 0; i < inventory.getContainerSize(); i++) {
 				SlotConfigHolder holder = getSlotDetails(i);
 				if (holder == null) {
-					RebornCore.LOGGER.debug("Fixed slot " + i + " in " + machineBase);
+					LOGGER.debug("Fixed slot " + i + " in " + machineBase);
 					// hmm, something has gone wrong
 					updateSlotDetails(new SlotConfigHolder(i));
 				}
 			}
 		}
-		if (!machineBase.getLevel().isClientSide && machineBase.getLevel().getGameTime() % machineBase.slotTransferSpeed() == 0) {
+		if (!machineBase.getLevel().isClientSide() && machineBase.getLevel().getGameTime() % machineBase.slotTransferSpeed() == 0) {
 			getSlotDetails().forEach(slotConfigHolder -> slotConfigHolder.handleItemIO(machineBase));
 		}
 	}
 
-	public SlotConfiguration(CompoundTag tagCompound) {
-		read(tagCompound);
+	public SlotConfiguration(ValueInput view) {
+		read(view);
 	}
 
 	public List<SlotConfigHolder> getSlotDetails() {
@@ -123,22 +132,20 @@ public class SlotConfiguration implements NBTSerializable {
 	}
 
 	@Override
-	public CompoundTag write() {
-		CompoundTag tagCompound = new CompoundTag();
-		tagCompound.putInt("size", slotDetails.size());
+	public void write(ValueOutput view) {
+		view.putInt("size", slotDetails.size());
 		for (int i = 0; i < slotDetails.size(); i++) {
-			tagCompound.put("slot_" + i, slotDetails.get(i).write());
+			slotDetails.get(i).write(view.child("slot_" + i));
 		}
-		return tagCompound;
 	}
 
 	@Override
-	public void read(CompoundTag nbt) {
-		int size = nbt.getInt("size");
+	public void read(ValueInput view) {
+		int size = view.getIntOr("size", 0);
 		for (int i = 0; i < size; i++) {
-			CompoundTag tagCompound = nbt.getCompound("slot_" + i);
-			SlotConfigHolder slotConfigHolder = new SlotConfigHolder(tagCompound);
-			updateSlotDetails(slotConfigHolder);
+			view.child("slot_" + i).ifPresent(slot -> {
+				updateSlotDetails(new SlotConfigHolder(slot));
+			});
 		}
 	}
 
@@ -174,9 +181,9 @@ public class SlotConfiguration implements NBTSerializable {
 			Arrays.stream(Direction.values()).forEach(facing -> sideMap.put(facing, new SlotConfig(facing, slotID)));
 		}
 
-		public SlotConfigHolder(CompoundTag tagCompound) {
+		public SlotConfigHolder(ValueInput view) {
 			sideMap = new HashMap<>();
-			read(tagCompound);
+			read(view);
 			Validate.isTrue(Arrays.stream(Direction.values())
 								.map(enumFacing -> sideMap.get(enumFacing))
 								.noneMatch(Objects::isNull),
@@ -270,39 +277,33 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public CompoundTag write() {
-			CompoundTag compound = new CompoundTag();
-			compound.putInt("slotID", slotID);
-			Arrays.stream(Direction.values()).forEach(facing -> compound.put("side_" + facing.ordinal(), sideMap.get(facing).write()));
-			compound.putBoolean("input", input);
-			compound.putBoolean("output", output);
-			compound.putBoolean("filter", filter);
+		public void write(ValueOutput view) {
+			view.putInt("slotID", slotID);
+			Arrays.stream(Direction.values()).forEach(facing -> sideMap.get(facing).write(view.child("side_" + facing.ordinal())));
+			view.putBoolean("input", input);
+			view.putBoolean("output", output);
+			view.putBoolean("filter", filter);
 			if (this.first != null || this.last != null) {
-				compound.putInt("priority", getPriority());
+				view.putInt("priority", getPriority());
 			}
-			return compound;
 		}
 
 		@Override
-		public void read(CompoundTag nbt) {
+		public void read(ValueInput view) {
 			sideMap.clear();
-			slotID = nbt.getInt("slotID");
+			slotID = view.getIntOr("slotID", 0);
 			Arrays.stream(Direction.values()).forEach(facing -> {
-				CompoundTag compound = nbt.getCompound("side_" + facing.ordinal());
-				SlotConfig config = new SlotConfig(compound);
-				sideMap.put(facing, config);
+				view.child("side_" + facing.ordinal()).ifPresent(config -> {
+					sideMap.put(facing, new SlotConfig(config));
+				});
 			});
-			input = nbt.getBoolean("input");
-			output = nbt.getBoolean("output");
-			if (nbt.contains("filter")) { // Was added later, this allows old saves to be upgraded
-				filter = nbt.getBoolean("filter");
-			}
-			if (nbt.contains("priority")) {
-				setPriority(nbt.getInt("priority"));
-			} else {
+			input = view.getBooleanOr("input", false);
+			output = view.getBooleanOr("output", false);
+			filter = view.getBooleanOr("filter", false);
+			view.getInt("priority").ifPresentOrElse(this::setPriority, () -> {
 				first = null;
 				last = null;
-			}
+			});
 		}
 	}
 
@@ -330,8 +331,8 @@ public class SlotConfiguration implements NBTSerializable {
 			this.slotID = slotID;
 		}
 
-		public SlotConfig(CompoundTag tagCompound) {
-			read(tagCompound);
+		public SlotConfig(ValueInput view) {
+			read(view);
 			Validate.notNull(side, "error when loading slot config");
 			Validate.notNull(slotIO, "error when loading slot config");
 		}
@@ -383,19 +384,19 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public CompoundTag write() {
-			CompoundTag tagCompound = new CompoundTag();
-			tagCompound.putInt("side", side.ordinal());
-			tagCompound.put("config", slotIO.write());
-			tagCompound.putInt("slot", slotID);
-			return tagCompound;
+		public void write(ValueOutput view) {
+			view.putInt("side", side.ordinal());
+			slotIO.write(view.child("config"));
+			view.putInt("slot", slotID);
 		}
 
 		@Override
-		public void read(CompoundTag nbt) {
-			side = Direction.values()[nbt.getInt("side")];
-			slotIO = new SlotIO(nbt.getCompound("config"));
-			slotID = nbt.getInt("slot");
+		public void read(ValueInput view) {
+			side = Direction.values()[view.getIntOr("side", 0)];
+			view.child("config").ifPresent(config -> {
+				slotIO = new SlotIO(config);
+			});
+			slotID = view.getIntOr("slot", 0);
 		}
 	}
 
@@ -407,8 +408,8 @@ public class SlotConfiguration implements NBTSerializable {
 
 		ExtractConfig ioConfig;
 
-		public SlotIO(CompoundTag tagCompound) {
-			read(tagCompound);
+		public SlotIO(ValueInput view) {
+			read(view);
 		}
 
 		public SlotIO(ExtractConfig ioConfig) {
@@ -420,15 +421,13 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 
 		@Override
-		public CompoundTag write() {
-			CompoundTag compound = new CompoundTag();
-			compound.putInt("config", ioConfig.ordinal());
-			return compound;
+		public void write(ValueOutput view) {
+			view.putInt("config", ioConfig.ordinal());
 		}
 
 		@Override
-		public void read(CompoundTag nbt) {
-			ioConfig = ExtractConfig.values()[nbt.getInt("config")];
+		public void read(ValueInput view) {
+			ioConfig = ExtractConfig.values()[view.getIntOr("config", 0)];
 		}
 	}
 
@@ -465,24 +464,28 @@ public class SlotConfiguration implements NBTSerializable {
 		}
 	}
 
-	public String toJson(String machineIdent) {
-		CompoundTag tagCompound = new CompoundTag();
-		tagCompound.put("data", write());
-		tagCompound.putString("machine", machineIdent);
-		return tagCompound.toString();
+	public String toJson(String machineIdent, HolderLookup.Provider registryLookup) {
+		try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(() -> "SlotConfiguration", LOGGER)) {
+			TagValueOutput view = TagValueOutput.createWithContext(logging, registryLookup);
+			write(view.child("data"));
+			view.putString("machine", machineIdent);
+			return view.buildResult().toString();
+		}
 	}
 
-	public void readJson(String json, String machineIdent) throws UnsupportedOperationException {
+	public void readJson(String json, String machineIdent, HolderLookup.Provider registryLookup) throws UnsupportedOperationException {
 		CompoundTag compound;
 		try {
-			compound = TagParser.parseTag(json);
+			compound = TagParser.parseCompoundFully(json);
 		} catch (CommandSyntaxException e) {
 			throw new UnsupportedOperationException("Clipboard contents isn't a valid slot configuration");
 		}
-		if (!compound.contains("machine") || !compound.getString("machine").equals(machineIdent)) {
+		if (!compound.contains("machine") || !compound.getString("machine").orElseThrow().equals(machineIdent)) {
 			throw new UnsupportedOperationException("Machine config is not for this machine.");
 		}
-		read(compound.getCompound("data"));
+		try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(() -> "SlotConfiguration", LOGGER)) {
+			read(TagValueInput.create(logging, registryLookup, compound.getCompoundOrEmpty("data")));
+		}
 	}
 
 	// DO NOT CALL THIS, use the inventory access on the inventory

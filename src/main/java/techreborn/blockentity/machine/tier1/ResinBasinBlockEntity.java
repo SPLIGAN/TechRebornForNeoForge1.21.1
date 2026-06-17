@@ -69,7 +69,7 @@ public class ResinBasinBlockEntity extends MachineBaseBlockEntity {
 	@Override
 	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) return;
+		if (world == null || world.isClientSide()) return;
 
 		boolean shouldUpdateState = false;
 
@@ -168,7 +168,7 @@ public class ResinBasinBlockEntity extends MachineBaseBlockEntity {
 	public void onLoad() {
 		super.onLoad();
 
-		if (level == null || level.isClientSide) return;
+		if (level == null || level.isClientSide()) return;
 
 		// Set facing
 		direction = level.getBlockState(getBlockPos()).getValue(ResinBasinBlock.FACING).getOpposite();

@@ -31,7 +31,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagParser;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
@@ -63,19 +63,22 @@ public class ItemStackSerializer implements JsonSerializer<ItemStack>, JsonDeser
 
 			if (jsonObject.has(TAG_COMPOUND) && jsonObject.get(TAG_COMPOUND).isJsonPrimitive()) {
 				try {
-					tagCompound = TagParser.parseTag(jsonObject.getAsJsonPrimitive(TAG_COMPOUND).getAsString());
+					tagCompound = TagParser.parseCompoundFully(jsonObject.getAsJsonPrimitive(TAG_COMPOUND).getAsString());
 				} catch (CommandSyntaxException e) {
 
 				}
 			}
 
-			if (name != null && BuiltInRegistries.ITEM.get(ResourceLocation.parse(name)) != null) {
-				ItemStack itemStack = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(name)), stackSize);
+			if (name != null) {
+				var item = BuiltInRegistries.ITEM.getValue(Identifier.parse(name));
+				if (item != null) {
+					ItemStack itemStack = new ItemStack(item, stackSize);
 				if (tagCompound != null) {
 					CustomData nbtData = CustomData.of(tagCompound);
 					itemStack.set(DataComponents.CUSTOM_DATA, nbtData);
 				}
 				return itemStack;
+				}
 			}
 		}
 

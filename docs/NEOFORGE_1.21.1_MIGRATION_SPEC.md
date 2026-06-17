@@ -1,5 +1,7 @@
 # TechReborn — NeoForge 1.21.1 向け修正仕様書
 
+> **26.1.2 移植:** 作業ブランチ `26.1.2` では [`NEOFORGE_26.1.2_MIGRATION_SPEC.md`](NEOFORGE_26.1.2_MIGRATION_SPEC.md) を主仕様書とする。本書は 1.21.1 完了ベースラインの記録。
+
 本書は **Arclight** 上で **NeoForge 対応 TechReborn** を動作させるための修正仕様である。  
 実装タスクは本書の ID 順に進め、完了時は各 ID の状態列を更新する。
 

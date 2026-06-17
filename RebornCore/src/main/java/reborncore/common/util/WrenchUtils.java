@@ -70,7 +70,7 @@ public class WrenchUtils {
 						}
 					}
 
-					if (!worldIn.isClientSide) {
+					if (!worldIn.isClientSide()) {
 						if (dropContents) {
 							ItemHandlerUtils.dropContainedItems(worldIn, pos);
 						}
@@ -97,7 +97,7 @@ public class WrenchUtils {
 					return false;
 				}
 				worldIn.setBlockAndUpdate(pos, newState);
-				worldIn.neighborChanged(pos, newState.getBlock(), pos);
+				worldIn.neighborChanged(pos, newState.getBlock(), null);
 			}
 			return true;
 		}

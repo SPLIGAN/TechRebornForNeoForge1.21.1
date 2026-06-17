@@ -30,7 +30,7 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.CollectionUtils;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.fluid.container.FluidInstance;
@@ -47,7 +47,7 @@ import java.util.Optional;
 public class FluidReplicatorRecipeDisplay implements Display {
 
 	private final FluidReplicatorRecipe recipe;
-	private final ResourceLocation recipeId;
+	private final Identifier recipeId;
 	private final List<EntryIngredient> inputs;
 	private final List<EntryIngredient> output;
 	private final FluidInstance fluidInstance;
@@ -92,7 +92,7 @@ public class FluidReplicatorRecipeDisplay implements Display {
 	}
 
 	@Override
-	public Optional<ResourceLocation> getDisplayLocation() {
+	public Optional<Identifier> getDisplayLocation() {
 		return Optional.of(recipeId);
 	}
 }

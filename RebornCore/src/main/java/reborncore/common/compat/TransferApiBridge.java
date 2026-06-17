@@ -34,12 +34,15 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.PlayerInvWrapper;
-import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.transfer.ConnectingInventoryFluidHandler;
 import reborncore.common.transfer.RcCombinedItemStorage;
@@ -63,7 +66,7 @@ import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
 /**
- * NeoForge-native transfer helpers only: {@link Capabilities.ItemHandler}, {@link IFluidHandler}, {@link FluidUtil}, {@link ItemHandlerHelper}.
+ * NeoForge-native transfer helpers: {@link Capabilities.Item}, {@link Capabilities.Fluid}, legacy {@link IItemHandler} / {@link IFluidHandler} adapters.
  * {@link RcStorage} wrappers preserve Tech Reborn transaction semantics without Fabric Transfer API types or classpath dependency.
  */
 public final class TransferApiBridge {
@@ -119,19 +122,19 @@ public final class TransferApiBridge {
 	}
 
 	public static RcStorage<RcItemVariant> findItemStorage(Level world, BlockPos pos, Direction direction) {
-		IItemHandler handler = world.getCapability(Capabilities.ItemHandler.BLOCK, pos, direction);
+		ResourceHandler<ItemResource> handler = world.getCapability(Capabilities.Item.BLOCK, pos, direction);
 		if (handler == null) {
 			return emptyItemStorage();
 		}
-		return wrapItemHandler(handler);
+		return wrapItemHandler(IItemHandler.of(handler));
 	}
 
 	public static RcStorage<RcFluidVariant> findFluidStorage(Level world, BlockPos pos, Direction direction) {
-		IFluidHandler handler = world.getCapability(Capabilities.FluidHandler.BLOCK, pos, direction);
+		ResourceHandler<FluidResource> handler = world.getCapability(Capabilities.Fluid.BLOCK, pos, direction);
 		if (handler == null) {
 			return EMPTY_FLUID_STORAGE;
 		}
-		return new RcFluidHandlerBackedStorage(handler);
+		return new RcFluidHandlerBackedStorage(IFluidHandler.of(handler));
 	}
 
 	public static long fluidConstantsBucket() {
@@ -150,7 +153,7 @@ public final class TransferApiBridge {
 		if (fromHandler == null || toHandler == null) {
 			return 0;
 		}
-		FluidStack moved = FluidUtil.tryFluidTransfer(toHandler, fromHandler, RcFluidAmounts.toMilliBucketsClamped(maxAmount), true);
+		FluidStack moved = net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(toHandler, fromHandler, RcFluidAmounts.toMilliBucketsClamped(maxAmount), true);
 		return RcFluidAmounts.dropletsFromFluidStack(moved);
 	}
 
@@ -331,7 +334,7 @@ public final class TransferApiBridge {
 	}
 
 	public static RcStorage<RcItemVariant> playerInventoryStorage(Player player) {
-		return wrapItemHandler(new PlayerInvWrapper(player.getInventory()));
+		return wrapItemHandler(IItemHandler.of(PlayerInventoryWrapper.of(player)));
 	}
 
 	@Nullable
@@ -355,9 +358,13 @@ public final class TransferApiBridge {
 
 	@Nullable
 	public static RcStorage<RcFluidVariant> fluidItemStorageNullable(ItemStack stack) {
-		return FluidUtil.getFluidHandler(stack.copyWithCount(1))
-			.map(h -> (RcStorage<RcFluidVariant>) new RcFluidHandlerBackedStorage(h))
-			.orElse(null);
+		ResourceHandler<FluidResource> handler = ItemAccess.forStack(stack.copyWithCount(1))
+			.oneByOne()
+			.getCapability(Capabilities.Fluid.ITEM);
+		if (handler == null) {
+			return null;
+		}
+		return new RcFluidHandlerBackedStorage(IFluidHandler.of(handler));
 	}
 
 	public static RcStorage<RcFluidVariant> fluidItemStorageFromStack(ItemStack stack) {
@@ -430,7 +437,7 @@ public final class TransferApiBridge {
 	}
 
 	public static RcStorage<RcItemVariant> inventorySlot(Container inventory, @Nullable Direction direction, int slotIndex) {
-		IItemHandler sided = new SidedInvWrapper((net.minecraft.world.WorldlyContainer) inventory, direction);
+		IItemHandler sided = IItemHandler.of(new WorldlyContainerWrapper((net.minecraft.world.WorldlyContainer) inventory, direction));
 		return new RcItemHandlerSlotStorage(sided, slotIndex);
 	}
 
@@ -528,7 +535,7 @@ public final class TransferApiBridge {
 	}
 
 	public static RcStorage<RcItemVariant> inventoryStorageOf(Container inventory, Direction direction) {
-		return wrapItemHandler(new SidedInvWrapper((net.minecraft.world.WorldlyContainer) inventory, direction));
+		return wrapItemHandler(IItemHandler.of(new WorldlyContainerWrapper((net.minecraft.world.WorldlyContainer) inventory, direction)));
 	}
 
 	public static RcStorage<RcItemVariant> combineSlottedItemStorages(List<RcStorage<RcItemVariant>> storages) {

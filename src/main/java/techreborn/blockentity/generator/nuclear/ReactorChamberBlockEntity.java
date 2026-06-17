@@ -24,7 +24,6 @@
 
 package techreborn.blockentity.generator.nuclear;
 
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,8 +34,9 @@ import net.minecraft.world.level.storage.ValueOutput;
 
 import org.jspecify.annotations.Nullable;
 
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.EnergyStorageUtil;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.EnergyStorageUtil;
+import reborncore.common.transfer.RcTransactionContext;
 import techreborn.init.TRBlockEntities;
 
 public class ReactorChamberBlockEntity extends BlockEntity {
@@ -50,18 +50,16 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 	 */
 	private final EnergyStorage energyProxy = new EnergyStorage() {
 		@Override
-		public long insert(long maxAmount, TransactionContext transaction) {
-			// Chambers don't accept energy input
+		public long insert(long maxAmount, RcTransactionContext transaction) {
 			return 0;
 		}
 
 		@Override
-		public long extract(long maxAmount, TransactionContext transaction) {
+		public long extract(long maxAmount, RcTransactionContext transaction) {
 			NuclearReactorBlockEntity reactor = getLinkedReactor();
 			if (reactor == null) {
 				return 0;
 			}
-			// Extract energy from the reactor's storage
 			EnergyStorage reactorStorage = reactor.getSideEnergyStorage(null);
 			if (reactorStorage != null) {
 				return reactorStorage.extract(maxAmount, transaction);
@@ -103,7 +101,7 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 	}
 
 	/**
-	 * Push energy from the reactor to adjacent to reactor blocks each tick.
+	 * Push energy from the reactor to adjacent blocks each tick.
 	 */
 	public static void tick(Level level, BlockPos pos, BlockState state, ReactorChamberBlockEntity chamber) {
 		if (level.isClientSide()) {
@@ -122,7 +120,7 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 
 			EnergyStorageUtil.move(
 					source,
-					EnergyStorage.SIDED.find(level, pos.relative(side), side.getOpposite()),
+					EnergyStorage.findSided(level, pos.relative(side), side.getOpposite()),
 					Long.MAX_VALUE,
 					null
 			);
@@ -142,9 +140,6 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 		}
 	}
 
-	/**
-	 * Get the linked reactor block entity, if it exists.
-	 */
 	@Nullable
 	public NuclearReactorBlockEntity getLinkedReactor() {
 		if (linkedReactorPos == null || level == null) {
@@ -157,17 +152,11 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 		return null;
 	}
 
-	/**
-	 * Get the energy storage for a specific side.
-	 * Used by the Fabric Energy API to allow cables to connect.
-	 */
 	@Nullable
 	public EnergyStorage getSideEnergyStorage(@Nullable Direction side) {
-		// Only provide energy on sides not facing the reactor and only if it's linked to a reactor
 		if (linkedReactorPos != null && getLinkedReactor() != null && side != null) {
 			BlockPos sidePos = worldPosition.relative(side);
 			if (sidePos.equals(linkedReactorPos)) {
-				// Don't provide energy on the side facing the reactor
 				return null;
 			}
 			return energyProxy;
@@ -176,7 +165,7 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	protected void saveAdditional(ValueOutput view) {
+	public void saveAdditional(ValueOutput view) {
 		super.saveAdditional(view);
 		if (linkedReactorPos != null) {
 			view.putInt("LinkedReactorX", linkedReactorPos.getX());
@@ -186,10 +175,10 @@ public class ReactorChamberBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	protected void loadAdditional(ValueInput view) {
+	public void loadAdditional(ValueInput view) {
 		super.loadAdditional(view);
-		if (view.contains("LinkedReactorX")) {
-			int x = view.getIntOr("LinkedReactorX", 0);
+		int x = view.getIntOr("LinkedReactorX", Integer.MIN_VALUE);
+		if (x != Integer.MIN_VALUE) {
 			int y = view.getIntOr("LinkedReactorY", 0);
 			int z = view.getIntOr("LinkedReactorZ", 0);
 			linkedReactorPos = new BlockPos(x, y, z);

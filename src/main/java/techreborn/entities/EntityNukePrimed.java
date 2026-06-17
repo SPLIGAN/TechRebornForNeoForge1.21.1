@@ -50,7 +50,7 @@ public class EntityNukePrimed extends PrimedTnt {
 	private final ServerBossEvent bossBar = new ServerBossEvent(UUID.randomUUID(), Component.translatable("block.techreborn.nuke"), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
 
 
-	public EntityNukePrimed(EntityType<? extends EntityNukePrimed> type, Level world) {
+	public EntityNukePrimed(EntityType<EntityNukePrimed> type, Level world) {
 		super(type, world);
 		setFuse(TechRebornConfig.nukeFuseTime);
 	}

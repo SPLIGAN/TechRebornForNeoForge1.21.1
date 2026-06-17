@@ -24,15 +24,41 @@
 
 package techreborn.blocks.misc;
 
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.util.ParticleUtils;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import techreborn.init.FlammableBlockBridge;
 import techreborn.init.TRBlockSettings;
 
 public class BlockRubberLeaves extends LeavesBlock {
+	public static final MapCodec<BlockRubberLeaves> CODEC = RecordCodecBuilder.mapCodec(
+		instance -> instance.group(propertiesCodec()).apply(instance, BlockRubberLeaves::new)
+	);
 
 	public BlockRubberLeaves() {
-		super(TRBlockSettings.rubberLeaves());
+		super(0.01F, TRBlockSettings.rubberLeaves());
 		FlammableBlockBridge.register(this, 30, 60);
 	}
 
+	public BlockRubberLeaves(BlockBehaviour.Properties settings) {
+		super(0.01F, settings);
+	}
+
+	@Override
+	public MapCodec<BlockRubberLeaves> codec() {
+		return CODEC;
+	}
+
+	@Override
+	protected void spawnFallingLeavesParticle(Level world, BlockPos pos, RandomSource random) {
+		ColorParticleOption particle = ColorParticleOption.create(ParticleTypes.TINTED_LEAVES, 0xff4d6148);
+		ParticleUtils.spawnParticleBelow(world, pos, random, particle);
+	}
 }

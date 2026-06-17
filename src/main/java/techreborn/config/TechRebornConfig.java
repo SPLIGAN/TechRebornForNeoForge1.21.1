@@ -108,6 +108,27 @@ public class TechRebornConfig {
 	@Config(config = "generators", category = "wind_mill", key = "WindMillThunderMultiplier", comment = "Wind Mill Thunder Multiplier")
 	public static double windMillThunderMultiplier = 1.25;
 
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorMaxEnergy", comment = "Nuclear Reactor Max Energy")
+	public static int nuclearReactorMaxEnergy = 100_000_000;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorMaxOutput", comment = "Nuclear Reactor Max Output")
+	public static int nuclearReactorMaxOutput = 8192;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorMaxHeat", comment = "Nuclear Reactor Base Max Heat (before plating)")
+	public static int nuclearReactorMaxHeat = 10_000;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorEUMultiplier", comment = "Multiplier for EU output from fuel rods")
+	public static double nuclearReactorEUMultiplier = 1.0;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorTickRate", comment = "Ticks between reactor processing cycles (20 = 1 second)")
+	public static int nuclearReactorTickRate = 20;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorExplosionEnabled", comment = "Enable Nuclear Reactor Explosions on Meltdown")
+	public static boolean nuclearReactorExplosionEnabled = false;
+
+	@Config(config = "generators", category = "nuclear_reactor", key = "NuclearReactorExplosionPowerLimit", comment = "Maximum explosion power for meltdowns")
+	public static float nuclearReactorExplosionPowerLimit = 45.0f;
+
 	@Config(config = "generators", category = "water_mill", key = "WaterMillMaxOutput", comment = "Water Mill Max Output (Energy per tick)")
 	public static int waterMillMaxOutput = 32;
 

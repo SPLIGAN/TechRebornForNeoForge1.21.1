@@ -1,25 +1,5 @@
 /*
  * This file is part of TechReborn, licensed under the MIT License (MIT).
- *
- * Copyright (c) 2020 TechReborn
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
  */
 
 package techreborn.init;
@@ -44,7 +24,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import reborncore.common.fluid.FluidUtils;
-import techreborn.items.CellItem;
+import techreborn.items.DynamicCellItem;
 
 public class TRCauldronBehavior {
 	public static void init() {
@@ -54,7 +34,7 @@ public class TRCauldronBehavior {
 			}
 
 			if (!world.isClientSide()) {
-				player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, TRContent.Cells.LAVA.getStack()));
+				player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, DynamicCellItem.getCellWithFluid(Fluids.LAVA)));
 				player.awardStat(Stats.USE_CAULDRON);
 				player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 				world.setBlockAndUpdate(pos, Blocks.CAULDRON.defaultBlockState());
@@ -70,7 +50,7 @@ public class TRCauldronBehavior {
 			}
 
 			if (!world.isClientSide()) {
-				player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, TRContent.Cells.WATER.getStack()));
+				player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, DynamicCellItem.getCellWithFluid(Fluids.WATER)));
 				player.awardStat(Stats.USE_CAULDRON);
 				player.awardStat(Stats.ITEM_USED.get(stack.getItem()));
 				LayeredCauldronBlock.lowerFillLevel(state, world, pos);
@@ -81,33 +61,31 @@ public class TRCauldronBehavior {
 		};
 
 		CauldronInteraction FILL_FROM_CELL = (state, world, pos, player, hand, stack) -> {
-			Fluid cellFluid = ((CellItem) stack.getItem()).getCellFluid();
+			if (!(stack.getItem() instanceof DynamicCellItem cellItem)) {
+				return InteractionResult.PASS;
+			}
+			Fluid cellFluid = cellItem.getFluid(stack);
 			if (cellFluid == Fluids.WATER) {
 				return fillCauldronFromCell(world, pos, player, hand, stack,
-						Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3),
-						SoundEvents.BUCKET_EMPTY);
+					Blocks.WATER_CAULDRON.defaultBlockState().setValue(LayeredCauldronBlock.LEVEL, 3),
+					SoundEvents.BUCKET_EMPTY);
 			} else if (cellFluid == Fluids.LAVA) {
 				return fillCauldronFromCell(world, pos, player, hand, stack,
-						Blocks.LAVA_CAULDRON.defaultBlockState(),
-						SoundEvents.BUCKET_EMPTY_LAVA);
+					Blocks.LAVA_CAULDRON.defaultBlockState(),
+					SoundEvents.BUCKET_EMPTY_LAVA);
 			}
 
-			return InteractionResult.TRY_WITH_EMPTY_HAND;
+			return InteractionResult.PASS;
 		};
 
-		for (TRContent.Cells cell : TRContent.Cells.values()) {
-			if (cell.getCellItem().isEmpty()) {
-				CauldronInteractions.LAVA.put(cell.asItem(), FILL_CELL_WITH_LAVA);
-				CauldronInteractions.WATER.put(cell.asItem(), FILL_CELL_WITH_WATER);
-			} else {
-				CauldronInteractions.EMPTY.put(cell.asItem(), FILL_FROM_CELL);
-			}
-		}
+		CauldronInteractions.LAVA.put(TRContent.CELL, FILL_CELL_WITH_LAVA);
+		CauldronInteractions.WATER.put(TRContent.CELL, FILL_CELL_WITH_WATER);
+		CauldronInteractions.EMPTY.put(TRContent.CELL, FILL_FROM_CELL);
 	}
 
 	static InteractionResult fillCauldronFromCell(Level world, BlockPos pos, Player player, InteractionHand hand, ItemStack stack, BlockState state, SoundEvent soundEvent) {
 		if (!world.isClientSide()) {
-			player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, TRContent.Cells.EMPTY.getStack()));
+			player.setItemInHand(hand, ItemUtils.createFilledResult(stack, player, new ItemStack(TRContent.CELL)));
 			player.awardStat(Stats.FILL_CAULDRON);
 			world.setBlockAndUpdate(pos, state);
 			world.playSound(null, pos, soundEvent, SoundSource.BLOCKS, 1.0F, 1.0F);

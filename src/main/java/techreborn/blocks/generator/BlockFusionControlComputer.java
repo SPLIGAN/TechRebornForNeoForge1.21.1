@@ -49,8 +49,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 public class BlockFusionControlComputer extends BlockMachineBase {
-	public BlockFusionControlComputer(String name) {
-		super(TRBlockSettings.fusionControlComputer(name));
+	public BlockFusionControlComputer() {
+		super(TRBlockSettings.fusionControlComputer());
 	}
 
 	@Override

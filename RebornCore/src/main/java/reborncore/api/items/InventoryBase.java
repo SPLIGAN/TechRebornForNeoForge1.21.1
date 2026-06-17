@@ -24,14 +24,13 @@
 
 package reborncore.api.items;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.Container;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public abstract class InventoryBase implements Container {
 
@@ -43,15 +42,13 @@ public abstract class InventoryBase implements Container {
 		stacks = NonNullList.withSize(size, ItemStack.EMPTY);
 	}
 
-	public Tag serializeNBT(HolderLookup.Provider registryLookup) {
-		CompoundTag tag = new CompoundTag();
-		ContainerHelper.saveAllItems(tag, stacks, registryLookup);
-		return tag;
+	public void writeData(ValueOutput view) {
+		ContainerHelper.saveAllItems(view, stacks);
 	}
 
-	public void deserializeNBT(CompoundTag tag, HolderLookup.Provider registryLookup) {
+	public void readData(ValueInput view) {
 		stacks = NonNullList.withSize(size, ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(tag, stacks, registryLookup);
+		ContainerHelper.loadAllItems(view, stacks);
 	}
 
 	@Override

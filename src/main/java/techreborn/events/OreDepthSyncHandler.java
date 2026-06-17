@@ -30,7 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerCommonPacketListenerImpl;
 import net.minecraft.server.network.ConfigurationTask;
@@ -49,7 +49,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class OreDepthSyncHandler {
@@ -71,7 +70,8 @@ public final class OreDepthSyncHandler {
 	public static void updateDepths(List<OreDepth> list) {
 		synchronized (OreDepthSyncHandler.class) {
 			oreDepthMap = list.stream()
-				.collect(Collectors.toMap(oreDepth -> BuiltInRegistries.BLOCK.get(oreDepth.identifier()), Function.identity()));
+				.flatMap(oreDepth -> BuiltInRegistries.BLOCK.get(oreDepth.identifier()).stream().map(ref -> Map.entry(ref.value(), oreDepth)))
+				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 		}
 	}
 
@@ -82,7 +82,7 @@ public final class OreDepthSyncHandler {
 	}
 
 	private record OreDepthConfigurationTask(net.minecraft.network.protocol.configuration.ServerConfigurationPacketListener listener) implements ICustomConfigurationTask {
-		private static final ConfigurationTask.Type TASK_TYPE = new ConfigurationTask.Type(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth_sync"));
+		private static final ConfigurationTask.Type TASK_TYPE = new ConfigurationTask.Type(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth_sync"));
 
 		@Override
 		public void run(Consumer<CustomPacketPayload> sender) {
@@ -108,7 +108,7 @@ public final class OreDepthSyncHandler {
 	}
 
 	public record OreDepthPayload(List<OreDepth> oreDepths) implements CustomPacketPayload {
-		public static final CustomPacketPayload.Type<OreDepthPayload> ID = new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth"));
+		public static final CustomPacketPayload.Type<OreDepthPayload> ID = new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "ore_depth"));
 		public static final StreamCodec<FriendlyByteBuf, OreDepthPayload> PACKET_CODEC = StreamCodec.composite(
 			OreDepth.PACKET_CODEC.apply(ByteBufCodecs.list()), OreDepthPayload::oreDepths,
 			OreDepthPayload::new

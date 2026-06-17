@@ -34,19 +34,21 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemUtils;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.material.FlowingFluid;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
@@ -93,7 +95,9 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 
 	private void insertOrDropStack(Player playerEntity, ItemStack stack) {
 		if (!playerEntity.getInventory().add(stack)) {
-			playerEntity.spawnAtLocation(stack);
+			if (playerEntity.level() instanceof ServerLevel serverLevel) {
+				playerEntity.spawnAtLocation(serverLevel, stack);
+			}
 		}
 	}
 
@@ -110,11 +114,12 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 			return hitResult != null && this.placeFluid(player, world, hitResult.getBlockPos().relative(hitResult.getDirection()), null, filledCell);
 		} else {
 			//noinspection deprecation
-			if (world.dimensionType().ultraWarm() && fluid.is(FluidTags.WATER)) {
+			boolean evaporates = world.environmentAttributes().getValue(EnvironmentAttributes.WATER_EVAPORATES, pos) && fluid.is(FluidTags.WATER);
+			if (evaporates) {
 				int i = pos.getX();
 				int j = pos.getY();
 				int k = pos.getZ();
-				world.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (world.random.nextFloat() - world.random.nextFloat()) * 0.8F);
+				world.playSound(player, pos, SoundEvents.FIRE_EXTINGUISH, SoundSource.BLOCKS, 0.5F, 2.6F + (world.getRandom().nextFloat() - world.getRandom().nextFloat()) * 0.8F);
 
 				for (int l = 0; l < 8; ++l) {
 					world.addParticle(ParticleTypes.LARGE_SMOKE, (double) i + Math.random(), (double) j + Math.random(), (double) k + Math.random(), 0.0D, 0.0D, 0.0D);
@@ -125,7 +130,7 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 				}
 			} else {
 				//noinspection deprecation
-				if (!world.isClientSide && canPlace && !blockState.liquid()) {
+				if (!world.isClientSide() && canPlace && !blockState.liquid()) {
 					world.destroyBlock(pos, true);
 				}
 
@@ -147,34 +152,34 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level world, Player player, InteractionHand hand) {
+	public InteractionResult use(Level world, Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 		Fluid containedFluid = getFluid(stack);
 
 		BlockHitResult hitResult = getPlayerPOVHitResult(world, player, containedFluid == Fluids.EMPTY ? ClipContext.Fluid.SOURCE_ONLY : ClipContext.Fluid.NONE);
 			if (hitResult.getType() == HitResult.Type.MISS || !(containedFluid instanceof FlowingFluid || Fluids.EMPTY == containedFluid)) {
-			return InteractionResultHolder.pass(stack);
+			return InteractionResult.PASS;
 		}
 		if (hitResult.getType() != HitResult.Type.BLOCK) {
-			return InteractionResultHolder.pass(stack);
+			return InteractionResult.PASS;
 		}
 
 		BlockPos hitPos = hitResult.getBlockPos();
 		if (!world.mayInteract(player, hitPos)) {
-			return InteractionResultHolder.fail(stack);
+			return InteractionResult.FAIL;
 		}
 
 		Direction side = hitResult.getDirection();
 		BlockPos placePos = hitPos.relative(side);
 		if (!player.mayUseItemAt(placePos, side, stack)) {
-			return InteractionResultHolder.fail(stack);
+			return InteractionResult.FAIL;
 		}
 
 		BlockState hitState = world.getBlockState(hitPos);
 
 		if (containedFluid == Fluids.EMPTY) {
 			if (!(hitState.getBlock() instanceof BucketPickup fluidDrainable)) {
-				return InteractionResultHolder.fail(stack);
+				return InteractionResult.FAIL;
 			}
 			// This will give us bucket, not a cell
 			ItemStack itemStack = fluidDrainable.pickupBlock(player, world, hitPos, hitState);
@@ -185,14 +190,14 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 				// Replace bucket item with cell item
 				itemStack = getCellWithFluid(drainFluid, 1);
 				ItemStack resultStack = ItemUtils.createFilledResult(stack, player, itemStack, false);
-				return InteractionResultHolder.sidedSuccess(resultStack, world.isClientSide());
+				return world.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
 			}
 		} else {
 			placePos = hitState.getBlock() instanceof LiquidBlockContainer ? hitPos : placePos;
 			if (this.placeFluid(player, world, placePos, hitResult, stack)) {
 
 				if (player.getAbilities().instabuild) {
-					return InteractionResultHolder.success(stack);
+					return InteractionResult.SUCCESS;
 				}
 
 				if (stack.getCount() == 1) {
@@ -202,11 +207,11 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 					insertOrDropStack(player, getEmpty());
 				}
 
-				return InteractionResultHolder.success(stack);
+				return InteractionResult.SUCCESS;
 			}
 		}
 
-		return InteractionResultHolder.fail(stack);
+		return InteractionResult.FAIL;
 	}
 
 	// ItemFluidInfo

@@ -1,10 +1,9 @@
 {
   "required": true,
   "package": "reborncore.client.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "client": [
-	  "MixinDebugRenderer",
-	  "MixinGameRenderer"
+	  "MixinDebugRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

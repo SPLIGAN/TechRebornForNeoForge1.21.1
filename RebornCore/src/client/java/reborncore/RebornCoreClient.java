@@ -37,7 +37,7 @@ public class RebornCoreClient {
 		ClientBoundPacketHandlers.init();
 		ClientLifecycleBridge.onHudRender(new ItemStackRenderer());
 		ClientLifecycleBridge.registerTooltipAppender(new StackToolTipHandler());
-		ClientLifecycleBridge.onBlockOutline(BlockOutlineRenderer::onBlockHighlight);
+		ClientLifecycleBridge.onBlockOutline(BlockOutlineRenderer::onBlockOutline);
 
 		/* register UnloadHandler */
 		ClientLifecycleBridge.onBlockEntityUnload((blockEntity, world) -> {
@@ -56,7 +56,7 @@ public class RebornCoreClient {
 		});
 
 		ClientLifecycleBridge.registerBuiltinResourcePack(
-			net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("reborncore", "reborncore_darkmode"),
+			net.minecraft.resources.Identifier.fromNamespaceAndPath("reborncore", "reborncore_darkmode"),
 			LoaderBridge.getModContainer("reborncore").orElseThrow()
 		);
 	}

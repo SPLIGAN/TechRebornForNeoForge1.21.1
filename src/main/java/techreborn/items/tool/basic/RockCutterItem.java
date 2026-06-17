@@ -104,7 +104,7 @@ public class RockCutterItem extends Item implements RcEnergyItem {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return RcEnergyTier.MEDIUM;
 	}
 

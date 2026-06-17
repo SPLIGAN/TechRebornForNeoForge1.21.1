@@ -30,12 +30,14 @@ import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.crafting.RebornFluidRecipe;
 import reborncore.common.crafting.RebornRecipe;
@@ -45,19 +47,19 @@ import techreborn.recipe.recipes.BlastFurnaceRecipe;
 
 import java.text.DecimalFormat;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
-public class TechRebornMachineRecipeCategory implements IRecipeCategory<RecipeHolder<? extends RebornRecipe>> {
+public class TechRebornMachineRecipeCategory implements IRecipeCategory<RecipeHolder<RebornRecipe>> {
 	private static final DecimalFormat TIME_FMT = new DecimalFormat("###.##");
 	private static final int WIDTH = 162;
 	private static final int HEIGHT = 108;
 
-	private final RecipeType jeiRecipeType;
-	private final net.minecraft.world.item.crafting.RecipeType<? extends RebornRecipe> minecraftRecipeType;
+	private final IRecipeHolderType<RebornRecipe> jeiRecipeType;
+	private final RecipeType<? extends RebornRecipe> minecraftRecipeType;
 	private final IDrawable icon;
 
-	public TechRebornMachineRecipeCategory(IGuiHelper guiHelper, net.minecraft.world.item.crafting.RecipeType<? extends RebornRecipe> minecraftRecipeType, ItemStack iconStack) {
+	@SuppressWarnings("unchecked")
+	public TechRebornMachineRecipeCategory(IGuiHelper guiHelper, RecipeType<? extends RebornRecipe> minecraftRecipeType, ItemStack iconStack) {
 		this.minecraftRecipeType = minecraftRecipeType;
-		this.jeiRecipeType = RecipeType.createFromVanilla((net.minecraft.world.item.crafting.RecipeType) minecraftRecipeType);
+		this.jeiRecipeType = IRecipeHolderType.create((RecipeType<RebornRecipe>) minecraftRecipeType);
 		this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, iconStack);
 	}
 
@@ -73,7 +75,7 @@ public class TechRebornMachineRecipeCategory implements IRecipeCategory<RecipeHo
 	}
 
 	@Override
-	public RecipeType getRecipeType() {
+	public IRecipeHolderType<RebornRecipe> getRecipeType() {
 		return jeiRecipeType;
 	}
 
@@ -98,7 +100,7 @@ public class TechRebornMachineRecipeCategory implements IRecipeCategory<RecipeHo
 	}
 
 	@Override
-	public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<? extends RebornRecipe> holder, IFocusGroup focuses) {
+	public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<RebornRecipe> holder, IFocusGroup focuses) {
 		RebornRecipe recipe = holder.value();
 		int x = 8;
 		int y = 10;
@@ -117,16 +119,16 @@ public class TechRebornMachineRecipeCategory implements IRecipeCategory<RecipeHo
 			int sx = x + (idx % 9) * 18;
 			int sy = y + (idx / 9) * 18;
 			builder.addInputSlot(sx, sy)
-				.addFluidStack(fi.fluid(), mb)
+				.add(fi.fluid(), mb)
 				.addRichTooltipCallback((recipeSlotView, tooltip) -> appendProcessingTooltip(tooltip, recipe));
 			idx++;
 		}
 		int rowUsed = idx == 0 ? 0 : (idx + 8) / 9;
 		int oy = y + rowUsed * 18 + (rowUsed > 0 ? 12 : 0);
 		int ox = x;
-		for (ItemStack output : recipe.outputs()) {
+		for (ItemStackTemplate output : recipe.outputs()) {
 			builder.addOutputSlot(ox, oy)
-				.addIngredient(VanillaTypes.ITEM_STACK, output)
+				.add(output.create())
 				.addRichTooltipCallback((recipeSlotView, tooltip) -> appendProcessingTooltip(tooltip, recipe));
 			ox += 18;
 		}

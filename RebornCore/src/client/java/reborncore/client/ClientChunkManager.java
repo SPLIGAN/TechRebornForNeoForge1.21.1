@@ -24,21 +24,21 @@
 
 package reborncore.client;
 
-import org.joml.Matrix4f;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.culling.Frustum;
+import net.minecraft.core.BlockPos;
+import net.minecraft.gizmos.Gizmos;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
+import net.minecraft.util.debug.DebugValueAccess;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.phys.Vec3;
+import reborncore.client.network.ClientNetworkingBridge;
 import reborncore.common.chunkloading.ChunkLoaderManager;
 import reborncore.common.network.serverbound.ChunkLoaderRequestPayload;
-import reborncore.client.network.ClientNetworkingBridge;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor.ARGB32;
-import net.minecraft.world.level.ChunkPos;
 
 public class ClientChunkManager {
 
@@ -67,14 +67,14 @@ public class ClientChunkManager {
 				.anyMatch(loadedChunk -> loadedChunk.world().equals(ChunkLoaderManager.getWorldName(Minecraft.getInstance().level)));
 	}
 
-	public static void render(PoseStack matrices, MultiBufferSource vertexConsumers, double x, double y, double z) {
+	public static void render(double camX, double camY, double camZ, DebugValueAccess debugValues, final Frustum frustum, final float partialTicks) {
 		int size = loadedChunks.size();
 		if (size == 0) {
 			return;
 		}
 
 		final Minecraft minecraftClient = Minecraft.getInstance();
-		ResourceLocation worldName = ChunkLoaderManager.getWorldName(minecraftClient.level);
+		Identifier worldName = ChunkLoaderManager.getWorldName(minecraftClient.level);
 		int[] posX = new int[size], posZ = new int[size];
 		int right = 0, startX, startZ, maxX = Integer.MIN_VALUE, minX = Integer.MAX_VALUE, maxZ = Integer.MIN_VALUE, minZ = Integer.MAX_VALUE;
 		for (int i = 0; i < size; i++) {
@@ -95,13 +95,9 @@ public class ClientChunkManager {
 		}
 		size = right;
 
-		int bottom = minecraftClient.level.getMinBuildHeight();
-		int top = minecraftClient.level.getMaxBuildHeight();
-		DrawContext ctx = new DrawContext(
-			vertexConsumers.getBuffer(RenderType.debugLineStrip(1.0)),
-			matrices.last().pose(),
-			x, y, z, bottom, top
-		);
+		int bottom = minecraftClient.level.getMinY();
+		int top = minecraftClient.level.getMaxY() + 1;
+		DrawContext ctx = new DrawContext(bottom, top);
 
 		int chunkSize = 16, middle = chunkSize / 2, end = chunkSize;
 		for (int i = 0; i < size; i++) {
@@ -141,16 +137,10 @@ public class ClientChunkManager {
 	}
 
 	static class DrawContext {
-		private static final int NONE = ARGB32.color(0, 0, 0, 0);
-		private static final int RED = ARGB32.color(127, 255, 0, 0);
-		private static final int BLUE = ARGB32.color(255, 63, 63, 255);
-		private static final int DARK_CYAN = ARGB32.color(255, 0, 155, 155);
-		private static final int YELLOW = ARGB32.color(255, 255, 255, 0);
-		private final VertexConsumer vertexConsumer;
-		private final Matrix4f matrix4f;
-		private final double cameraX;
-		private final double cameraY;
-		private final double cameraZ;
+		private static final int RED = ARGB.color(127, 255, 0, 0);
+		private static final int BLUE = ARGB.color(255, 63, 63, 255);
+		private static final int DARK_CYAN = ARGB.color(255, 0, 155, 155);
+		private static final int YELLOW = ARGB.color(255, 255, 255, 0);
 		private final float bottom;
 		private final float top;
 		private float x1 = 0;
@@ -158,33 +148,25 @@ public class ClientChunkManager {
 		private float x2 = 0;
 		private float z2 = 0;
 
-		DrawContext(VertexConsumer vertexConsumer, Matrix4f matrix4f, double cameraX, double cameraY, double cameraZ, int bottom, int top) {
-			this.vertexConsumer = vertexConsumer;
-			this.matrix4f = matrix4f;
-			this.cameraX = cameraX;
-			this.cameraY = cameraY;
-			this.cameraZ = cameraZ;
-			this.bottom = (float) (bottom - cameraY);
-			this.top = (float) (top - cameraY);
+		DrawContext(int bottom, int top) {
+			this.bottom = bottom;
+			this.top = top;
 		}
 
 		public void updatePos(float x, float z) {
-			this.x1 = (float) (x - cameraX);
-			this.z1 = (float) (z - cameraZ);
+			this.x1 = x;
+			this.z1 = z;
 		}
 
 		public void updatePos(float x1, float z1, float x2, float z2) {
-			this.x1 = (float) (x1 - cameraX);
-			this.z1 = (float) (z1 - cameraZ);
-			this.x2 = (float) (x2 - cameraX);
-			this.z2 = (float) (z2 - cameraZ);
+			this.x1 = x1;
+			this.z1 = z1;
+			this.x2 = x2;
+			this.z2 = z2;
 		}
 
 		public void drawVertical(int color, float x, float z) {
-			vertexConsumer.addVertex(matrix4f, x, bottom, z).setColor(NONE);
-			vertexConsumer.addVertex(matrix4f, x, bottom, z).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x, top, z).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x, top, z).setColor(NONE);
+			Gizmos.line(new Vec3(x, bottom, z), new Vec3(x, top, z), color);
 		}
 
 		public void drawVerticalRed(int x, int z) {
@@ -204,25 +186,22 @@ public class ClientChunkManager {
 		}
 
 		public void drawHorizontal(int color, float y) {
-			vertexConsumer.addVertex(matrix4f, x1, y, z1).setColor(NONE);
-			vertexConsumer.addVertex(matrix4f, x1, y, z1).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x1, y, z2).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x2, y, z2).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x2, y, z1).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x1, y, z1).setColor(color);
-			vertexConsumer.addVertex(matrix4f, x1, y, z1).setColor(NONE);
+			Gizmos.line(new Vec3(x1, y, z1), new Vec3(x1, y, z2), color);
+			Gizmos.line(new Vec3(x1, y, z2), new Vec3(x2, y, z2), color);
+			Gizmos.line(new Vec3(x2, y, z2), new Vec3(x2, y, z1), color);
+			Gizmos.line(new Vec3(x2, y, z1), new Vec3(x1, y, z1), color);
 		}
 
 		public void drawHorizontalBlue(int y) {
-			drawHorizontal(BLUE, (float) (y - cameraY));
+			drawHorizontal(BLUE, y);
 		}
 
 		public void drawHorizontalYellow(int y) {
-			drawHorizontal(YELLOW, (float) (y - cameraY));
+			drawHorizontal(YELLOW, y);
 		}
 
 		public void drawHorizontalCyan(int y) {
-			drawHorizontal(DARK_CYAN, (float) (y - cameraY));
+			drawHorizontal(DARK_CYAN, y);
 		}
 	}
 }

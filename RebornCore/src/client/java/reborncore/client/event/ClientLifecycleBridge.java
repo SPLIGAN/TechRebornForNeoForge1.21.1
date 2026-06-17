@@ -26,14 +26,14 @@ package reborncore.client.event;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
-import net.neoforged.neoforge.client.event.RenderHighlightEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
@@ -43,7 +43,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public final class ClientLifecycleBridge {
 	private static final CopyOnWriteArrayList<HudRenderCallback> hudRender = new CopyOnWriteArrayList<>();
 	private static final CopyOnWriteArrayList<TooltipAppender> tooltipAppenders = new CopyOnWriteArrayList<>();
-	private static final CopyOnWriteArrayList<java.util.function.Consumer<RenderHighlightEvent.Block>> blockOutline = new CopyOnWriteArrayList<>();
+	private static final CopyOnWriteArrayList<java.util.function.Consumer<ExtractBlockOutlineRenderStateEvent>> blockOutline = new CopyOnWriteArrayList<>();
 	private static final CopyOnWriteArrayList<BlockEntityUnloadCallback> blockEntityUnload = new CopyOnWriteArrayList<>();
 	private static final CopyOnWriteArrayList<ClientStartedCallback> clientStarted = new CopyOnWriteArrayList<>();
 	private static final CopyOnWriteArrayList<EndClientTickCallback> endClientTick = new CopyOnWriteArrayList<>();
@@ -73,8 +73,8 @@ public final class ClientLifecycleBridge {
 					a.append(e.getItemStack(), e.getContext(), e.getFlags(), e.getToolTip());
 				}
 			});
-			NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, (RenderHighlightEvent.Block e) -> {
-				for (java.util.function.Consumer<RenderHighlightEvent.Block> c : blockOutline) {
+			NeoForge.EVENT_BUS.addListener(EventPriority.NORMAL, (ExtractBlockOutlineRenderStateEvent e) -> {
+				for (java.util.function.Consumer<ExtractBlockOutlineRenderStateEvent> c : blockOutline) {
 					c.accept(e);
 				}
 			});
@@ -113,7 +113,7 @@ public final class ClientLifecycleBridge {
 		tooltipAppenders.add(appender);
 	}
 
-	public static void onBlockOutline(java.util.function.Consumer<RenderHighlightEvent.Block> callback) {
+	public static void onBlockOutline(java.util.function.Consumer<ExtractBlockOutlineRenderStateEvent> callback) {
 		ensureWired();
 		blockOutline.add(callback);
 	}
@@ -133,13 +133,13 @@ public final class ClientLifecycleBridge {
 		endClientTick.add(callback);
 	}
 
-	public static void registerBuiltinResourcePack(ResourceLocation id, net.neoforged.fml.ModContainer modContainer) {
+	public static void registerBuiltinResourcePack(Identifier id, net.neoforged.fml.ModContainer modContainer) {
 		// Optional packs: use AddPackFindersEvent from mod bus when needed.
 	}
 
 	@FunctionalInterface
 	public interface HudRenderCallback {
-		void onHudRender(GuiGraphics guiGraphics, DeltaTracker partialTick);
+		void onHudRender(GuiGraphicsExtractor guiGraphics, DeltaTracker partialTick);
 	}
 
 	@FunctionalInterface

@@ -36,7 +36,7 @@ import reborncore.common.powerSystem.RcEnergyItem;
 import reborncore.common.powerSystem.RcEnergyTier;
 import reborncore.common.util.ItemUtils;
 
-public class BatpackItem extends TREnergyArmourItem implements RcEnergyItem {
+public class BatpackItem extends TREnergyArmourItem {
 
 	public BatpackItem(long maxCharge, ArmorMaterial material, RcEnergyTier tier, String name) {
 		super(material, ArmorType.CHESTPLATE, maxCharge, tier, name);
@@ -49,7 +49,7 @@ public class BatpackItem extends TREnergyArmourItem implements RcEnergyItem {
 			return;
 		}
 		if (entityIn instanceof Player) {
-			ItemUtils.distributePowerToInventory((Player) entityIn, stack, this.getTier().getMaxOutput());
+			ItemUtils.distributePowerToInventory((Player) entityIn, stack, this.getEnergyTier().getMaxOutput());
 		}
 	}
 }

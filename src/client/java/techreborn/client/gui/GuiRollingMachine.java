@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.world.entity.player.Player;
@@ -77,7 +77,7 @@ public class GuiRollingMachine extends GuiBase<BuiltScreenHandler> {
 	@Override
 	public boolean mouseClicked(MouseButtonEvent mouse, boolean doubled) {
 		if (isPointInRect(130, 4, 20, 12, mouse.x(), mouse.y())) {
-			ClientPlayNetworking.send(new RollingMachineLockPayload(rollingMachine.getBlockPos(), !rollingMachine.locked));
+			ClientNetworkingBridge.sendToServer(new RollingMachineLockPayload(rollingMachine.getBlockPos(), !rollingMachine.locked));
 			return true;
 		}
 		return super.mouseClicked(mouse, doubled);

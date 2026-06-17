@@ -24,15 +24,14 @@
 
 package reborncore.common.util;
 
-import net.minecraft.nbt.CompoundTag;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 @Deprecated
 public interface NBTSerializable {
 
-	@NotNull
-	CompoundTag write();
+	void write(ValueOutput view);
 
-	void read(@NotNull CompoundTag tag);
+	void read(ValueInput view);
 
 }

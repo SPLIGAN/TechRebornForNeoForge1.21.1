@@ -29,15 +29,13 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.SectionPos;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
@@ -75,7 +73,7 @@ public class WorldUtils {
 
 		float factor = 0.05F;
 		entityItem.setDeltaMovement(new Vec3(rand.nextGaussian() * factor, rand.nextGaussian() * factor + 0.2F, rand.nextGaussian() * factor));
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			world.addFreshEntity(entityItem);
 		}
 	}
@@ -91,7 +89,7 @@ public class WorldUtils {
 		}
 	}
 
-	public static HolderLookup<Block> getBlockRegistryWrapper(@Nullable Level world) {
-		return world != null ? world.holderLookup(Registries.BLOCK) : BuiltInRegistries.BLOCK.asLookup();
+	public static HolderLookup.Provider getRegistryLookup(@Nullable Level world) {
+		return world != null ? world.registryAccess() : RegistryAccess.EMPTY;
 	}
 }

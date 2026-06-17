@@ -1,10 +1,11 @@
 {
   "required": true,
   "package": "reborncore.mixin.common",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_25",
   "mixins": [
     "MixinBucketItem",
     "MixinCraftingResultSlot",
+    "MixinIngredientCodec",
     "MixinItemEntity",
     "MixinItemRcEnergyContinueUsing",
     "MixinItemRcEnergyBlockBreakReset",

@@ -24,23 +24,22 @@
 
 package reborncore.client.gui.element;
 
+import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.textures.GpuTextureView;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.textures.FilterMode;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.QuadInstance;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
 import net.minecraft.client.gui.render.TextureSetup;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.state.gui.BlitRenderState;
 import net.minecraft.client.renderer.state.gui.GuiRenderState;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
@@ -50,6 +49,7 @@ import net.minecraft.util.RandomSource;
 import org.joml.Matrix3x2f;
 import org.joml.Quaternionfc;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,8 +59,18 @@ public class MachineFaceElementRenderer extends PictureInPictureRenderer<Machine
 	private static final RenderElementHandler elementHandler = new RenderElementHandler();
 	public static final List<Identifier> BLACKLIST = new ArrayList<>();
 
-	public MachineFaceElementRenderer(PictureInPictureRendererRegistry.Context context) {
-		super(context.bufferSource());
+	private GpuTextureView getPipTextureView() {
+		try {
+			Field field = PictureInPictureRenderer.class.getDeclaredField("textureView");
+			field.setAccessible(true);
+			return (GpuTextureView) field.get(this);
+		} catch (ReflectiveOperationException e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+	public MachineFaceElementRenderer(MultiBufferSource.BufferSource bufferSource) {
+		super(bufferSource);
 	}
 
 	@Override
@@ -87,7 +97,7 @@ public class MachineFaceElementRenderer extends PictureInPictureRenderer<Machine
 
 	@Override
 	protected void blitTexture(MachineFaceState element, GuiRenderState state) {
-		elementHandler.update(element, state, textureView);
+		elementHandler.update(element, state, getPipTextureView());
 		elementHandler.render(4, 23); //left
 		elementHandler.render(23, 4); //top
 		elementHandler.render(23, 23); //center

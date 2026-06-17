@@ -92,7 +92,7 @@ public class MultiblockWorldRegistry {
 	public void tickStart() {
 		if (controllers.size() > 0) {
 			for (MultiblockControllerBase controller : controllers) {
-				if (controller.worldObj == worldObj && controller.worldObj.isClientSide == worldObj.isClientSide) {
+				if (controller.worldObj == worldObj && controller.worldObj.isClientSide() == worldObj.isClientSide()) {
 					if (controller.isEmpty()) {
 						// This happens on the server when the user breaks the
 						// last block. It's fine.
@@ -319,7 +319,7 @@ public class MultiblockWorldRegistry {
 		if (!WorldUtils.isChunkLoaded(worldObj, pos)) {
 			// Part goes into the waiting-for-chunk-load list
 			Set<IMultiblockPart> partSet;
-			int chunkHash = new ChunkPos(pos).hashCode();
+			int chunkHash = ChunkPos.containing(pos).hashCode();
 
 			synchronized (partsAwaitingChunkLoadMutex) {
 				if (!partsAwaitingChunkLoad.containsKey(chunkHash)) {
@@ -347,7 +347,7 @@ public class MultiblockWorldRegistry {
 	public void onPartRemovedFromWorld(IMultiblockPart part) {
 		BlockPos pos = part.getWorldLocation();
 		if (pos != null) {
-			int chunkHash = new ChunkPos(pos).hashCode();
+			int chunkHash = ChunkPos.containing(pos).hashCode();
 
 			if (partsAwaitingChunkLoad.containsKey(chunkHash)) {
 				synchronized (partsAwaitingChunkLoadMutex) {

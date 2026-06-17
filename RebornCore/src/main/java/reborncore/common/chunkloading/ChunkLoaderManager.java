@@ -28,14 +28,12 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -43,6 +41,7 @@ import net.minecraft.server.level.TicketType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import reborncore.common.network.NetworkManager;
@@ -50,54 +49,60 @@ import reborncore.common.network.clientbound.ChunkSyncPayload;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 // This does not do the actual chunk loading, just keeps track of what chunks the chunk loader has loaded
 public class ChunkLoaderManager extends SavedData {
-	public static final SavedData.Factory<ChunkLoaderManager> TYPE = new Factory<>(ChunkLoaderManager::new, ChunkLoaderManager::fromTag, null);
 
-	public static Codec<List<LoadedChunk>> CODEC = Codec.list(LoadedChunk.CODEC);
+	public static Codec<ChunkLoaderManager> CODEC = Codec.list(LoadedChunk.CODEC).xmap(ChunkLoaderManager::fromChunks, ChunkLoaderManager::getLoadedChunks);
+	public static final SavedDataType<ChunkLoaderManager> TYPE = new SavedDataType<>(Identifier.fromNamespaceAndPath("reborncore", "chunk_loader"), ChunkLoaderManager::new, CODEC, null);
 
-	private static final TicketType<ChunkPos> CHUNK_LOADER = TicketType.create("reborncore:chunk_loader", Comparator.comparingLong(ChunkPos::toLong));
-	private static final String KEY = "reborncore_chunk_loader";
+	private static TicketType CHUNK_LOADER;
 	private static final int RADIUS = 1;
+
+	private static final int CHUNK_LOADER_FLAGS = TicketType.FLAG_PERSIST
+		| TicketType.FLAG_LOADING
+		| TicketType.FLAG_SIMULATION
+		| TicketType.FLAG_KEEP_DIMENSION_ACTIVE;
+
+	public static void register(RegisterEvent event) {
+		event.register(
+			Registries.TICKET_TYPE,
+			Identifier.fromNamespaceAndPath("reborncore", "chunk_loader"),
+			() -> {
+				CHUNK_LOADER = new TicketType(0L, CHUNK_LOADER_FLAGS);
+				return CHUNK_LOADER;
+			}
+		);
+	}
 
 	public ChunkLoaderManager() {
 	}
 
 	public static ChunkLoaderManager get(Level world) {
 		ServerLevel serverWorld = (ServerLevel) world;
-		return serverWorld.getDataStorage().computeIfAbsent(TYPE, KEY);
+		return serverWorld.getDataStorage().computeIfAbsent(TYPE);
 	}
 
 	private final List<LoadedChunk> loadedChunks = new ArrayList<>();
 
-	public static ChunkLoaderManager fromTag(CompoundTag tag, HolderLookup.Provider registryLookup) {
+	public static ChunkLoaderManager fromChunks(List<LoadedChunk> chunks) {
 		ChunkLoaderManager chunkLoaderManager = new ChunkLoaderManager();
 
 		chunkLoaderManager.loadedChunks.clear();
-
-		List<LoadedChunk> chunks = CODEC.parse(NbtOps.INSTANCE, tag.getList("loadedchunks", Tag.TAG_COMPOUND))
-				.result()
-				.orElse(Collections.emptyList());
 
 		chunkLoaderManager.loadedChunks.addAll(chunks);
 
 		return chunkLoaderManager;
 	}
 
-	@Override
-	public CompoundTag save(CompoundTag compoundTag, HolderLookup.Provider registryLookup) {
-		CODEC.encodeStart(NbtOps.INSTANCE, loadedChunks)
-				.result()
-				.ifPresent(tag -> compoundTag.put("loadedchunks", tag));
-		return compoundTag;
+	public List<LoadedChunk> getLoadedChunks() {
+		return loadedChunks;
 	}
 
-	public Optional<LoadedChunk> getLoadedChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader){
+	public Optional<LoadedChunk> getLoadedChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader) {
 		return loadedChunks.stream()
 			.filter(loadedChunk -> loadedChunk.world().equals(getWorldName(world)))
 			.filter(loadedChunk -> loadedChunk.chunk().equals(chunkPos))
@@ -105,30 +110,29 @@ public class ChunkLoaderManager extends SavedData {
 			.findFirst();
 	}
 
-	public Optional<LoadedChunk> getLoadedChunk(Level world, ChunkPos chunkPos){
+	public Optional<LoadedChunk> getLoadedChunk(Level world, ChunkPos chunkPos) {
 		return loadedChunks.stream()
 			.filter(loadedChunk -> loadedChunk.world().equals(getWorldName(world)))
 			.filter(loadedChunk -> loadedChunk.chunk().equals(chunkPos))
 			.findFirst();
 	}
 
-	public List<LoadedChunk> getLoadedChunks(Level world, BlockPos chunkLoader){
+	public List<LoadedChunk> getLoadedChunks(Level world, BlockPos chunkLoader) {
 		return loadedChunks.stream()
 			.filter(loadedChunk -> loadedChunk.world().equals(getWorldName(world)))
 			.filter(loadedChunk -> loadedChunk.chunkLoader().equals(chunkLoader))
 			.collect(Collectors.toList());
 	}
 
-	public boolean isChunkLoaded(Level world, ChunkPos chunkPos, BlockPos chunkLoader){
+	public boolean isChunkLoaded(Level world, ChunkPos chunkPos, BlockPos chunkLoader) {
 		return getLoadedChunk(world, chunkPos, chunkLoader).isPresent();
 	}
 
-	public boolean isChunkLoaded(Level world, ChunkPos chunkPos){
+	public boolean isChunkLoaded(Level world, ChunkPos chunkPos) {
 		return getLoadedChunk(world, chunkPos).isPresent();
 	}
 
-
-	public void loadChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader, String player){
+	public void loadChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader, String player) {
 		Validate.isTrue(!isChunkLoaded(world, chunkPos, chunkLoader), "chunk is already loaded");
 		LoadedChunk loadedChunk = new LoadedChunk(chunkPos, getWorldName(world), player, chunkLoader);
 		loadedChunks.add(loadedChunk);
@@ -138,11 +142,11 @@ public class ChunkLoaderManager extends SavedData {
 		setDirty();
 	}
 
-	public void unloadChunkLoader(Level world, BlockPos chunkLoader){
+	public void unloadChunkLoader(Level world, BlockPos chunkLoader) {
 		getLoadedChunks(world, chunkLoader).forEach(loadedChunk -> unloadChunk(world, loadedChunk.chunk(), chunkLoader));
 	}
 
-	public void unloadChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader){
+	public void unloadChunk(Level world, ChunkPos chunkPos, BlockPos chunkLoader) {
 		Optional<LoadedChunk> optionalLoadedChunk = getLoadedChunk(world, chunkPos, chunkLoader);
 		Validate.isTrue(optionalLoadedChunk.isPresent(), "chunk is not loaded");
 
@@ -150,9 +154,9 @@ public class ChunkLoaderManager extends SavedData {
 
 		loadedChunks.remove(loadedChunk);
 
-		if(!isChunkLoaded(world, loadedChunk.chunk())){
+		if (!isChunkLoaded(world, loadedChunk.chunk())) {
 			final ServerChunkCache serverChunkManager = ((ServerLevel) world).getChunkSource();
-			serverChunkManager.removeRegionTicket(ChunkLoaderManager.CHUNK_LOADER, loadedChunk.chunk(), RADIUS, loadedChunk.chunk());
+			serverChunkManager.removeTicketWithRadius(ChunkLoaderManager.CHUNK_LOADER, loadedChunk.chunk(), RADIUS);
 		}
 		setDirty();
 	}
@@ -167,15 +171,15 @@ public class ChunkLoaderManager extends SavedData {
 		}
 	}
 
-	public static ResourceLocation getWorldName(Level world){
-		return world.dimension().location();
+	public static Identifier getWorldName(Level world) {
+		return world.dimension().identifier();
 	}
 
-	public static ResourceKey<Level> getDimensionRegistryKey(Level world){
+	public static ResourceKey<Level> getDimensionRegistryKey(Level world) {
 		return world.dimension();
 	}
 
-	public void syncChunkLoaderToClient(ServerPlayer serverPlayerEntity, BlockPos chunkLoader){
+	public void syncChunkLoaderToClient(ServerPlayer serverPlayerEntity, BlockPos chunkLoader) {
 		syncToClient(serverPlayerEntity, loadedChunks.stream().filter(loadedChunk -> loadedChunk.chunkLoader().equals(chunkLoader)).collect(Collectors.toList()));
 	}
 
@@ -193,35 +197,35 @@ public class ChunkLoaderManager extends SavedData {
 
 	private void loadChunk(ServerLevel world, LoadedChunk loadedChunk) {
 		ChunkPos chunkPos = loadedChunk.chunk();
-		world.getChunkSource().addRegionTicket(ChunkLoaderManager.CHUNK_LOADER, chunkPos, RADIUS, chunkPos);
+		world.getChunkSource().addTicketWithRadius(ChunkLoaderManager.CHUNK_LOADER, chunkPos, RADIUS);
 	}
 
-	public record LoadedChunk(ChunkPos chunk, ResourceLocation world, String player, BlockPos chunkLoader) {
+	public record LoadedChunk(ChunkPos chunk, Identifier world, String player, BlockPos chunkLoader) {
 		public static Codec<ChunkPos> CHUNK_POS_CODEC = RecordCodecBuilder.create(instance ->
 			instance.group(
-					Codec.INT.fieldOf("x").forGetter(p -> p.x),
-					Codec.INT.fieldOf("z").forGetter(p -> p.z)
+					Codec.INT.fieldOf("x").forGetter(p -> p.x()),
+					Codec.INT.fieldOf("z").forGetter(p -> p.z())
 				)
 				.apply(instance, ChunkPos::new));
 
 		public static Codec<LoadedChunk> CODEC = RecordCodecBuilder.create(instance ->
 			instance.group(
 					CHUNK_POS_CODEC.fieldOf("chunk").forGetter(LoadedChunk::chunk),
-					ResourceLocation.CODEC.fieldOf("world").forGetter(LoadedChunk::world),
+					Identifier.CODEC.fieldOf("world").forGetter(LoadedChunk::world),
 					Codec.STRING.fieldOf("player").forGetter(LoadedChunk::player),
 					BlockPos.CODEC.fieldOf("chunkLoader").forGetter(LoadedChunk::chunkLoader)
 				)
 				.apply(instance, LoadedChunk::new));
 
 		public static StreamCodec<ByteBuf, ChunkPos> CHUNK_POS_PACKET_CODEC = StreamCodec.composite(
-			ByteBufCodecs.INT, chunkPos -> chunkPos.x,
-			ByteBufCodecs.INT, chunkPos -> chunkPos.z,
+			ByteBufCodecs.INT, chunkPos -> chunkPos.x(),
+			ByteBufCodecs.INT, chunkPos -> chunkPos.z(),
 			ChunkPos::new
 		);
 
 		public static StreamCodec<ByteBuf, LoadedChunk> PACKET_CODEC = StreamCodec.composite(
 			CHUNK_POS_PACKET_CODEC, LoadedChunk::chunk,
-			ResourceLocation.STREAM_CODEC, LoadedChunk::world,
+			Identifier.STREAM_CODEC, LoadedChunk::world,
 			ByteBufCodecs.STRING_UTF8, LoadedChunk::player,
 			BlockPos.STREAM_CODEC, LoadedChunk::chunkLoader,
 			LoadedChunk::new

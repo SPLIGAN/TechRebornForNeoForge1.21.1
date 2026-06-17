@@ -33,7 +33,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
-import team.reborn.energy.api.base.SimpleEnergyItem;
+import reborncore.common.energy.api.base.SimpleEnergyItem;
 import techreborn.TechReborn;
 import techreborn.component.TRDataComponentTypes;
 import techreborn.items.BatteryItem;

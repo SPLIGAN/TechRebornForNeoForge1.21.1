@@ -24,8 +24,8 @@
 
 package techreborn.items.tool;
 
+import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.common.powerSystem.PowerSystem;
-import team.reborn.energy.api.EnergyStorage;
 import techreborn.init.TRItemSettings;
 
 import net.minecraft.ChatFormatting;
@@ -66,12 +66,11 @@ public class DebugToolItem extends Item {
 			sendMessage(context, Component.literal(getPropertyString(value)));
 		});
 
-		EnergyStorage energyStorage = EnergyStorage.SIDED.find(context.getLevel(), context.getClickedPos(), context.getClickedFace());
-		if (energyStorage != null) {
-			sendMessage(context, Component.literal(getRCPower(energyStorage)));
+		BlockEntity blockEntity = context.getLevel().getBlockEntity(context.getClickedPos());
+		if (blockEntity instanceof PowerAcceptorBlockEntity powerAcceptor) {
+			sendMessage(context, Component.literal(getRCPower(powerAcceptor)));
 		}
 
-		BlockEntity blockEntity = context.getLevel().getBlockEntity(context.getClickedPos());
 		if (blockEntity == null) {
 			return InteractionResult.CONSUME;
 		}
@@ -121,13 +120,13 @@ public class DebugToolItem extends Item {
 		return s;
 	}
 
-	private String getRCPower(EnergyStorage energyStorage) {
+	private String getRCPower(PowerAcceptorBlockEntity powerAcceptor) {
 		String s = "" + ChatFormatting.GREEN;
 		s += "Power: ";
 		s += ChatFormatting.BLUE;
-		s += PowerSystem.getLocalizedPower(energyStorage.getAmount());
+		s += PowerSystem.getLocalizedPower(powerAcceptor.getEnergy());
 		s += "/";
-		s += PowerSystem.getLocalizedPower(energyStorage.getCapacity());
+		s += PowerSystem.getLocalizedPower(powerAcceptor.getMaxStoredPower());
 
 		return s;
 	}

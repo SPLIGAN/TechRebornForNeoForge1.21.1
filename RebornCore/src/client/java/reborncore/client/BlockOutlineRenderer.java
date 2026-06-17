@@ -26,8 +26,6 @@ package reborncore.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -36,7 +34,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.client.event.RenderHighlightEvent;
+import net.neoforged.neoforge.client.event.ExtractBlockOutlineRenderStateEvent;
 import reborncore.common.misc.MultiBlockBreakingTool;
 
 import java.util.ArrayList;
@@ -47,62 +45,42 @@ public final class BlockOutlineRenderer {
 	private BlockOutlineRenderer() {
 	}
 
-	public static void onBlockHighlight(RenderHighlightEvent.Block event) {
-		List<VoxelShape> shapes = new ArrayList<>();
-
+	public static void onBlockOutline(ExtractBlockOutlineRenderStateEvent event) {
 		LocalPlayer player = Minecraft.getInstance().player;
-		if (player == null) {
+		if (player == null || player != event.getCamera().entity()) {
 			return;
 		}
 
+		ItemStack stack = player.getMainHandItem();
+		if (stack.isEmpty() || !(stack.getItem() instanceof MultiBlockBreakingTool tool)) {
+			return;
+		}
+
+		BlockPos targetPos = event.getBlockPos();
 		Level world = player.level();
-		BlockPos targetPos = event.getTarget().getBlockPos();
-		Vec3 cam = event.getCamera().getPosition();
-		double cameraX = cam.x;
-		double cameraY = cam.y;
-		double cameraZ = cam.z;
+		Set<BlockPos> blockPosList = tool.getBlocksToBreak(stack, world, targetPos, player);
+		List<VoxelShape> shapes = new ArrayList<>();
 
-		if (player == Minecraft.getInstance().player) {
-			ItemStack stack = player.getMainHandItem();
-			if (stack.isEmpty()) {
-				return;
+		for (BlockPos pos : blockPosList) {
+			if (pos.equals(targetPos)) {
+				continue;
 			}
-
-			if (stack.getItem() instanceof MultiBlockBreakingTool tool) {
-				Set<BlockPos> blockPosList = tool.getBlocksToBreak(stack, player.level(), targetPos, player);
-
-				for (BlockPos pos : blockPosList) {
-					if (pos.equals(targetPos)) {
-						continue;
-					}
-
-					BlockState blockState = world.getBlockState(pos);
-					shapes.add(blockState.getShape(world, pos, CollisionContext.of(player)).move(pos.getX() - targetPos.getX(), pos.getY() - targetPos.getY(), pos.getZ() - targetPos.getZ()));
-
-				}
-			}
+			BlockState blockState = world.getBlockState(pos);
+			shapes.add(blockState.getShape(world, pos, CollisionContext.of(player))
+				.move(pos.getX() - targetPos.getX(), pos.getY() - targetPos.getY(), pos.getZ() - targetPos.getZ()));
 		}
 
-		if (!shapes.isEmpty()) {
-			BlockState state = world.getBlockState(targetPos);
-			VoxelShape shape = state.getShape(world, targetPos, CollisionContext.of(player));
-
-			for (VoxelShape voxelShape : shapes) {
-				shape = Shapes.or(shape, voxelShape);
-			}
-
-			LevelRenderer.renderVoxelShape(
-				event.getPoseStack(),
-				event.getMultiBufferSource().getBuffer(RenderType.lines()),
-				shape,
-				(double) targetPos.getX() - cameraX,
-				(double) targetPos.getY() - cameraY,
-				(double) targetPos.getZ() - cameraZ,
-				0.0F,
-				0.0F,
-				0.0F,
-				0.4F,
-				true);
+		if (shapes.isEmpty()) {
+			return;
 		}
+
+		BlockState state = world.getBlockState(targetPos);
+		VoxelShape shape = state.getShape(world, targetPos, CollisionContext.of(player));
+		for (VoxelShape voxelShape : shapes) {
+			shape = Shapes.or(shape, voxelShape);
+		}
+
+		Vec3 cam = event.getCamera().position();
+		event.addCustomRenderer((renderState, buffer, poseStack, translucentPass, levelRenderState) -> false);
 	}
 }

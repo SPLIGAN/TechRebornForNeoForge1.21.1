@@ -25,42 +25,33 @@
 package reborncore.client.compat.neoforge;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
-import net.neoforged.neoforge.client.ClientHooks;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import reborncore.client.compat.FluidRenderAppearanceHandler;
 
 /**
- * {@link FluidRenderAppearanceHandler} backed by NeoForge {@link IClientFluidTypeExtensions}.
+ * {@link FluidRenderAppearanceHandler} backed by NeoForge fluid model tint sources.
  */
 public record NeoForgeFluidRenderAppearanceAdapter(Fluid fluid) implements FluidRenderAppearanceHandler {
 
 	@Override
 	public int getFluidColor(BlockAndTintGetter view, BlockPos pos, FluidState state) {
-		return IClientFluidTypeExtensions.of(state).getTintColor(state, view, pos);
+		FluidModel model = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(state);
+		FluidTintSource tintSource = model.fluidTintSource();
+		if (tintSource == null) {
+			return 0xFFFFFFFF;
+		}
+		return tintSource.colorInWorld(state, state.createLegacyBlock(), view, pos);
 	}
 
 	@Override
 	public TextureAtlasSprite[] getFluidSprites(BlockAndTintGetter view, BlockPos pos, FluidState state) {
-		IClientFluidTypeExtensions ext = IClientFluidTypeExtensions.of(state);
-		ResourceLocation still = ext.getStillTexture(state, view, pos);
-		ResourceLocation flowing = ext.getFlowingTexture(state, view, pos);
-		if (still == null || flowing == null) {
-			return new TextureAtlasSprite[] {null, null};
-		}
-		Material stillMat = ClientHooks.getBlockMaterial(still);
-		Material flowMat = ClientHooks.getBlockMaterial(flowing);
-		var stillAtlas = Minecraft.getInstance().getTextureAtlas(stillMat.atlasLocation());
-		var flowAtlas = Minecraft.getInstance().getTextureAtlas(flowMat.atlasLocation());
-		return new TextureAtlasSprite[] {
-				stillAtlas.apply(stillMat.texture()),
-				flowAtlas.apply(flowMat.texture())
-		};
+		FluidModel model = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(state);
+		return new TextureAtlasSprite[] {model.stillMaterial().sprite(), model.flowingMaterial().sprite()};
 	}
 }

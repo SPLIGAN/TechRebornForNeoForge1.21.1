@@ -26,15 +26,15 @@ package techreborn.world;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 import techreborn.init.TRContent;
 
 /** One ore feature's registry keys; filtered ore lists live on {@link TROreFeatureQueries}. */
-public record TROreFeatureConfig(ResourceLocation id, TRContent.Ores ore, ResourceKey<ConfiguredFeature<?, ?>> configuredFeature, ResourceKey<PlacedFeature> placedFeature) {
+public record TROreFeatureConfig(Identifier id, TRContent.Ores ore, ResourceKey<ConfiguredFeature<?, ?>> configuredFeature, ResourceKey<PlacedFeature> placedFeature) {
 	public static TROreFeatureConfig of(TRContent.Ores ore) {
-		ResourceLocation id = ResourceLocation.fromNamespaceAndPath("techreborn", ore.name + "_ore");
+		Identifier id = Identifier.fromNamespaceAndPath("techreborn", ore.name + "_ore");
 		return new TROreFeatureConfig(
 			id,
 			ore,

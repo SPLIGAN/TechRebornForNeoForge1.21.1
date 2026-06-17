@@ -24,36 +24,42 @@
 
 package reborncore.common.misc.world;
 
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
+
 import java.util.Set;
 
 public class ChunkEventListeners {
 	public static ChunkPosMultiMap<ChunkEventListener> listeners = new ChunkPosMultiMap<>();
 
 	public static void init() {
-		ServerLifecycleEvents.SERVER_STOPPED.register(minecraftServer -> serverStopCleanup());
+		NeoForge.EVENT_BUS.addListener((ServerStoppedEvent event) -> serverStopCleanup());
 
-		ServerChunkEvents.CHUNK_LOAD.register((world, chunk, _) -> {
-			if (!world.isClientSide()) {
-				Set<ChunkEventListener> cels = listeners.get(world, chunk.getPos());
-				if (cels != null) {
-					for (ChunkEventListener cel : cels) {
-						cel.onLoadChunk();
-					}
+		NeoForge.EVENT_BUS.addListener((ChunkEvent.Load event) -> {
+			if (!(event.getLevel() instanceof ServerLevel world)) {
+				return;
+			}
+			Set<ChunkEventListener> cels = listeners.get(world, event.getChunk().getPos());
+			if (cels != null) {
+				for (ChunkEventListener cel : cels) {
+					cel.onLoadChunk();
 				}
 			}
 		});
-		ServerChunkEvents.CHUNK_UNLOAD.register((world, chunk) -> {
-			if (!world.isClientSide()) {
-				Set<ChunkEventListener> cels = listeners.get(world, chunk.getPos());
-				if (cels != null) {
-					for (ChunkEventListener cel : cels) {
-						cel.onUnloadChunk();
-					}
+
+		NeoForge.EVENT_BUS.addListener((ChunkEvent.Unload event) -> {
+			if (!(event.getLevel() instanceof ServerLevel world)) {
+				return;
+			}
+			Set<ChunkEventListener> cels = listeners.get(world, event.getChunk().getPos());
+			if (cels != null) {
+				for (ChunkEventListener cel : cels) {
+					cel.onUnloadChunk();
 				}
 			}
 		});

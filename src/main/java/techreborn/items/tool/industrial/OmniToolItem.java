@@ -127,7 +127,7 @@ public class OmniToolItem extends Item implements RcEnergyItem, IToolHandler {
 	}
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return RcEnergyTier.EXTREME;
 	}
 

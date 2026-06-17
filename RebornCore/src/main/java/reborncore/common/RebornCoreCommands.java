@@ -42,19 +42,20 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.server.permissions.LevelBasedPermissionSet;
+import net.minecraft.server.permissions.PermissionLevel;
 import net.minecraft.commands.arguments.item.ItemArgument;
+import net.minecraft.commands.arguments.item.ItemInput;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
@@ -80,7 +81,8 @@ public class RebornCoreCommands {
 
 					.then(
 						literal("generate")
-							.requires(source -> source.hasPermission(3))
+							.requires(source -> source.permissions() instanceof LevelBasedPermissionSet lbs
+								&& lbs.level().isEqualOrHigherThan(PermissionLevel.ADMINS))
 							.then(argument("size", integer())
 									.executes(RebornCoreCommands::generate)
 							)
@@ -88,7 +90,8 @@ public class RebornCoreCommands {
 
 					.then(
 						literal("flyspeed")
-							.requires(source -> source.hasPermission(3))
+							.requires(source -> source.permissions() instanceof LevelBasedPermissionSet lbs
+								&& lbs.level().isEqualOrHigherThan(PermissionLevel.ADMINS))
 							.then(argument("speed", integer(1, 10))
 									.executes(ctx -> flySpeed(ctx, ImmutableList.of(ctx.getSource().getPlayer())))
 									.then(Commands.argument("players", EntityArgument.players())
@@ -136,7 +139,7 @@ public class RebornCoreCommands {
 				CompletableFuture.supplyAsync(() -> serverChunkManager.getChunk(chunkPosX, chunkPosZ, ChunkStatus.FULL, true), EXECUTOR_SERVICE)
 						.whenComplete((chunk, throwable) -> {
 									int max = (int) Math.pow(size, 2);
-									ctx.getSource().sendSuccess(() -> Component.literal(String.format("Finished generating %d:%d (%d/%d %d%%)", chunk.getPos().x, chunk.getPos().z, completed.getAndIncrement(), max, completed.get() == 0 ? 0 : (int) ((completed.get() * 100.0f) / max))), true);
+									ctx.getSource().sendSuccess(() -> Component.literal(String.format("Finished generating %d:%d (%d/%d %d%%)", chunk.getPos().x(), chunk.getPos().z(), completed.getAndIncrement(), max, completed.get() == 0 ? 0 : (int) ((completed.get() * 100.0f) / max))), true);
 								}
 						);
 			}
@@ -156,25 +159,24 @@ public class RebornCoreCommands {
 	private static int renderMod(CommandContext<CommandSourceStack> ctx) {
 		String modid = StringArgumentType.getString(ctx, "modid");
 
-		List<ItemStack> list = BuiltInRegistries.ITEM.keySet().stream()
-				.filter(identifier -> identifier.getNamespace().equals(modid))
-				.map(BuiltInRegistries.ITEM::get)
-				.map(ItemStack::new)
-				.collect(Collectors.toList());
+		List<ItemStack> list = BuiltInRegistries.ITEM.listElements()
+				.filter(holder -> holder.getRegisteredName().startsWith(modid + ":"))
+				.map(holder -> new ItemStack(holder.value()))
+				.toList();
 
 		queueRender(list, ctx);
 		return Command.SINGLE_SUCCESS;
 	}
 
-	private static int itemRenderer(CommandContext<CommandSourceStack> ctx) {
-		Item item = ItemArgument.getItem(ctx, "item").getItem();
-		queueRender(Collections.singletonList(new ItemStack(item)), ctx);
+	private static int itemRenderer(CommandContext<CommandSourceStack> ctx) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
+		ItemInput input = ItemArgument.getItem(ctx, "item");
+		queueRender(Collections.singletonList(input.createItemStack(1)), ctx);
 
 		return Command.SINGLE_SUCCESS;
 	}
 
 	private static int handRenderer(CommandContext<CommandSourceStack> ctx) {
-		queueRender(Collections.singletonList(ctx.getSource().getPlayer().getInventory().getSelected()), ctx);
+		queueRender(Collections.singletonList(ctx.getSource().getPlayer().getInventory().getSelectedItem()), ctx);
 
 		return Command.SINGLE_SUCCESS;
 	}

@@ -64,8 +64,8 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 	public static final BooleanProperty ACTIVE = BlockMachineBase.ACTIVE;
 	protected final VoxelShape[] shape;
 
-	public BlockAlarm(String name) {
-		super(TRBlockSettings.alarm(name));
+	public BlockAlarm() {
+		super(TRBlockSettings.alarm());
 		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
 		this.shape = GenCuboidShapes(3, 10);
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);
@@ -160,12 +160,6 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 	@Override
 	public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext shapeContext) {
 		return shape[getFacing(state).ordinal()];
-	}
-
-
-	@Override
-	public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
-		tooltip.add(Component.translatable("techreborn.tooltip.alarm").withStyle(ChatFormatting.GRAY));
 	}
 
 }

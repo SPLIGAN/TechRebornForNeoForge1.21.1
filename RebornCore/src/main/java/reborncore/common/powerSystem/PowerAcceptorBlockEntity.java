@@ -39,8 +39,8 @@ import java.util.concurrent.ThreadLocalRandom;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Container;
@@ -152,7 +152,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 		if (level == null) {
 			return;
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return;
 		}
 
@@ -183,7 +183,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 			return;
 		}
 
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return;
 		}
 
@@ -333,7 +333,7 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	@Override
 	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity2) {
 		super.tick(world, pos, state, blockEntity2);
-		if (world == null || world.isClientSide) {
+		if (world == null || world.isClientSide()) {
 			return;
 		}
 		if (getStored() <= 0) {
@@ -357,21 +357,19 @@ public abstract class PowerAcceptorBlockEntity extends MachineBaseBlockEntity im
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tag, registryLookup);
-		CompoundTag data = tag.getCompound("PowerAcceptor");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
 		if (shouldHandleEnergyNBT()) {
-			// Bypass overfill check in setStored() because upgrades have not yet been applied.
-			this.energyContainer.amount = data.getLong("energy");
+			view.child("PowerAcceptor").ifPresent(data -> {
+				this.energyContainer.amount = data.getLongOr("energy", 0);
+			});
 		}
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tag, registryLookup);
-		CompoundTag data = new CompoundTag();
-		data.putLong("energy", getStored());
-		tag.put("PowerAcceptor", data);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
+		view.child("PowerAcceptor").putLong("energy", getStored());
 	}
 
 	@Override

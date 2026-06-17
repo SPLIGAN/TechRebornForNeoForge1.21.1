@@ -34,44 +34,55 @@ import com.mojang.serialization.JsonOps;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
+import reborncore.common.fluid.container.FluidContainerIngredient;
 
 /**
- * Decodes Fabric-style {@code fabric:components} ingredient JSON emitted by older datagen / Fabric,
- * after {@link Ingredient#CODEC_NONEMPTY} fails (NeoForge vanilla codec does not understand it).
+ * Decodes Fabric-style ingredient JSON emitted by upstream TechReborn 26.1 datagen,
+ * after {@link Ingredient#CODEC} fails (NeoForge vanilla codec does not understand it).
  */
 public final class RecipeIngredientCompat {
-	private static final ResourceLocation TECHREBORN_FLUID_COMPONENT = ResourceLocation.fromNamespaceAndPath("techreborn", "fluid");
+	private static final Identifier TECHREBORN_FLUID_COMPONENT = Identifier.fromNamespaceAndPath("techreborn", "fluid");
+	private static Codec<Ingredient> vanillaCodec;
 
 	public static final Codec<Ingredient> CODEC = new Codec<>() {
 		@Override
 		public <T> DataResult<Pair<Ingredient, T>> decode(DynamicOps<T> ops, T input) {
-			DataResult<Pair<Ingredient, T>> vanilla = Ingredient.CODEC_NONEMPTY.decode(ops, input);
+			Codec<Ingredient> base = vanillaCodec != null ? vanillaCodec : Ingredient.CODEC;
+			DataResult<Pair<Ingredient, T>> vanilla = base.decode(ops, input);
 			if (vanilla.isSuccess()) {
 				return vanilla;
 			}
 			if (ops instanceof JsonOps && input instanceof JsonElement element) {
-				return decodeFabricComponentsIngredient(element).map(ingredient -> Pair.of(ingredient, ops.empty()));
+				return decodeFabricIngredient(element).map(ingredient -> Pair.of(ingredient, ops.empty()));
 			}
 			return vanilla;
 		}
 
 		@Override
 		public <T> DataResult<T> encode(Ingredient input, DynamicOps<T> ops, T prefix) {
-			return Ingredient.CODEC_NONEMPTY.encode(input, ops, prefix);
+			Codec<Ingredient> base = vanillaCodec != null ? vanillaCodec : Ingredient.CODEC;
+			return base.encode(input, ops, prefix);
 		}
 	};
 
 	private RecipeIngredientCompat() {
 	}
 
-	private static DataResult<Ingredient> decodeFabricComponentsIngredient(JsonElement element) {
+	public static Codec<Ingredient> wrapVanillaCodec(Codec<Ingredient> base) {
+		vanillaCodec = base;
+		return CODEC;
+	}
+
+	public static DataResult<Ingredient> decodeFabricIngredient(JsonElement element) {
 		if (!element.isJsonObject()) {
 			return DataResult.error(() -> "Expected ingredient object for Fabric compat");
 		}
@@ -80,22 +91,38 @@ public final class RecipeIngredientCompat {
 			return DataResult.error(() -> "Not a Fabric-format ingredient");
 		}
 		String fabricType = GsonHelper.getAsString(object, "fabric:type");
-		if (!"fabric:components".equals(fabricType)) {
-			return DataResult.error(() -> "Unsupported fabric:type for ingredient: " + fabricType);
+		if ("fabric:components".equals(fabricType)) {
+			return decodeFabricComponentsIngredient(object);
 		}
+		if (FluidContainerIngredient.ID.toString().equals(fabricType) || "reborncore:fluid_container".equals(fabricType)) {
+			return decodeFluidContainerIngredient(object);
+		}
+		return DataResult.error(() -> "Unsupported fabric:type for ingredient: " + fabricType);
+	}
 
+	private static DataResult<Ingredient> decodeFluidContainerIngredient(JsonObject object) {
+		Identifier fluidId = Identifier.parse(GsonHelper.getAsString(object, "fluid"));
+		Fluid fluid = BuiltInRegistries.FLUID.getValue(fluidId);
+		if (fluid == null || fluid == Fluids.EMPTY) {
+			return DataResult.error(() -> "Unknown fluid for fluid container ingredient: " + fluidId);
+		}
+		long amount = GsonHelper.getAsLong(object, "amount", FluidContainerIngredient.DEFAULT_AMOUNT_MB);
+		return DataResult.success(new FluidContainerIngredient(fluid.builtInRegistryHolder(), amount).toVanilla());
+	}
+
+	private static DataResult<Ingredient> decodeFabricComponentsIngredient(JsonObject object) {
 		JsonObject base = GsonHelper.getAsJsonObject(object, "base");
 		int count = GsonHelper.getAsInt(object, "count", 1);
-		ResourceLocation itemId;
+		Identifier itemId;
 		if (base.has("item")) {
-			itemId = ResourceLocation.parse(GsonHelper.getAsString(base, "item"));
+			itemId = Identifier.parse(GsonHelper.getAsString(base, "item"));
 		} else if (base.has("id")) {
-			itemId = ResourceLocation.parse(GsonHelper.getAsString(base, "id"));
+			itemId = Identifier.parse(GsonHelper.getAsString(base, "id"));
 		} else {
 			return DataResult.error(() -> "fabric base missing item/id");
 		}
 
-		Item item = BuiltInRegistries.ITEM.get(itemId);
+		Item item = BuiltInRegistries.ITEM.getValue(itemId);
 		if (item == Items.AIR) {
 			return DataResult.error(() -> "Unknown item for Fabric ingredient: " + itemId);
 		}
@@ -104,11 +131,11 @@ public final class RecipeIngredientCompat {
 		if (object.has("components")) {
 			JsonObject components = GsonHelper.getAsJsonObject(object, "components");
 			for (String key : components.keySet()) {
-				ResourceLocation componentId = ResourceLocation.parse(key);
+				Identifier componentId = Identifier.parse(key);
 				if (!TECHREBORN_FLUID_COMPONENT.equals(componentId)) {
 					continue;
 				}
-				DataComponentType<?> rawType = BuiltInRegistries.DATA_COMPONENT_TYPE.get(componentId);
+				DataComponentType<?> rawType = BuiltInRegistries.DATA_COMPONENT_TYPE.getValue(componentId);
 				if (rawType == null) {
 					continue;
 				}
@@ -120,6 +147,6 @@ public final class RecipeIngredientCompat {
 			}
 		}
 
-		return DataResult.success(Ingredient.of(stack));
+		return DataResult.success(DataComponentIngredient.of(stack.getComponentsPatch(), item));
 	}
 }

@@ -36,6 +36,7 @@ import reborncore.common.chunkloading.ChunkLoaderManager;
 import reborncore.common.config.Configuration;
 import reborncore.common.event.ServerLifecycleBridge;
 import reborncore.common.misc.RebornCoreTags;
+import reborncore.common.misc.world.ChunkEventListeners;
 import reborncore.common.multiblock.MultiblockRegistry;
 import reborncore.common.recipes.PaddedShapedRecipe;
 import reborncore.common.screen.ServerPlayerEntityScreenHandlerHelper;
@@ -43,7 +44,7 @@ import reborncore.common.util.CalenderUtils;
 import reborncore.common.util.GenericWrenchHelper;
 import reborncore.common.util.LoaderBridge;
 import java.util.Locale;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
@@ -59,18 +60,18 @@ public class RebornCore {
 		new Configuration(RebornCoreConfig.class, MOD_ID);
 		CalenderUtils.loadCalender(); // Done early as some features need this
 
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("intergrateddynamics:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("thermal:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("rftoolsbase:smartwrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("redstone_arsenal:flux_wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("intergrateddynamics:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("thermal:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("rftoolsbase:smartwrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("redstone_arsenal:flux_wrench"), false));
 
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("ad_astra:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("ae2:certus_quartz_wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("ae2:nether_quartz_wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("bitsandchisels:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("create:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("indrev:wrench"), false));
-		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(ResourceLocation.parse("modern_industialization:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("ad_astra:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("ae2:certus_quartz_wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("ae2:nether_quartz_wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("bitsandchisels:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("create:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("indrev:wrench"), false));
+		ToolManager.INSTANCE.customToolHandlerList.add(new GenericWrenchHelper(Identifier.parse("modern_industialization:wrench"), false));
 
 		BlockWrenchEventHandler.setup();
 
@@ -85,6 +86,8 @@ public class RebornCore {
 		ServerLifecycleBridge.onStartWorldTick(MultiblockRegistry::tickStart);
 
 		RebornCoreCommands.setup();
+
+		ChunkEventListeners.init();
 
 		//noinspection ResultOfMethodCallIgnored
 		RebornCoreTags.WATER_EXPLOSION_ITEM.toString();

@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
@@ -91,6 +91,6 @@ public class GuiAESU extends GuiBase<BuiltScreenHandler> {
 
 	public void onClick(int amount) {
 		Minecraft mc = Minecraft.getInstance();
-		ClientPlayNetworking.send(new AESUConfigPayload(blockEntity.getBlockPos(), amount, mc.hasShiftDown(), mc.hasControlDown()));
+		ClientNetworkingBridge.sendToServer(new AESUConfigPayload(blockEntity.getBlockPos(), amount, mc.hasShiftDown(), mc.hasControlDown()));
 	}
 }

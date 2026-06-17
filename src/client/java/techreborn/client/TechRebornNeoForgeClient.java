@@ -4,34 +4,26 @@
 
 package techreborn.client;
 
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.level.material.Fluid;
-import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
+import net.neoforged.neoforge.client.event.RegisterItemModelsEvent;
+import net.neoforged.neoforge.client.event.RegisterSelectItemModelPropertyEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import org.jetbrains.annotations.ApiStatus;
 import reborncore.client.multiblock.MultiblockRenderer;
 import techreborn.TechRebornClient;
 import techreborn.client.compat.NeoForgeMachineCasingModelBridge;
-import techreborn.client.render.DynamicCellBakedModel;
-import techreborn.client.render.DynamicBucketBakedModel;
+import techreborn.client.render.ActiveProperty;
+import techreborn.client.render.ItemBucketModel;
+import techreborn.client.render.ItemCellModel;
 import techreborn.client.render.entitys.CableCoverRenderer;
 import techreborn.client.render.entitys.NukeRenderer;
 import techreborn.client.render.entitys.StorageUnitRenderer;
 import techreborn.client.render.entitys.TurbineRenderer;
-import techreborn.init.ModFluids;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
-
-import java.util.Map;
 
 @ApiStatus.Internal
 public final class TechRebornNeoForgeClient {
@@ -39,7 +31,8 @@ public final class TechRebornNeoForgeClient {
 	}
 
 	public static void subscribeModBus(IEventBus modBus) {
-		modBus.addListener(TechRebornNeoForgeClient::registerAdditionalModels);
+		modBus.addListener(TechRebornNeoForgeClient::registerItemModels);
+		modBus.addListener(TechRebornNeoForgeClient::registerSelectItemProperties);
 		modBus.addListener(TechRebornNeoForgeClient::modifyBakingResult);
 		modBus.addListener(TechRebornNeoForgeClient::registerRenderers);
 	}
@@ -48,34 +41,17 @@ public final class TechRebornNeoForgeClient {
 		NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> TechRebornClient.onClientTickPost(e));
 	}
 
-	private static void registerAdditionalModels(ModelEvent.RegisterAdditional event) {
-		event.register(ModelResourceLocation.standalone(DynamicCellBakedModel.CELL_BASE));
-		event.register(ModelResourceLocation.standalone(DynamicCellBakedModel.CELL_BACKGROUND));
-		event.register(ModelResourceLocation.standalone(DynamicCellBakedModel.CELL_FLUID));
-		event.register(ModelResourceLocation.standalone(DynamicCellBakedModel.CELL_GLASS));
-		event.register(ModelResourceLocation.standalone(DynamicBucketBakedModel.BUCKET_BASE));
-		event.register(ModelResourceLocation.standalone(DynamicBucketBakedModel.BUCKET_FLUID));
-		event.register(ModelResourceLocation.standalone(DynamicBucketBakedModel.BUCKET_BACKGROUND));
+	private static void registerItemModels(RegisterItemModelsEvent event) {
+		event.register(ItemCellModel.ID, ItemCellModel.Unbaked.CODEC);
+		event.register(ItemBucketModel.ID, ItemBucketModel.Unbaked.CODEC);
+	}
+
+	private static void registerSelectItemProperties(RegisterSelectItemModelPropertyEvent event) {
+		event.register(ActiveProperty.ID, ActiveProperty.TYPE);
 	}
 
 	private static void modifyBakingResult(ModelEvent.ModifyBakingResult event) {
 		NeoForgeMachineCasingModelBridge.onModifyBakingResult(event);
-
-		Map<ModelResourceLocation, BakedModel> models = event.getModels();
-
-		models.put(ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(TRContent.CELL)), new DynamicCellBakedModel());
-
-		for (ModFluids fluid : ModFluids.values()) {
-			Fluid still = fluid.getFluid();
-			if (still == Fluids.EMPTY) {
-				continue;
-			}
-			Item bucket = fluid.getBucket();
-			ModelResourceLocation bucketMrl = ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(bucket));
-			if (models.containsKey(bucketMrl)) {
-				models.put(bucketMrl, new DynamicBucketBakedModel());
-			}
-		}
 	}
 
 	private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -96,23 +72,6 @@ public final class TechRebornNeoForgeClient {
 	}
 
 	public static void registerRenderLayers() {
-		for (TRContent.Cables cable : TRContent.Cables.values()) {
-			ItemBlockRenderTypes.setRenderLayer(cable.block, RenderType.cutout());
-		}
-
-		ItemBlockRenderTypes.setRenderLayer(TRContent.Machine.LAMP_INCANDESCENT.block, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.Machine.LAMP_LED.block, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.Machine.ALARM.block, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.RUBBER_SAPLING, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.REINFORCED_GLASS, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.Machine.RESIN_BASIN.block, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.POTTED_RUBBER_SAPLING, RenderType.cutout());
-		ItemBlockRenderTypes.setRenderLayer(TRContent.Machine.FISHING_STATION.block, RenderType.cutout());
-
-		ItemBlockRenderTypes.setRenderLayer(TRContent.RUBBER_LEAVES, RenderType.cutoutMipped());
-
-		for (ModFluids fluid : ModFluids.values()) {
-			ItemBlockRenderTypes.setRenderLayer(fluid.getBlock(), RenderType.translucent());
-		}
+		// 26.1: render layers are defined in block/fluid model JSON; ItemBlockRenderTypes removed.
 	}
 }

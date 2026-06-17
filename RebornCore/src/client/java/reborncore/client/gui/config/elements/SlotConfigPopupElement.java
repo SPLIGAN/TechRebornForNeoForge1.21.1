@@ -24,7 +24,7 @@
 
 package reborncore.client.gui.config.elements;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.Direction;
@@ -94,14 +94,14 @@ public class SlotConfigPopupElement extends AbstractConfigPopupElement {
 								configHolder.first = null;
 							}
 						}
-						ClientPlayNetworking.send(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
+						ClientNetworkingBridge.sendToServer(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
 
 						if (configHolder.getSideDetail(side).getSlotIO().getIoConfig() != SlotConfiguration.ExtractConfig.NONE) {
 							return;
 						}
 					} else {
 						int priority = pencil.equals("FIRST") ? side.ordinal() * 10 + 6 : 60 + side.ordinal();
-						ClientPlayNetworking.send(new IoSavePayload(guiBase.be.getBlockPos(), id, true, true, false, priority));
+						ClientNetworkingBridge.sendToServer(new IoSavePayload(guiBase.be.getBlockPos(), id, true, true, false, priority));
 					}
 					nextConfig = allowInput ? SlotConfiguration.ExtractConfig.INPUT : SlotConfiguration.ExtractConfig.OUTPUT;
 					break;
@@ -112,10 +112,10 @@ public class SlotConfigPopupElement extends AbstractConfigPopupElement {
 					if (configHolder != null) {
 						if (configHolder.first == side) {
 							configHolder.first = null;
-							ClientPlayNetworking.send(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
+							ClientNetworkingBridge.sendToServer(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
 						} else if (configHolder.last == side) {
 							configHolder.last = null;
-							ClientPlayNetworking.send(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
+							ClientNetworkingBridge.sendToServer(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
 						}
 					}
 
@@ -134,7 +134,7 @@ public class SlotConfigPopupElement extends AbstractConfigPopupElement {
 
 		SlotConfiguration.SlotIO slotIO = new SlotConfiguration.SlotIO(nextConfig);
 		SlotConfiguration.SlotConfig newConfig = new SlotConfiguration.SlotConfig(side, slotIO, id);
-		ClientPlayNetworking.send(new SlotSavePayload(guiBase.be.getBlockPos(), newConfig));
+		ClientNetworkingBridge.sendToServer(new SlotSavePayload(guiBase.be.getBlockPos(), newConfig));
 	}
 
 	public void updateCheckBox(String type, GuiBase<?> guiBase) {
@@ -153,7 +153,7 @@ public class SlotConfigPopupElement extends AbstractConfigPopupElement {
 			configHolder.setFilter(!configHolder.filter());
 		}
 
-		ClientPlayNetworking.send(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
+		ClientNetworkingBridge.sendToServer(new IoSavePayload(guiBase.be.getBlockPos(), id, configHolder));
 	}
 
 	@Override

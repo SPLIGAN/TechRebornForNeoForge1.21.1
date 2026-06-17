@@ -5,7 +5,7 @@
 package techreborn.blocks.cable;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.BlockAndTintGetter;
+import net.minecraft.world.level.BlockAndLightGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -16,7 +16,7 @@ public final class RenderDataBridge {
 	}
 
 	@Nullable
-	public static BlockState getRenderAttachment(BlockAndTintGetter renderView, BlockPos pos) {
+	public static BlockState getRenderAttachment(BlockAndLightGetter renderView, BlockPos pos) {
 		BlockEntity be = renderView.getBlockEntity(pos);
 		if (be instanceof CableBlockEntity cable) {
 			return cable.getRenderAttachmentData();

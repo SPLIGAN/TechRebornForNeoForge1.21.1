@@ -29,7 +29,7 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -95,6 +95,6 @@ public final class EventBridge {
 
 	@FunctionalInterface
 	public interface TemplatePoolAddedHandler {
-		void onTemplatePoolAdded(ResourceLocation id, StructureTemplatePool pool);
+		void onTemplatePoolAdded(Identifier id, StructureTemplatePool pool);
 	}
 }

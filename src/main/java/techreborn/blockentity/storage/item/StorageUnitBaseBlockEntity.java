@@ -33,15 +33,22 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.Tuple;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PlayerHeadItem;
-import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
 import reborncore.api.IToolDrop;
@@ -57,6 +64,8 @@ import reborncore.common.util.RebornInventory;
 import reborncore.common.util.WorldUtils;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
+
+import static techreborn.TechReborn.LOGGER;
 
 import java.util.List;
 
@@ -203,7 +212,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 				}
 				addStoredItemCount(amount);
 				inputStack = pair.getB().copy();
-				inventory.setHashChanged();
+				inventory.setHasChanged();
 			}
 			return inputStack;
 		}
@@ -229,7 +238,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 			inputStack.shrink(reminder);
 		}
 
-		inventory.setHashChanged();
+		inventory.setHasChanged();
 		return inputStack;
 	}
 
@@ -253,7 +262,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	@Override
 	public void tick(Level world, BlockPos pos, BlockState state, MachineBaseBlockEntity blockEntity) {
 		super.tick(world, pos, state, blockEntity);
-		if (world == null || world.isClientSide) {
+		if (world == null || world.isClientSide()) {
 			return;
 		}
 		// If there is an item in the input AND stored is less than max capacity
@@ -304,58 +313,54 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(tagCompound, registryLookup);
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
 
-		if (tagCompound.contains("unitType")) {
-			this.type = TRContent.StorageUnit.valueOf(tagCompound.getString("unitType"));
+		view.getString("unitType").ifPresentOrElse(name -> {
+			this.type = TRContent.StorageUnit.valueOf(name);
 			configureEntity(type);
-		} else {
+		}, () -> {
 			this.type = TRContent.StorageUnit.QUANTUM;
-		}
+		});
 
 		storeItemStack = ItemStack.EMPTY;
 
-		if (tagCompound.contains("storedStack")) {
-			storeItemStack = ItemStack.parse(registryLookup, tagCompound.getCompound("storedStack")).orElseThrow();
-		}
+		view.read("storedStack", ItemStack.CODEC).ifPresent(stack -> {
+			storeItemStack = stack;
+		});
 
 		if (!storeItemStack.isEmpty()) {
-			storeItemStack.setCount(Math.min(tagCompound.getInt("storedQuantity"), this.maxCapacity));
+			storeItemStack.setCount(Math.min(view.getIntOr("storedQuantity", 0), this.maxCapacity));
 		}
 
-		// Renderer only
-		if (tagCompound.contains("totalStoredAmount")) {
-			storedAmount = tagCompound.getInt("totalStoredAmount");
-		}
+		storedAmount = view.getIntOr("totalStoredAmount", 0);
 
-		if (tagCompound.contains("lockedItem")) {
-			lockedItemStack = ItemStack.parse(registryLookup, tagCompound.getCompound("lockedItem")).orElseThrow();
-		}
+		view.read("lockedItem", ItemStack.CODEC).ifPresent(stack -> {
+			lockedItemStack = stack;
+		});
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tagCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(tagCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
 
-		tagCompound.putString("unitType", this.type.name());
+		view.putString("unitType", this.type.name());
 
 		if (!storeItemStack.isEmpty()) {
 			ItemStack temp = storeItemStack.copy();
 			if (storeItemStack.getCount() > storeItemStack.getMaxStackSize()) {
 				temp.setCount(storeItemStack.getMaxStackSize());
 			}
-			tagCompound.put("storedStack", temp.save(registryLookup, new CompoundTag()));
-			tagCompound.putInt("storedQuantity", Math.min(storeItemStack.getCount(), maxCapacity));
+			view.store("storedStack", ItemStack.CODEC, temp);
+			view.putInt("storedQuantity", Math.min(storeItemStack.getCount(), maxCapacity));
 		} else {
-			tagCompound.putInt("storedQuantity", 0);
+			view.putInt("storedQuantity", 0);
 		}
 
-		// Renderer only
-		tagCompound.putInt("totalStoredAmount", getCurrentCapacity());
+		view.putInt("totalStoredAmount", getCurrentCapacity());
 
 		if (isLocked()) {
-			tagCompound.put("lockedItem", lockedItemStack.save(registryLookup));
+			view.store("lockedItem", ItemStack.CODEC, lockedItemStack);
 		}
 	}
 
@@ -433,7 +438,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	// InventoryProvider
 	@Override
-	public net.minecraft.world.Container getInventory() {
+	public RebornInventory<StorageUnitBaseBlockEntity> getInventory() {
 		return inventory;
 	}
 
@@ -441,10 +446,12 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	@Override
 	public ItemStack getToolDrop(Player entityPlayer) {
 		ItemStack dropStack = new ItemStack(getBlockType(), 1);
-		final CompoundTag nbt = new CompoundTag();
-		if (level != null){
-			saveAdditional(nbt, level.registryAccess());
-			dropStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(nbt));
+		if (level != null) {
+			try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(problemPath(), LOGGER)) {
+				TagValueOutput view = TagValueOutput.createWithContext(logging, level.registryAccess());
+				saveAdditional(view);
+				dropStack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(getType(), view.buildResult()));
+			}
 		}
 
 		return dropStack;
@@ -527,15 +534,15 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 	public CompoundTag getStoredStackNBT() {
 		CompoundTag tag = new CompoundTag();
+		RegistryOps<Tag> ops = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
 		ItemStack stack = getStoredStack();
 
 		tag.putInt("count", stack.getCount());
 
 		if (!stack.isEmpty()) {
-			// We are not allowed to serialize empty or large stacks
 			ItemStack singleStack = stack.copy();
 			singleStack.setCount(1);
-			tag.put("item", singleStack.save(level.registryAccess(), new CompoundTag()));
+			tag.store("item", ItemStack.CODEC, ops, singleStack);
 		}
 
 		return tag;
@@ -545,10 +552,11 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		if (!tag.contains("item")) {
 			storeItemStack = ItemStack.EMPTY;
 		} else {
-			storeItemStack = ItemStack.parse(level.registryAccess(), tag.getCompound("item")).orElseThrow();
+			RegistryOps<Tag> ops = level.registryAccess().createSerializationContext(NbtOps.INSTANCE);
+			storeItemStack = tag.read("item", ItemStack.CODEC, ops).orElse(ItemStack.EMPTY);
 		}
 
-		storeItemStack.setCount(tag.getInt("count"));
+		storeItemStack.setCount(tag.getInt("count").orElse(0));
 	}
 
 	private TransferApiBridge.SingleStackStorageHandle getInternalStoreStorage(@Nullable Direction direction) {
@@ -589,7 +597,7 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 
 				@Override
 				public void onFinalCommit() {
-					inventory.setHashChanged();
+					inventory.setHasChanged();
 				}
 			});
 		}

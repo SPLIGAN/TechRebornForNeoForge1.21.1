@@ -24,7 +24,7 @@
 
 package reborncore.common.compat.neoforge;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 
@@ -35,7 +35,7 @@ public final class NeoForgeWoodTypeBridge {
 	private NeoForgeWoodTypeBridge() {
 	}
 
-	public static BlockSetType createBlockSetType(ResourceLocation id, BlockSetType baseType) {
+	public static BlockSetType createBlockSetType(Identifier id, BlockSetType baseType) {
 		BlockSetType created = new BlockSetType(
 				id.getPath(),
 				baseType.canOpenByHand(),
@@ -54,7 +54,7 @@ public final class NeoForgeWoodTypeBridge {
 		return BlockSetType.register(created);
 	}
 
-	public static WoodType registerWoodType(ResourceLocation id, WoodType baseType, BlockSetType blockSetType) {
+	public static WoodType registerWoodType(Identifier id, WoodType baseType, BlockSetType blockSetType) {
 		WoodType created = new WoodType(
 				id.getPath(),
 				blockSetType,

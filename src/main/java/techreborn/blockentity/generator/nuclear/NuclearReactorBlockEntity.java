@@ -459,7 +459,7 @@ public class NuclearReactorBlockEntity extends PowerAcceptorBlockEntity implemen
 				int x = 8 + col * 18;
 				int y = 18 + row * 18;
 				final int s = slot;
-				builder = builder.filterSlot(slot, x, y, stack -> isSlotAvailable(s) && isValidItem(stack), 1);
+				builder = builder.filterSlot(slot, x, y, stack -> isSlotAvailable(s) && isValidItem(stack));
 			}
 		}
 

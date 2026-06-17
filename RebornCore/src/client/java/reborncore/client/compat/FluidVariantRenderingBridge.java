@@ -25,33 +25,34 @@
 package reborncore.client.compat;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.data.AtlasIds;
 import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.neoforge.client.ClientHooks;
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 
 public final class FluidVariantRenderingBridge {
 	private FluidVariantRenderingBridge() {
 	}
 
 	public static TextureAtlasSprite getSprite(Fluid fluid) {
-		if (fluid == Fluids.EMPTY) {
-			ResourceLocation missing = net.minecraft.client.renderer.texture.MissingTextureAtlasSprite.getLocation();
-			return Minecraft.getInstance().getTextureAtlas(InventoryMenu.BLOCK_ATLAS).apply(missing);
+		if (fluid.isSame(Fluids.EMPTY)) {
+			return Minecraft.getInstance().getAtlasManager().getAtlasOrThrow(AtlasIds.BLOCKS).missingSprite();
 		}
-		ResourceLocation still = IClientFluidTypeExtensions.of(fluid).getStillTexture();
-		Material material = ClientHooks.getBlockMaterial(still);
-		return Minecraft.getInstance().getTextureAtlas(material.atlasLocation()).apply(material.texture());
+		FluidState state = fluid.defaultFluidState();
+		FluidModel model = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(state);
+		return model.stillMaterial().sprite();
 	}
 
 	public static int getColor(Fluid fluid) {
-		if (fluid == Fluids.EMPTY) {
+		if (fluid.isSame(Fluids.EMPTY)) {
 			return 0xFFFFFFFF;
 		}
-		return IClientFluidTypeExtensions.of(fluid).getTintColor();
+		FluidState state = fluid.defaultFluidState();
+		FluidModel model = Minecraft.getInstance().getModelManager().getFluidStateModelSet().get(state);
+		FluidTintSource tintSource = model.fluidTintSource();
+		return tintSource != null ? tintSource.color(state) : 0xFFFFFFFF;
 	}
 }

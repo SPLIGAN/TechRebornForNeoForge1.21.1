@@ -24,135 +24,90 @@
 
 package reborncore.common.recipes;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import it.unimi.dsi.fastutil.chars.CharArraySet;
-import it.unimi.dsi.fastutil.chars.CharSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 public class PaddedShapedRecipe extends ShapedRecipe {
-	public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("reborncore", "padded");
+	public static final Identifier ID = Identifier.fromNamespaceAndPath("reborncore", "padded");
 	public static RecipeSerializer<PaddedShapedRecipe> PADDED;
+
+	public static final MapCodec<PaddedShapedRecipe> MAP_CODEC = RecordCodecBuilder.mapCodec(
+		instance -> instance.group(
+				Recipe.CommonInfo.MAP_CODEC.forGetter(o -> o.commonInfo),
+				CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(o -> o.bookInfo),
+				ShapedRecipePattern.MAP_CODEC.forGetter(o -> o.pattern),
+				ItemStackTemplate.CODEC.fieldOf("result").forGetter(PaddedShapedRecipe::resultTemplate))
+			.apply(instance, PaddedShapedRecipe::new));
+
+	public static final StreamCodec<RegistryFriendlyByteBuf, PaddedShapedRecipe> STREAM_CODEC = StreamCodec.composite(
+		Recipe.CommonInfo.STREAM_CODEC,
+		o -> o.commonInfo,
+		CraftingRecipe.CraftingBookInfo.STREAM_CODEC,
+		o -> o.bookInfo,
+		ShapedRecipePattern.STREAM_CODEC,
+		o -> o.pattern,
+		ItemStackTemplate.STREAM_CODEC,
+		PaddedShapedRecipe::resultTemplate,
+		PaddedShapedRecipe::new);
 
 	public static void register(RegisterEvent event) {
 		event.register(Registries.RECIPE_SERIALIZER, ID, () -> {
-			RecipeSerializer<PaddedShapedRecipe> serializer = new PaddedShapedRecipe.Serializer();
+			RecipeSerializer<PaddedShapedRecipe> serializer = new RecipeSerializer<>(MAP_CODEC, STREAM_CODEC);
 			PADDED = serializer;
 			return serializer;
 		});
 	}
 
-	final ShapedRecipePattern raw;
-	final ItemStack result;
+	private final ItemStackTemplate resultTemplate;
 
-	public PaddedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern raw, ItemStack result, boolean showNotification) {
-		super(group, category, raw, result, showNotification);
-		this.raw = raw;
-		this.result = result;
+	public PaddedShapedRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo, ShapedRecipePattern pattern, ItemStackTemplate result) {
+		super(commonInfo, bookInfo, pattern, result);
+		this.resultTemplate = result;
+	}
+
+	public PaddedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result, boolean showNotification) {
+		this(
+			new Recipe.CommonInfo(showNotification),
+			new CraftingRecipe.CraftingBookInfo(category, group),
+			pattern,
+			ItemStackTemplate.fromNonEmptyStack(result));
 	}
 
 	public static ShapedRecipePattern create(Map<Character, Ingredient> key, List<String> pattern) {
-		ShapedRecipePattern.Data data = new ShapedRecipePattern.Data(key, pattern);
-		return fromData(data).getOrThrow();
-	}
-
-	// Basically a copy of ShapedRecipe.fromData
-	private static DataResult<ShapedRecipePattern> fromData(ShapedRecipePattern.Data data) {
-		String[] strings = data.pattern().toArray(String[]::new);
-		int width = strings[0].length();
-		int height = strings.length;
-
-		NonNullList<Ingredient> ingredients = NonNullList.withSize(width * height, Ingredient.EMPTY);
-		CharSet charSet = new CharArraySet(data.key().keySet());
-
-		for(int i = 0; i < strings.length; ++i) {
-			String string = strings[i];
-
-			for(int l = 0; l < string.length(); ++l) {
-				char c = string.charAt(l);
-				Ingredient ingredient = c == ' ' ? Ingredient.EMPTY : data.key().get(c);
-				if (ingredient == null) {
-					return DataResult.error(() -> "Pattern references symbol '" + c + "' but it's not defined in the key");
-				}
-
-				charSet.remove(c);
-				ingredients.set(l + width * i, ingredient);
-			}
-		}
-
-		if (!charSet.isEmpty()) {
-			return DataResult.error(() -> "Key defines symbols that aren't used in pattern: " + charSet);
-		}
-
-		return DataResult.success(new ShapedRecipePattern(width, height, ingredients, Optional.of(data)));
+		return ShapedRecipePattern.of(key, pattern);
 	}
 
 	@Override
-	public RecipeSerializer<?> getSerializer() {
-		return PADDED;
+	@SuppressWarnings("unchecked")
+	public RecipeSerializer<ShapedRecipe> getSerializer() {
+		return (RecipeSerializer<ShapedRecipe>) (RecipeSerializer<?>) PADDED;
 	}
 
 	public ShapedRecipePattern getRaw() {
-		return raw;
+		return this.pattern;
+	}
+
+	public ItemStackTemplate resultTemplate() {
+		return this.resultTemplate;
 	}
 
 	public ItemStack getResult() {
-		return result;
-	}
-
-	private static class Serializer implements RecipeSerializer<PaddedShapedRecipe> {
-
-		public static final MapCodec<PaddedShapedRecipe> CODEC = RecordCodecBuilder.mapCodec(
-			instance -> instance.group(Codec.STRING.optionalFieldOf("group", "").forGetter(PaddedShapedRecipe::getGroup),
-					CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(PaddedShapedRecipe::category),
-					ShapedRecipePattern.MAP_CODEC.forGetter(PaddedShapedRecipe::getRaw),
-					ItemStack.STRICT_CODEC.fieldOf("result").forGetter(PaddedShapedRecipe::getResult),
-					Codec.BOOL.optionalFieldOf("show_notification", true).forGetter(PaddedShapedRecipe::showNotification))
-				.apply(instance, PaddedShapedRecipe::new));
-
-		public static final StreamCodec<RegistryFriendlyByteBuf, PaddedShapedRecipe> PACKET_CODEC = StreamCodec.of(PaddedShapedRecipe.Serializer::write, PaddedShapedRecipe.Serializer::read);
-
-		@Override
-		public MapCodec<PaddedShapedRecipe> codec() {
-			return CODEC;
-		}
-
-		@Override
-		public StreamCodec<RegistryFriendlyByteBuf, PaddedShapedRecipe> streamCodec() {
-			return PACKET_CODEC;
-		}
-
-		private static PaddedShapedRecipe read(RegistryFriendlyByteBuf buf) {
-			String string = buf.readUtf();
-			CraftingBookCategory craftingRecipeCategory = buf.readEnum(CraftingBookCategory.class);
-			ShapedRecipePattern rawShapedRecipe = ShapedRecipePattern.STREAM_CODEC.decode(buf);
-			ItemStack itemStack = ItemStack.STREAM_CODEC.decode(buf);
-			boolean showNotification = buf.readBoolean();
-			return new PaddedShapedRecipe(string, craftingRecipeCategory, rawShapedRecipe, itemStack, showNotification);
-		}
-
-		private static void write(RegistryFriendlyByteBuf buf, PaddedShapedRecipe recipe) {
-			buf.writeUtf(recipe.getGroup());
-			buf.writeEnum(recipe.category());
-			ShapedRecipePattern.STREAM_CODEC.encode(buf, recipe.raw);
-			ItemStack.STREAM_CODEC.encode(buf, recipe.result);
-			buf.writeBoolean(recipe.showNotification());
-		}
+		return this.resultTemplate.create();
 	}
 }

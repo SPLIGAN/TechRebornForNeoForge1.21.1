@@ -94,7 +94,7 @@ public class ServerBoundPackets {
 			holder.setFilter(payload.filter());
 			holder.setPriority(payload.priority());
 
-			NetworkManager.sendToAll(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), context.player().getServer());
+			NetworkManager.sendToAll(new SlotSyncPayload(payload.pos(), machine.getSlotConfiguration()), context.player().level().getServer());
 		});
 
 		reg.playToServer(SlotSavePayload.ID, SlotSavePayload.PACKET_CODEC, (payload, context) -> {

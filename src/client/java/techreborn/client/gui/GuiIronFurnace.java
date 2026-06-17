@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -51,7 +51,7 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	}
 
 	public void onClick(Button buttonWidget) {
-		ClientPlayNetworking.send(new ExperiencePayload(blockEntity.getBlockPos()));
+		ClientNetworkingBridge.sendToServer(new ExperiencePayload(blockEntity.getBlockPos()));
 	}
 
 	@Override

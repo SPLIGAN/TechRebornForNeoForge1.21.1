@@ -26,21 +26,25 @@ package techreborn.client.keybindings;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 import reborncore.client.input.ClientInputBridge;
 import reborncore.client.network.ClientNetworkingBridge;
+import techreborn.TechReborn;
 import techreborn.packets.serverbound.QuantumSuitSprintPayload;
 import techreborn.packets.serverbound.SuitNightVisionPayload;
 
 public class KeyBindings {
-	// Actual keybindings are in TechRebornClient
-	public static final String CATEGORY = "key.techreborn.category";
+	public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(
+		Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "main"));
 
 	public static KeyMapping suitNightVision;
 	public static KeyMapping quantumSuitSprint;
 
 	public static void registerKeys(RegisterKeyMappingsEvent event) {
+		event.registerCategory(CATEGORY);
+
 		suitNightVision = ClientInputBridge.register(event,
 			new KeyMapping("key.techreborn.suitNightVision",
 				InputConstants.Type.KEYSYM,

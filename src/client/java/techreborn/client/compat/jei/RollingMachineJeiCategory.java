@@ -30,12 +30,9 @@ import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
 import mezz.jei.api.recipe.IFocusGroup;
-import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -46,20 +43,18 @@ import techreborn.init.ModRecipes;
 import techreborn.recipe.recipes.RollingMachineRecipe;
 
 import java.text.DecimalFormat;
-import java.util.Arrays;
 import java.util.List;
 
-@SuppressWarnings({"rawtypes", "unchecked"})
 public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<RollingMachineRecipe>> {
 	private static final DecimalFormat TIME_FMT = new DecimalFormat("###.##");
 	private static final int WIDTH = 140;
 	private static final int HEIGHT = 88;
 
-	private final RecipeType jeiRecipeType;
+	private final IRecipeHolderType<RollingMachineRecipe> jeiRecipeType;
 	private final IDrawable icon;
 
 	public RollingMachineJeiCategory(IGuiHelper guiHelper, ItemStack iconStack) {
-		this.jeiRecipeType = RecipeType.createFromVanilla(ModRecipes.ROLLING_MACHINE);
+		this.jeiRecipeType = IRecipeHolderType.create(ModRecipes.ROLLING_MACHINE);
 		this.icon = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, iconStack);
 	}
 
@@ -71,7 +66,7 @@ public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<R
 	}
 
 	@Override
-	public RecipeType getRecipeType() {
+	public IRecipeHolderType<RollingMachineRecipe> getRecipeType() {
 		return jeiRecipeType;
 	}
 
@@ -99,7 +94,7 @@ public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<R
 	public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<RollingMachineRecipe> holder, IFocusGroup focuses) {
 		RollingMachineRecipe recipe = holder.value();
 		ShapedRecipe shaped = recipe.getShapedRecipe();
-		List<Ingredient> ingredients = shaped.getIngredients();
+		List<Ingredient> ingredients = recipe.placementInfo().ingredients();
 		int w = shaped.getWidth();
 		int h = shaped.getHeight();
 		int sx = 12;
@@ -108,18 +103,17 @@ public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<R
 			for (int col = 0; col < w; col++) {
 				int index = row * w + col;
 				Ingredient ing = ingredients.get(index);
+				if (ing == null || ing.isEmpty()) {
+					continue;
+				}
 				builder.addInputSlot(sx + col * 18, sy + row * 18)
-					.addIngredients(VanillaTypes.ITEM_STACK, Arrays.asList(ing.getItems()))
+					.add(ing)
 					.addRichTooltipCallback((recipeSlotView, tooltip) -> appendTooltip(tooltip, recipe));
 			}
 		}
-		var mc = Minecraft.getInstance();
-		HolderLookup.Provider lookup = mc.level != null ? mc.level.registryAccess()
-			: mc.getConnection() != null ? mc.getConnection().registryAccess()
-				: RegistryAccess.EMPTY;
-		ItemStack result = recipe.getResultItem(lookup);
+		ItemStack result = shaped.assemble(null);
 		builder.addOutputSlot(sx + w * 18 + 14, sy + 18)
-			.addIngredient(VanillaTypes.ITEM_STACK, result)
+			.add(result)
 			.addRichTooltipCallback((recipeSlotView, tooltip) -> appendTooltip(tooltip, recipe));
 	}
 }

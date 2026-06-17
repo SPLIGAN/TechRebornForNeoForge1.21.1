@@ -29,7 +29,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.MenuType;
@@ -46,6 +46,7 @@ import techreborn.blockentity.generator.SolarPanelBlockEntity;
 import techreborn.blockentity.generator.advanced.DieselGeneratorBlockEntity;
 import techreborn.blockentity.generator.advanced.GasTurbineBlockEntity;
 import techreborn.blockentity.generator.advanced.SemiFluidGeneratorBlockEntity;
+import techreborn.blockentity.generator.nuclear.NuclearReactorBlockEntity;
 import techreborn.blockentity.generator.advanced.ThermalGeneratorBlockEntity;
 import techreborn.blockentity.generator.basic.SolidFuelGeneratorBlockEntity;
 import techreborn.blockentity.machine.iron.IronAlloyFurnaceBlockEntity;
@@ -94,7 +95,7 @@ import techreborn.blockentity.storage.fluid.TankUnitBaseBlockEntity;
 import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
 
 
-public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuType<BuiltScreenHandler> screenHandlerType) implements IMachineGuiHandler {
+public record GuiType<T extends BlockEntity>(Identifier identifier, MenuType<BuiltScreenHandler> screenHandlerType) implements IMachineGuiHandler {
 	public static final GuiType<AdjustableSUBlockEntity> AESU = register("aesu");
 	public static final GuiType<IronAlloyFurnaceBlockEntity> ALLOY_FURNACE = register("alloy_furnace");
 	public static final GuiType<AlloySmelterBlockEntity> ALLOY_SMELTER = register("alloy_smelter");
@@ -121,6 +122,7 @@ public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuTy
 	public static final GuiType<IndustrialGrinderBlockEntity> INDUSTRIAL_GRINDER = register("industrial_grinder");
 	public static final GuiType<LapotronicSUBlockEntity> LESU = register("lesu");
 	public static final GuiType<MatterFabricatorBlockEntity> MATTER_FABRICATOR = register("matter_fabricator");
+	public static final GuiType<NuclearReactorBlockEntity> NUCLEAR_REACTOR = register("nuclear_reactor");
 	public static final GuiType<MediumVoltageSUBlockEntity> MEDIUM_VOLTAGE_SU = register("medium_voltage_su");
 	public static final GuiType<PlasmaGeneratorBlockEntity> PLASMA_GENERATOR = register("plasma_generator");
 	public static final GuiType<IronFurnaceBlockEntity> IRON_FURNACE = register("iron_furnace");
@@ -149,13 +151,13 @@ public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuTy
 
 
 	private static <T extends BlockEntity> GuiType<T> register(String path) {
-		var id = ResourceLocation.fromNamespaceAndPath("techreborn", path);
+		var id = Identifier.fromNamespaceAndPath("techreborn", path);
 		var screenHandlerType = ScreenHandlerBridge.registerExtended(id, ScreenHandlerData.PACKET_CODEC, getScreenHandlerFactory(id));
 		return new GuiType<>(id, screenHandlerType);
 	}
 
 	@SuppressWarnings("unchecked")
-	private static ScreenHandlerBridge.ScreenHandlerDataFactory<ScreenHandlerData> getScreenHandlerFactory(ResourceLocation identifier) {
+	private static ScreenHandlerBridge.ScreenHandlerDataFactory<ScreenHandlerData> getScreenHandlerFactory(Identifier identifier) {
 		return (syncId, playerInventory, payload) -> {
 			if (!payload.isWithinDistance(playerInventory.player, 16)) {
 				throw new IllegalStateException("Player cannot use this block entity as its too far away");
@@ -164,7 +166,7 @@ public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuTy
 			final BlockEntity blockEntity = playerInventory.player.level().getBlockEntity(payload.pos());
 			BuiltScreenHandler screenHandler = ((BuiltScreenHandlerProvider) blockEntity).createScreenHandler(syncId, playerInventory.player);
 
-			screenHandler.setType((MenuType<BuiltScreenHandler>) BuiltInRegistries.MENU.get(identifier));
+			screenHandler.setType((MenuType<BuiltScreenHandler>) BuiltInRegistries.MENU.getValue(identifier));
 			return screenHandler;
 		};
 	}
@@ -179,7 +181,7 @@ public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuTy
 
 	@Override
 	public void open(Player player, BlockPos pos, Level world) {
-		if (!world.isClientSide) {
+		if (!world.isClientSide()) {
 			ScreenHandlerBridge.openExtended(
 					player,
 					new ScreenHandlerData(pos),
@@ -201,7 +203,7 @@ public record GuiType<T extends BlockEntity>(ResourceLocation identifier, MenuTy
 		);
 	}
 
-	public ResourceLocation getIdentifier() {
+	public Identifier getIdentifier() {
 		return identifier;
 	}
 

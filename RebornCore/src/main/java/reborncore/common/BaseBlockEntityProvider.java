@@ -24,7 +24,11 @@
 
 package reborncore.common;
 
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.item.component.TypedEntityData;
+import org.jspecify.annotations.Nullable;
+
+import static reborncore.RebornCore.LOGGER;
 
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -33,19 +37,17 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueOutput;
 
-public abstract class BaseBlockEntityProvider extends Block implements EntityBlock {
+public abstract class BaseBlockEntityProvider extends BaseBlock implements EntityBlock {
 
-	protected BaseBlockEntityProvider(BlockBehaviour.Properties builder) {
+	protected BaseBlockEntityProvider(Properties builder) {
 		super(builder);
 	}
 
@@ -57,8 +59,12 @@ public abstract class BaseBlockEntityProvider extends Block implements EntityBlo
 
 		ItemStack newStack = stack.copy();
 		newStack.applyComponents(blockEntity.collectComponents());
-		CompoundTag blockEntityData = blockEntity.saveWithId(world.registryAccess());
-		newStack.set(DataComponents.BLOCK_ENTITY_DATA, CustomData.of(blockEntityData));
+		try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(() -> "BaseBlockEntityProvider", LOGGER)) {
+			TagValueOutput view = TagValueOutput.createWithContext(logging, world.registryAccess());
+			blockEntity.saveWithId(view);
+			CompoundTag blockEntityData = view.buildResult();
+			newStack.set(DataComponents.BLOCK_ENTITY_DATA, TypedEntityData.of(blockEntity.getType(), blockEntityData));
+		}
 		return Optional.of(newStack);
 	}
 
@@ -66,11 +72,10 @@ public abstract class BaseBlockEntityProvider extends Block implements EntityBlo
 	public void setPlacedBy(Level world, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack itemStack) {
 		super.setPlacedBy(world, pos, state, placer, itemStack);
 
-		CustomData nbtComponent = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+		TypedEntityData<BlockEntityType<?>> nbtComponent = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
 		if (nbtComponent == null) {
 			return;
 		}
-
 		nbtComponent.loadInto(world.getBlockEntity(pos), world.registryAccess());
 	}
 
@@ -80,18 +85,6 @@ public abstract class BaseBlockEntityProvider extends Block implements EntityBlo
 				((BlockEntityTicker) blockEntity).tick(world1, pos, state1, blockEntity);
 			}
 		};
-	}
-
-	private void stripLocationData(CompoundTag compound) {
-		compound.remove("x");
-		compound.remove("y");
-		compound.remove("z");
-	}
-
-	private void injectLocationData(CompoundTag compound, BlockPos pos) {
-		compound.putInt("x", pos.getX());
-		compound.putInt("y", pos.getY());
-		compound.putInt("z", pos.getZ());
 	}
 
 	public void getDrops(BlockState state, NonNullList<ItemStack> drops, Level world, BlockPos pos, int fortune){

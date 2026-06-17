@@ -24,7 +24,7 @@
 
 package techreborn.init;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.properties.BlockSetType;
 import net.minecraft.world.level.block.state.properties.WoodType;
 import reborncore.common.compat.WoodTypeApiBridge;
@@ -33,11 +33,11 @@ public final class WoodTypeBridge {
 	private WoodTypeBridge() {
 	}
 
-	public static BlockSetType createBlockSetType(ResourceLocation id, BlockSetType baseType) {
+	public static BlockSetType createBlockSetType(Identifier id, BlockSetType baseType) {
 		return WoodTypeApiBridge.createBlockSetType(id, baseType);
 	}
 
-	public static WoodType registerWoodType(ResourceLocation id, WoodType baseType, BlockSetType blockSetType) {
+	public static WoodType registerWoodType(Identifier id, WoodType baseType, BlockSetType blockSetType) {
 		return WoodTypeApiBridge.registerWoodType(id, baseType, blockSetType);
 	}
 }

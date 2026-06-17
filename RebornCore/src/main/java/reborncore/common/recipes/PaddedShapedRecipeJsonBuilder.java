@@ -24,66 +24,75 @@
 
 package reborncore.common.recipes;
 
-import java.util.Objects;
-import net.minecraft.advancements.AdvancementHolder;
-import net.minecraft.advancements.AdvancementRequirements;
-import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import java.lang.reflect.Field;
+import java.util.List;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.data.recipes.RecipeBuilder;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
+import net.minecraft.data.recipes.RecipeUnlockAdvancementBuilder;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
 
-public class PaddedShapedRecipeJsonBuilder extends ShapedRecipeBuilder {
+/**
+ * Datagen helper for {@link PaddedShapedRecipe}. Wraps vanilla {@link ShapedRecipeBuilder} because its constructor is private in 26.1.
+ */
+public final class PaddedShapedRecipeJsonBuilder {
+	private final ShapedRecipeBuilder delegate;
 
-	public PaddedShapedRecipeJsonBuilder(RecipeCategory category, ItemLike output, int outputCount) {
-		super(category, output, outputCount);
+	private PaddedShapedRecipeJsonBuilder(ShapedRecipeBuilder delegate) {
+		this.delegate = delegate;
 	}
 
-	public static PaddedShapedRecipeJsonBuilder shaped(RecipeCategory category, ItemLike output) {
-		return shaped(category, output, 1);
+	public static PaddedShapedRecipeJsonBuilder shaped(HolderGetter<Item> items, RecipeCategory category, ItemLike output) {
+		return shaped(items, category, output, 1);
 	}
 
-	public static PaddedShapedRecipeJsonBuilder shaped(RecipeCategory category, ItemLike output, int outputCount) {
-		return new PaddedShapedRecipeJsonBuilder(category, output, outputCount);
+	public static PaddedShapedRecipeJsonBuilder shaped(HolderGetter<Item> items, RecipeCategory category, ItemLike output, int outputCount) {
+		return new PaddedShapedRecipeJsonBuilder(ShapedRecipeBuilder.shaped(items, category, output, outputCount));
 	}
-	@Override
-	public void save(RecipeOutput exporter, ResourceLocation recipeId) {
-		ShapedRecipePattern raw = toRaw(recipeId);
 
-		AdvancementHolder advancementEntry = exporter.advancement()
-			.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
-			.rewards(AdvancementRewards.Builder.recipe(recipeId))
-			.requirements(AdvancementRequirements.Strategy.OR)
-			.build(recipeId);
+	public PaddedShapedRecipeJsonBuilder define(Character symbol, net.minecraft.world.item.crafting.Ingredient ingredient) {
+		delegate.define(symbol, ingredient);
+		return this;
+	}
 
-		PaddedShapedRecipe shapedRecipe = new PaddedShapedRecipe(
-			Objects.requireNonNullElse(readField("group"), ""),
-			RecipeBuilder.determineBookCategory(readField("category")),
-			raw,
-			new ItemStack((ItemLike) readField("result"), (Integer) readField("count")),
-			readField("showNotification")
+	public PaddedShapedRecipeJsonBuilder define(Character symbol, ItemLike item) {
+		delegate.define(symbol, item);
+		return this;
+	}
+
+	public PaddedShapedRecipeJsonBuilder pattern(String row) {
+		delegate.pattern(row);
+		return this;
+	}
+
+	public PaddedShapedRecipeJsonBuilder unlockedBy(String name, net.minecraft.advancements.Criterion<?> criterion) {
+		delegate.unlockedBy(name, criterion);
+		return this;
+	}
+
+	public PaddedShapedRecipeJsonBuilder group(String group) {
+		delegate.group(group);
+		return this;
+	}
+
+	public void save(RecipeOutput output, ResourceKey<Recipe<?>> id) {
+		List<String> rows = readField("rows");
+		ShapedRecipePattern pattern = ShapedRecipePattern.of(readField("key"), rows);
+		PaddedShapedRecipe recipe = new PaddedShapedRecipe(
+			RecipeBuilder.createCraftingCommonInfo(readField("showNotification")),
+			RecipeBuilder.createCraftingBookInfo(readField("category"), readField("group")),
+			pattern,
+			readField("result")
 		);
-
-		exporter.accept(recipeId, shapedRecipe, advancementEntry);
-	}
-
-	private ShapedRecipePattern toRaw(ResourceLocation recipeId) {
-		Map<?, ?> criteria = readField("criteria");
-		if (criteria.isEmpty()) {
-			throw new IllegalStateException("No way of obtaining recipe " + recipeId);
-		} else {
-			Map<?, ?> key = readField("key");
-			List<?> rows = readField("rows");
-			return PaddedShapedRecipe.create((Map) key, (List<String>) rows);
-		}
+		RecipeUnlockAdvancementBuilder advancementBuilder = readField("advancementBuilder");
+		RecipeCategory category = readField("category");
+		output.accept(id, recipe, advancementBuilder.build(output, id, category));
 	}
 
 	@SuppressWarnings("unchecked")
@@ -91,7 +100,7 @@ public class PaddedShapedRecipeJsonBuilder extends ShapedRecipeBuilder {
 		try {
 			Field f = ShapedRecipeBuilder.class.getDeclaredField(name);
 			f.setAccessible(true);
-			return (T) f.get(this);
+			return (T) f.get(delegate);
 		} catch (ReflectiveOperationException e) {
 			throw new IllegalStateException("Failed to access field " + name + " on ShapedRecipeBuilder", e);
 		}

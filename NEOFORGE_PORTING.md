@@ -1,5 +1,8 @@
 # NeoForge / Arclight Porting Status
 
+**26.1.2 移植仕様（主）:** [`docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md`](docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md) — ブランチ `26.1.2`、Arclight `arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`。  
+**1.21.1 完了ベースライン:** [`docs/NEOFORGE_1.21.1_MIGRATION_SPEC.md`](docs/NEOFORGE_1.21.1_MIGRATION_SPEC.md)
+
 ## NeoForge 専用化の進捗（概要）
 
 | 領域 | 状態 |
@@ -14,10 +17,11 @@
 
 「NeoForge のみで動く」とは、このリポジトリでは **ローダーは NeoForge 専用**で、**Forgified Fabric API はランタイム依存に含めない**構成です（上表「Forgified Fabric API」行参照）。
 
-Target runtime (this branch assumes):
+Target runtime (this branch):
 
-- Minecraft **1.21.1**
-- NeoForge **compile**: **`21.1.219`** (`gradle.properties`: `neo_version` / `neoforge_version`). **`mods.toml`** requires **`[21.1.219,)`** for **`neoforge`**. Arclight を使う場合はバンドル NeoForge がこの範囲を満たすビルドを選ぶ（`gradle.properties` の `arclight_version` は手動検証メモ用）。
+- Minecraft **26.1.2**
+- NeoForge **26.1.2.73** (`gradle.properties`: `neo_version` / `neoforge_version`). **`mods.toml`** requires **`[26.1.0,)`** for **`neoforge`** and **`[26.1.2,26.2)`** for **`minecraft`**. Arclight: **`arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`**.
+- Java **25** toolchain; Gradle **9.2.1**; NeoGradle **7.1.36**
 
 ### ① Arclight / dedicated server smoke
 
@@ -25,9 +29,23 @@ Target runtime (this branch assumes):
 - **GameTest run target**: `runGameTestServer` fails with *No test functions were given!* until GameTests exist; use **`runServer`** for boot-only smoke.
 - **Stage jars for a real Arclight tree**: `.\gradlew.bat prepareNeoForgeSmokeMods` (outputs under `build/smoke-neoforge/mods/`) or `.\scripts\smoke-arclight.ps1` (optional `-ArclightJar` path). Then follow [Arclight](https://github.com/IzzelAliz/Arclight) install docs: copy staged mods、`eula=true`、ハイブリッド鯖 jar を起動（**FFAPI は不要**）。
 - **Gradle**: `RebornCore` / ルートの **`build.gradle` から Su5ed（`org.sinytra`）リポジトリは削除済み**（forgified-fabric-api 非依存のため）。`migration-tool` サブプロジェクトの Loom は従来どおり Fabric Maven を `settings.gradle` の `pluginManagement` で参照。
-- Arclight **`1.0.2-SNAPSHOT-668f9f3`** (`gradle.properties`: `arclight_version`; hybrid server smoke tests). Prefer an Arclight build whose bundled NeoForge is **≥ `neo_version`** to avoid missing-class crashes from newer NeoForge APIs.
+- Arclight **`arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`** (`gradle.properties`: `arclight_version`). Prefer an Arclight build whose bundled NeoForge is **≥ `neo_version`**.
 
-## Completed in this branch
+## 26.1.2 migration status (2026-06-15)
+
+- **Build**: `./gradlew build` **SUCCESS** — RebornCore + TechReborn `src/` compile on Java 25 / NeoForge 26.1.2.73.
+- **Runtime fix**: `ChunkLoaderManager` — `TicketType` registered via `RegisterEvent` (not `FMLCommonSetup`); fixes `Registry is already frozen`.
+- **Villager trades (VIL-01/02)**: Metallurgist + Electrician trades in `data/techreborn/villager_trade/` + `trade_set/`; professions wired via `tradeSetsByLevel`. Wandering trader rubber sapling appended to `minecraft:wandering_trader/common` tag.
+- **Recycler (UP-11)**: `RecyclerRecipeCrafter` respects `canRecycle` blacklist/upgrades; fixes infinite processing loop.
+- **UP-12 partial**: Matter Fabricator active state (#3470); greenhouse melon harvest already present (#3472); `setHasChanged` typo fixed (#3490).
+- **UP-13 partial**: `data/c/tags/item/dusts/coal.json` — coal/charcoal dust interchangeable (#3494).
+- **Smoke**: `:RebornCore:runServer` → `Done (0.325s)!` in `RebornCore/run/server/logs/latest.log` (2026-06-15).
+- **JAR**: `build/libs/techreborn-6.0.5+local.jar` (RebornCore Jar-in-Jar embedded).
+- **Next**: Arclight hybrid server (A-01〜A-05), upstream cherry-picks (UP-03, UP-09, UP-10).
+
+See [`docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md`](docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md) §8 for task IDs.
+
+## Completed in this branch (1.21.1 baseline)
 
 - Added version targets in `gradle.properties`.
 - Added NeoForge mod metadata:

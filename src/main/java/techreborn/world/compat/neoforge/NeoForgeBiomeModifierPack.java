@@ -27,7 +27,7 @@ package techreborn.world.compat.neoforge;
 import com.mojang.logging.LogUtils;
 import net.minecraft.DetectedVersion;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackLocationInfo;
 import net.minecraft.server.packs.PackSelectionConfig;
 import net.minecraft.server.packs.PackType;
@@ -61,9 +61,9 @@ public final class NeoForgeBiomeModifierPack {
 	private static final String PACK_ID = "techreborn/dynamic_worldgen";
 	private static final Path RELATIVE_PACK_ROOT = Path.of("techreborn").resolve("generated_worldgen_pack");
 	/** Matches {@link techreborn.world.WorldGenerator#RUBBER_TREE_PATCH_PLACED_FEATURE}. */
-	private static final ResourceLocation RUBBER_TREE_PATCH_PLACED = ResourceLocation.fromNamespaceAndPath("techreborn", "rubber_tree_patch");
+	private static final Identifier RUBBER_TREE_PATCH_PLACED = Identifier.fromNamespaceAndPath("techreborn", "rubber_tree_patch");
 	/** Matches {@link techreborn.world.WorldGenerator#OIL_LAKE_PLACED_FEATURE}. */
-	private static final ResourceLocation OIL_LAKE_PLACED = ResourceLocation.fromNamespaceAndPath("techreborn", "oil_lake");
+	private static final Identifier OIL_LAKE_PLACED = Identifier.fromNamespaceAndPath("techreborn", "oil_lake");
 
 	private NeoForgeBiomeModifierPack() {
 	}
@@ -82,7 +82,7 @@ public final class NeoForgeBiomeModifierPack {
 			return;
 		}
 
-		Pack.ResourcesSupplier supplier = BuiltInPackSource.fromName(path -> new PathPackResources(path, root));
+		Pack.ResourcesSupplier supplier = new PathPackResources.PathResourcesSupplier(root);
 
 		Pack pack = Pack.readMetaAndCreate(
 				new PackLocationInfo(PACK_ID, Component.literal("TechReborn dynamic worldgen"), PackSource.DEFAULT, Optional.empty()),
@@ -152,8 +152,8 @@ public final class NeoForgeBiomeModifierPack {
 			if (ore) {
 				for (TROreFeatureConfig feature : TROreFeatureQueries.spawnEnabledByConfig()) {
 					String biomeTarget = biomeSpecifier(feature);
-					Path path = dataBiomeMods.resolve(feature.placedFeature().location().getPath() + ".json");
-					writeAddFeaturesJson(path, biomeTarget, feature.placedFeature().location(), "underground_ores");
+					Path path = dataBiomeMods.resolve(feature.placedFeature().identifier().getPath() + ".json");
+					writeAddFeaturesJson(path, biomeTarget, feature.placedFeature().identifier(), "underground_ores");
 				}
 			}
 			return true;
@@ -180,11 +180,11 @@ public final class NeoForgeBiomeModifierPack {
 				    "pack_format": %d
 				  }
 				}
-				""".formatted(DetectedVersion.tryDetectVersion().getPackVersion(PackType.SERVER_DATA));
+				""".formatted(DetectedVersion.tryDetectVersion().packVersion(PackType.SERVER_DATA).major());
 		Files.writeString(root.resolve("pack.mcmeta"), mcmeta, StandardCharsets.UTF_8);
 	}
 
-	private static void writeAddFeaturesJson(Path path, String biomes, ResourceLocation placedFeature, String step)
+	private static void writeAddFeaturesJson(Path path, String biomes, Identifier placedFeature, String step)
 			throws IOException {
 		String json = """
 				{

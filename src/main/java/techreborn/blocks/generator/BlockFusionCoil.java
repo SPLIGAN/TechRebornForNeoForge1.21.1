@@ -47,8 +47,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class BlockFusionCoil extends BaseBlock {
 
-	public BlockFusionCoil(String name) {
-		super(TRBlockSettings.fusionCoil(name));
+	public BlockFusionCoil() {
+		super(TRBlockSettings.fusionCoil());
 	}
 
 	@Override
@@ -72,11 +72,5 @@ public class BlockFusionCoil extends BaseBlock {
 		}
 
 		return InteractionResult.PASS;
-	}
-
-	@Override
-	public void appendTooltip(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag options) {
-		super.appendTooltip(stack, context, tooltip, options);
-		tooltip.add(Component.translatable("techreborn.tooltip.fusion_coil").withStyle(ChatFormatting.BLUE));
 	}
 }

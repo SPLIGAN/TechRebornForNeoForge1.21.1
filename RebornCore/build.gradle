@@ -1,7 +1,9 @@
 plugins {
 	id 'java-library'
 	id 'maven-publish'
-	id 'net.neoforged.gradle.userdev' version '7.1.25'
+	id 'eclipse'
+	id 'idea'
+	id 'net.neoforged.gradle.userdev'
 }
 
 version = rootProject.version
@@ -11,7 +13,7 @@ base {
 	archivesName = 'reborncore'
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 sourceSets.named('main').configure {
 	java.srcDirs = ['src/main/java', 'src/client/java']
@@ -77,7 +79,7 @@ runs {
 		systemProperty 'neoforge.enabledGameTestNamespaces', 'reborncore'
 	}
 
-	data {
+	clientData {
 		arguments.addAll '--mod', 'reborncore', '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
 	}
 }
@@ -127,13 +129,13 @@ dependencies {
 
 tasks.withType(JavaCompile).configureEach {
 	options.encoding = 'UTF-8'
-	options.release = 21
+	options.release = 25
 }
 
 java {
 	withSourcesJar()
-	sourceCompatibility = JavaVersion.VERSION_21
-	targetCompatibility = JavaVersion.VERSION_21
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
 }
 
 def ENV = System.getenv()

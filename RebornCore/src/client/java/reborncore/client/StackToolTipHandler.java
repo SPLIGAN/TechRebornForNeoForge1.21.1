@@ -35,7 +35,6 @@ import reborncore.common.util.StringUtils;
 import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -44,10 +43,11 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TypedEntityData;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 
 public class StackToolTipHandler implements TooltipAppender {
 
@@ -67,7 +67,7 @@ public class StackToolTipHandler implements TooltipAppender {
 
 			tooltipLines.add(1, line1);
 
-			if (Screen.hasShiftDown()) {
+			if (Minecraft.getInstance().hasShiftDown()) {
 				int percentage = percentage(energyItem.getStoredEnergy(itemStack), energyItem.getEnergyCapacity(itemStack));
 				MutableComponent line2  = StringUtils.getPercentageText(percentage);
 				line2.append(" ");
@@ -108,7 +108,7 @@ public class StackToolTipHandler implements TooltipAppender {
 				if ((block instanceof BaseBlockEntityProvider)) {
 					BlockEntity blockEntity = ((EntityBlock) block).newBlockEntity(BlockPos.ZERO, block.defaultBlockState());
 					boolean hasData = false;
-					CustomData nbtComponent = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
+					TypedEntityData<BlockEntityType<?>> nbtComponent = itemStack.get(DataComponents.BLOCK_ENTITY_DATA);
 					if (nbtComponent != null) {
 						nbtComponent.loadInto(blockEntity, Minecraft.getInstance().level.registryAccess());
 						hasData = true;

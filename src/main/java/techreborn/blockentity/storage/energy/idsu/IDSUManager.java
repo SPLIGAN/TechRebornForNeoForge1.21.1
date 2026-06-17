@@ -33,8 +33,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.saveddata.SavedDataType;
 import org.jspecify.annotations.NonNull;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.SimpleEnergyStorage;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.base.SimpleEnergyStorage;
 import techreborn.config.TechRebornConfig;
 
 import java.util.HashMap;
@@ -91,7 +91,7 @@ public class IDSUManager extends SavedData {
 		// This storage is never exposed directly, it's always wrapped behind getMaxInput()/getMaxOutput() checks
 		private final SimpleEnergyStorage storage = new SimpleEnergyStorage(TechRebornConfig.idsuMaxEnergy, Long.MAX_VALUE, Long.MAX_VALUE) {
 			@Override
-			protected void onFinalCommit() {
+			protected void onSnapshotCommitted() {
 				markDirty.run();
 			}
 		};

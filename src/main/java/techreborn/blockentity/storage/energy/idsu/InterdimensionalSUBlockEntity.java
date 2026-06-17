@@ -26,8 +26,8 @@ package techreborn.blockentity.storage.energy.idsu;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import org.apache.commons.lang3.StringUtils;
@@ -60,7 +60,7 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return EnergyStorage.EMPTY;
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			// Can't access the global storage, return a dummy. (Only for existence checks)
 			return new SimpleEnergyStorage(TechRebornConfig.idsuMaxEnergy, 0, 0);
 		}
@@ -76,7 +76,7 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return 0;
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			return clientEnergy;
 		}
 		return IDSUManager.getPlayer(level.getServer(), ownerUdid).getEnergy();
@@ -87,7 +87,7 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return;
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			clientEnergy = energy;
 		} else {
 			IDSUManager.getPlayer(level.getServer(), ownerUdid).setEnergy(energy);
@@ -99,7 +99,7 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 		if (ownerUdid == null || ownerUdid.isEmpty()) {
 			return;
 		}
-		if (level.isClientSide) {
+		if (level.isClientSide()) {
 			throw new UnsupportedOperationException("cannot set energy on the client!");
 		}
 		long energy = IDSUManager.getPlayer(level.getServer(), ownerUdid).getEnergy();
@@ -116,18 +116,18 @@ public class InterdimensionalSUBlockEntity extends EnergyStorageBlockEntity impl
 	}
 
 	@Override
-	public void loadAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
-		super.loadAdditional(nbtCompound, registryLookup);
-		this.ownerUdid = nbtCompound.getString("ownerUdid");
+	public void loadAdditional(ValueInput view) {
+		super.loadAdditional(view);
+		this.ownerUdid = view.getStringOr("ownerUdid", null);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag nbtCompound, HolderLookup.Provider registryLookup) {
-		super.saveAdditional(nbtCompound, registryLookup);
+	public void saveAdditional(ValueOutput view) {
+		super.saveAdditional(view);
 		if (ownerUdid == null || StringUtils.isEmpty(ownerUdid)) {
 			return;
 		}
-		nbtCompound.putString("ownerUdid", this.ownerUdid);
+		view.putString("ownerUdid", this.ownerUdid);
 	}
 
 	@Override

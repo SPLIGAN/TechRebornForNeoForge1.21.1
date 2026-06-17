@@ -25,6 +25,9 @@
 package techreborn.packets;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -136,7 +139,8 @@ public class ServerboundPackets {
 
 		reg.playToServer(SuitNightVisionPayload.ID, SuitNightVisionPayload.CODEC, (payload, context) -> {
 			ServerPlayer player = (ServerPlayer) context.player();
-			for (ItemStack itemStack : player.getArmorSlots()) {
+			for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+				ItemStack itemStack = player.getItemBySlot(slot);
 				if (itemStack.is(TRContent.NANO_HELMET) || itemStack.is(TRContent.QUANTUM_HELMET)) {
 					itemStack.set(TRDataComponentTypes.IS_ACTIVE, !itemStack.getOrDefault(TRDataComponentTypes.IS_ACTIVE, false));
 					break;
@@ -146,7 +150,8 @@ public class ServerboundPackets {
 
 		reg.playToServer(QuantumSuitSprintPayload.ID, QuantumSuitSprintPayload.CODEC, (payload, context) -> {
 			ServerPlayer player = (ServerPlayer) context.player();
-			for (ItemStack itemStack : player.getArmorSlots()) {
+			for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+				ItemStack itemStack = player.getItemBySlot(slot);
 				if (itemStack.is(TRContent.QUANTUM_LEGGINGS)) {
 					itemStack.set(TRDataComponentTypes.IS_ACTIVE, !itemStack.getOrDefault(TRDataComponentTypes.IS_ACTIVE, false));
 					break;

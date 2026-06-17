@@ -24,7 +24,7 @@
 
 package reborncore.client.gui.config.elements;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.Direction;
 import net.minecraft.util.ColorRGBA;
@@ -75,7 +75,7 @@ public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 		}
 		FluidConfiguration.FluidConfig newConfig = new FluidConfiguration.FluidConfig(side, fluidIO);
 
-		ClientPlayNetworking.send(new FluidConfigSavePayload(guiBase.be.getBlockPos(), newConfig));
+		ClientNetworkingBridge.sendToServer(new FluidConfigSavePayload(guiBase.be.getBlockPos(), newConfig));
 	}
 
 	public void updateCheckBox(String type, GuiBase<?> guiBase) {
@@ -89,7 +89,7 @@ public class FluidConfigPopupElement extends AbstractConfigPopupElement {
 			output = !configHolder.autoOutput();
 		}
 
-		ClientPlayNetworking.send(new FluidIoSavePayload(guiBase.be.getBlockPos(), input, output));
+		ClientNetworkingBridge.sendToServer(new FluidIoSavePayload(guiBase.be.getBlockPos(), input, output));
 	}
 
 	@Override

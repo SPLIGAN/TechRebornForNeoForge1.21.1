@@ -42,7 +42,7 @@ public class ModLoot {
 
 	public static void init() {
 		EventBridge.registerLootModify((key, table, source) -> {
-			String stringId = key.location().toString();
+			String stringId = key.identifier().toString();
 			if (!stringId.startsWith("minecraft:gameplay") && !stringId.startsWith("minecraft:chests")) {
 				return;
 			}

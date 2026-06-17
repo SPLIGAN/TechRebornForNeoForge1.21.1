@@ -35,7 +35,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.registries.RegisterEvent;
@@ -61,11 +61,19 @@ public class TRDataComponentTypes {
 	public static final DataComponentType<Holder<Fluid>> FLUID =
 		DataComponentType.<Holder<Fluid>>builder().persistent(BuiltInRegistries.FLUID.holderByNameCodec()).networkSynchronized(ByteBufCodecs.holderRegistry(Registries.FLUID)).build();
 
+	public static final DataComponentType<Integer> STORED_HEAT =
+		DataComponentType.<Integer>builder().persistent(PrimitiveCodec.INT).networkSynchronized(ByteBufCodecs.INT).build();
+
+	public static final DataComponentType<Integer> FUEL_REMAINING =
+		DataComponentType.<Integer>builder().persistent(PrimitiveCodec.INT).networkSynchronized(ByteBufCodecs.INT).build();
+
 	public static void register(RegisterEvent event) {
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "is_active"), () -> IS_ACTIVE);
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "aoe5"), () -> AOE5);
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "frequency_transmitter"), () -> FREQUENCY_TRANSMITTER);
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "painting_cover"), () -> PAINTING_COVER);
-		event.register(Registries.DATA_COMPONENT_TYPE, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "fluid"), () -> FLUID);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "is_active"), () -> IS_ACTIVE);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "aoe5"), () -> AOE5);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "frequency_transmitter"), () -> FREQUENCY_TRANSMITTER);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "painting_cover"), () -> PAINTING_COVER);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "fluid"), () -> FLUID);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "stored_heat"), () -> STORED_HEAT);
+		event.register(Registries.DATA_COMPONENT_TYPE, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "fuel_remaining"), () -> FUEL_REMAINING);
 	}
 }

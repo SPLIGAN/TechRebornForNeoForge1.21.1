@@ -24,10 +24,11 @@
 
 package reborncore.common.screen.builder;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.Equippable;
 import org.apache.commons.lang3.Range;
 import reborncore.common.screen.ScreenIcons;
 import reborncore.common.screen.slot.PlayerInventorySlot;
@@ -46,7 +47,6 @@ public final class PlayerScreenHandlerBuilder {
 		this.parent = parent;
 	}
 
-	@SuppressWarnings("deprecation")
 	public PlayerScreenHandlerBuilder inventory(final int xStart, final int yStart) {
 		final int startIndex = this.parent.slots.size();
 		for (int i = 0; i < 3; ++i) {
@@ -54,17 +54,16 @@ public final class PlayerScreenHandlerBuilder {
 				this.parent.slots.add(new PlayerInventorySlot(this.player, j + i * 9 + 9, xStart + j * 18, yStart + i * 18));
 			}
 		}
-		this.main = Range.between(startIndex, this.parent.slots.size() - 1);
+		this.main = Range.of(startIndex, this.parent.slots.size() - 1);
 		return this;
 	}
 
-	@SuppressWarnings("deprecation")
 	public PlayerScreenHandlerBuilder hotbar(final int xStart, final int yStart) {
 		final int startIndex = this.parent.slots.size();
 		for (int i = 0; i < 9; ++i) {
 			this.parent.slots.add(new PlayerInventorySlot(this.player, i, xStart + i * 18, yStart));
 		}
-		this.hotbar = Range.between(startIndex, this.parent.slots.size() - 1);
+		this.hotbar = Range.of(startIndex, this.parent.slots.size() - 1);
 		return this;
 	}
 
@@ -103,32 +102,30 @@ public final class PlayerScreenHandlerBuilder {
 			this.startIndex = parent.parent.slots.size();
 		}
 
-		private PlayerArmorScreenHandlerBuilder armor(final int index, final int xStart, final int yStart,
-													final EquipmentSlot slotType, final ResourceLocation sprite) {
-			this.parent.parent.slots.add(new SpriteSlot(this.parent.player, index, xStart, yStart, sprite, 1)
+		private PlayerArmorScreenHandlerBuilder armor(final int xStart, final int yStart,
+													final EquipmentSlot slotType, final Identifier sprite) {
+			this.parent.parent.slots.add(new SpriteSlot(this.parent.player, slotType.getIndex(Inventory.INVENTORY_SIZE), xStart, yStart, sprite, 1)
 					.setFilter(stack -> {
-						if (stack.getItem() instanceof ArmorItem) {
-							return ((ArmorItem) stack.getItem()).getEquipmentSlot() == slotType;
-						}
-						return false;
+						Equippable equippableComponent = stack.get(DataComponents.EQUIPPABLE);
+						return equippableComponent != null && equippableComponent.slot() == slotType;
 					}));
 			return this;
 		}
 
 		public PlayerArmorScreenHandlerBuilder helmet(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.getContainerSize() - 2, xStart, yStart, EquipmentSlot.HEAD, ScreenIcons.HEAD);
+			return this.armor(xStart, yStart, EquipmentSlot.HEAD, ScreenIcons.HEAD);
 		}
 
 		public PlayerArmorScreenHandlerBuilder chestplate(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.getContainerSize() - 3, xStart, yStart, EquipmentSlot.CHEST, ScreenIcons.CHEST);
+			return this.armor(xStart, yStart, EquipmentSlot.CHEST, ScreenIcons.CHEST);
 		}
 
 		public PlayerArmorScreenHandlerBuilder leggings(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.getContainerSize() - 4, xStart, yStart, EquipmentSlot.LEGS, ScreenIcons.LEGS);
+			return this.armor(xStart, yStart, EquipmentSlot.LEGS, ScreenIcons.LEGS);
 		}
 
 		public PlayerArmorScreenHandlerBuilder boots(final int xStart, final int yStart) {
-			return this.armor(this.parent.player.getContainerSize() - 5, xStart, yStart, EquipmentSlot.FEET, ScreenIcons.FEET);
+			return this.armor(xStart, yStart, EquipmentSlot.FEET, ScreenIcons.FEET);
 		}
 
 		public PlayerArmorScreenHandlerBuilder complete(final int xStart, final int yStart) {
@@ -136,9 +133,8 @@ public final class PlayerScreenHandlerBuilder {
 					.boots(xStart, yStart + 18 + 18 + 18);
 		}
 
-		@SuppressWarnings("deprecation")
 		public PlayerScreenHandlerBuilder addArmor() {
-			this.parent.armor = Range.between(this.startIndex - 1, this.parent.parent.slots.size() - 2);
+			this.parent.armor = Range.of(this.startIndex, this.parent.parent.slots.size() - 1);
 			return this.parent;
 		}
 	}

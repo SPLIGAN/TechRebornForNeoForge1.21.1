@@ -110,7 +110,7 @@ public abstract class AbstractConfigPopupElement extends ElementBase {
 		final BlockStateModelSet modelSet = client.getModelManager().getBlockStateModelSet();
 		final BlockStateModel model = modelSet.get(defaultState);
 
-		drawContext.guiRenderState.addPicturesInPictureState(new MachineFaceState(
+		drawContext.submitPictureInPictureRenderState(new MachineFaceState(
 			new Matrix3x2f(drawContext.pose()),
 			model,
 			gui.getGuiLeft() + getX(),

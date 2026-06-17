@@ -26,7 +26,7 @@ package reborncore.common.energy.capability;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -36,12 +36,12 @@ import reborncore.common.energy.api.EnergyStorage;
 
 public final class TeamRebornEnergyCapabilities {
 	public static final BlockCapability<EnergyStorage, Direction> BLOCK_SIDED = BlockCapability.createSided(
-		ResourceLocation.fromNamespaceAndPath("teamreborn", "sided_energy"),
+		Identifier.fromNamespaceAndPath("teamreborn", "sided_energy"),
 		EnergyStorage.class
 	);
 
 	public static final ItemCapability<EnergyStorage, Void> ITEM = ItemCapability.createVoid(
-		ResourceLocation.fromNamespaceAndPath("teamreborn", "energy"),
+		Identifier.fromNamespaceAndPath("teamreborn", "energy"),
 		EnergyStorage.class
 	);
 

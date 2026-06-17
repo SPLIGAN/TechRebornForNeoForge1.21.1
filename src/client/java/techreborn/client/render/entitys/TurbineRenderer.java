@@ -148,11 +148,6 @@ public class TurbineRenderer implements BlockEntityRenderer<WindMillBlockEntity,
 		public void setupAnim(Float spin) {
 			root.zRot = spin;
 		}
-
-		@Override
-		public void renderToBuffer(PoseStack matrices, VertexConsumer vertices, int light, int overlay, int color) {
-			root.render(matrices, vertices, light, overlay);
-		}
 	}
 
 	public static class TurbineRenderState extends BlockEntityRenderState {

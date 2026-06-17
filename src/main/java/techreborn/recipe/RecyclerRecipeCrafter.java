@@ -28,6 +28,7 @@ import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.RecipeUtils;
 import reborncore.common.recipes.RecipeCrafter;
 import reborncore.common.util.RebornInventory;
+import techreborn.blockentity.machine.tier1.RecyclerBlockEntity;
 import techreborn.config.TechRebornConfig;
 import techreborn.init.ModRecipes;
 
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Objects;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -46,25 +48,40 @@ public class RecyclerRecipeCrafter extends RecipeCrafter {
 
 	@Override
 	public void updateCurrentRecipe() {
-		currentTickTime = 0;
 		List<RebornRecipe> recipeList = RecipeUtils.getRecipes(blockEntity.getLevel(), ModRecipes.RECYCLER);
-		if (recipeList.isEmpty() || !hasAllInputs()) {
-			setCurrentRecipe(null);
-			currentNeededTicks = 0;
-			setIsActive();
+		if (recipeList.isEmpty()) {
 			return;
 		}
-		setCurrentRecipe(recipeList.get(0));
-		currentNeededTicks = Math.max((int) (currentRecipe.time() * (1.0 - getSpeedMultiplier())), 1);
-		setIsActive();
+
+		if (currentRecipe != null && !isValidRecyclerRecipe(currentRecipe)) {
+			resetRecyclerCrafter();
+		}
+
+		if (currentRecipe == null) {
+			RebornRecipe recipe = recipeList.getFirst();
+			if (!isValidRecyclerRecipe(recipe)) {
+				return;
+			}
+			setCurrentRecipe(recipe);
+			currentNeededTicks = Math.max((int) (recipe.time() * (1.0 - getSpeedMultiplier())), 1);
+			setIsActive();
+		}
 	}
 
 	@Override
-	public boolean hasAllInputs() {
+	public boolean hasAllInputs(RebornRecipe recipe) {
+		if (recipe == null) {
+			return false;
+		}
 		boolean hasItem = false;
-		// Check if we have at least something in input slots. Foreach input slot in case of several input slots
 		for (int inputSlot : inputSlots) {
-			if (inventory.getItem(inputSlot).isEmpty()) continue;
+			ItemStack stack = inventory.getItem(inputSlot);
+			if (stack.isEmpty()) {
+				continue;
+			}
+			if (!RecyclerBlockEntity.canRecycle(stack)) {
+				return false;
+			}
 			hasItem = true;
 			break;
 		}
@@ -76,9 +93,10 @@ public class RecyclerRecipeCrafter extends RecipeCrafter {
 		if (currentRecipe == null) {
 			return;
 		}
-		// Uses input. Foreach input slot in case of several input slots
 		for (int inputSlot : inputSlots) {
-			if (inventory.getItem(inputSlot).isEmpty()) continue;
+			if (inventory.getItem(inputSlot).isEmpty()) {
+				continue;
+			}
 			inventory.shrinkSlot(inputSlot, 1);
 			break;
 		}
@@ -93,5 +111,28 @@ public class RecyclerRecipeCrafter extends RecipeCrafter {
 		if (randomChance == 0) {
 			super.fitStack(stack, slot);
 		}
+	}
+
+	private boolean isValidRecyclerRecipe(RebornRecipe recipe) {
+		if (!hasAllInputs(recipe)) {
+			return false;
+		}
+		if (!recipe.canCraft(blockEntity)) {
+			return false;
+		}
+		final List<ItemStack> outputs = recipe.outputs().stream().map(ItemStackTemplate::create).toList();
+		for (int i = 0; i < outputs.size(); i++) {
+			if (!canFitOutput(outputs.get(i), outputSlots[i])) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void resetRecyclerCrafter() {
+		currentTickTime = 0;
+		currentNeededTicks = 0;
+		setCurrentRecipe(null);
+		setIsActive();
 	}
 }

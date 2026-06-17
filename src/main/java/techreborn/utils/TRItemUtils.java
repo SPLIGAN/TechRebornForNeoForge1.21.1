@@ -61,7 +61,7 @@ public class TRItemUtils {
 		}
 
 		if (player instanceof ServerPlayer serverPlayerEntity) {
-			serverPlayerEntity.displayClientMessage(Component.translatable("reborncore.message.energyError")
+			serverPlayerEntity.sendSystemMessage(Component.translatable("reborncore.message.energyError")
 				.withStyle(ChatFormatting.GRAY)
 				.append(" ")
 				.append(
@@ -86,7 +86,7 @@ public class TRItemUtils {
 			stack.set(TRDataComponentTypes.IS_ACTIVE, true);
 
 			if (entity instanceof ServerPlayer serverPlayerEntity) {
-				serverPlayerEntity.displayClientMessage(Component.translatable("reborncore.message.setTo")
+				serverPlayerEntity.sendSystemMessage(Component.translatable("reborncore.message.setTo")
 					.withStyle(ChatFormatting.GRAY)
 					.append(" ")
 					.append(
@@ -97,7 +97,7 @@ public class TRItemUtils {
 		} else {
 			stack.set(TRDataComponentTypes.IS_ACTIVE, false);
 			if (entity instanceof ServerPlayer serverPlayerEntity) {
-				serverPlayerEntity.displayClientMessage(Component.translatable("reborncore.message.setTo")
+				serverPlayerEntity.sendSystemMessage(Component.translatable("reborncore.message.setTo")
 					.withStyle(ChatFormatting.GRAY)
 					.append(" ")
 					.append(
@@ -114,11 +114,11 @@ public class TRItemUtils {
 	 * @param stack   {@link ItemStack} Stack to check
 	 * @param tooltip {@link List} List of {@link Component} tooltip strings
 	 */
-	public static void buildActiveTooltip(ItemStack stack, List<Component> tooltip) {
+	public static void buildActiveTooltip(ItemStack stack, java.util.function.Consumer<Component> tooltip) {
 		if (!TRItemUtils.isActive(stack)) {
-			tooltip.add(Component.translatable("reborncore.message.inactive").withStyle(ChatFormatting.RED));
+			tooltip.accept(Component.translatable("reborncore.message.inactive").withStyle(ChatFormatting.RED));
 		} else {
-			tooltip.add(Component.translatable("reborncore.message.active").withStyle(ChatFormatting.GREEN));
+			tooltip.accept(Component.translatable("reborncore.message.active").withStyle(ChatFormatting.GREEN));
 		}
 	}
 }

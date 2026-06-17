@@ -26,6 +26,7 @@ package reborncore.common.screen.builder;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
@@ -33,10 +34,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.Container;
+import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.TransientCraftingContainer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.FuelValues;
 import org.apache.commons.lang3.Range;
 import reborncore.RebornCore;
 import reborncore.api.blockentity.IUpgrade;
@@ -55,6 +58,8 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class BlockEntityScreenHandlerBuilder {
+
+	private static final FuelValues FUEL_VALUES = FuelValues.vanillaBurnTimes(RegistryAccess.EMPTY, FeatureFlags.DEFAULT_FLAGS);
 
 	private final Container inventory;
 	private final BlockEntity blockEntity;
@@ -116,7 +121,8 @@ public class BlockEntityScreenHandlerBuilder {
 	}
 
 	public BlockEntityScreenHandlerBuilder fuelSlot(final int index, final int x, final int y) {
-		this.parent.slots.add(new FilteredSlot(this.inventory, index, x, y).setFilter(AbstractFurnaceBlockEntity::isFuel));
+		this.parent.slots.add(new FilteredSlot(this.inventory, index, x, y)
+				.setFilter(stack -> stack.getBurnTime(RecipeType.SMELTING, FUEL_VALUES) > 0));
 		return this;
 	}
 
@@ -178,6 +184,14 @@ public class BlockEntityScreenHandlerBuilder {
 
 		RebornCore.LOGGER.error(this.inventory + " is not an instance of TilePowerAcceptor! Energy cannot be synced.");
 		return this;
+	}
+
+	public BlockEntityScreenHandlerBuilder syncShapeValue() {
+		if (this.blockEntity instanceof MachineBaseBlockEntity baseBlockEntity) {
+			return this.sync(ByteBufCodecs.BOOL, baseBlockEntity::isShapeValid, baseBlockEntity::setShapeValid);
+		}
+
+		throw new IllegalStateException(this.inventory + " is not an instance of MachineBaseBlockEntity! Shape cannot be synced.");
 	}
 
 	public BlockEntityScreenHandlerBuilder syncCrafterValue() {

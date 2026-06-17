@@ -24,7 +24,7 @@
 
 package techreborn.client.gui;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
@@ -122,7 +122,7 @@ public class GuiFusionReactor extends GuiBase<BuiltScreenHandler> {
 	}
 
 	private void sendSizeChange(int sizeDelta) {
-		ClientPlayNetworking.send(new FusionControlSizePayload(blockEntity.getBlockPos(), sizeDelta));
+		ClientNetworkingBridge.sendToServer(new FusionControlSizePayload(blockEntity.getBlockPos(), sizeDelta));
 	}
 
 	public Optional<Pair<Integer, Integer>> getCoilStackCount() {

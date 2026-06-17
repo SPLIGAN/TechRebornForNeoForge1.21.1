@@ -34,6 +34,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
@@ -44,7 +45,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import reborncore.api.ToolManager;
 import reborncore.api.blockentity.IMachineGuiHandler;
@@ -60,7 +61,7 @@ import reborncore.common.util.WrenchUtils;
 
 public abstract class BlockMachineBase extends BaseBlockEntityProvider implements WorldlyContainerHolder {
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
 
 	boolean hasCustomStates;
@@ -133,11 +134,9 @@ public abstract class BlockMachineBase extends BaseBlockEntityProvider implement
 	}
 
 	@Override
-	public void onRemove(BlockState state, Level worldIn, BlockPos pos, BlockState newState, boolean isMoving) {
-		if (state.getBlock() != newState.getBlock()) {
-			ItemHandlerUtils.dropContainedItems(worldIn, pos);
-			super.onRemove(state, worldIn, pos, newState, isMoving);
-		}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel worldIn, BlockPos pos, boolean isMoving) {
+		ItemHandlerUtils.dropContainedItems(worldIn, pos);
+		super.affectNeighborsAfterRemoval(state, worldIn, pos, isMoving);
 	}
 
 	@Override
@@ -155,7 +154,7 @@ public abstract class BlockMachineBase extends BaseBlockEntityProvider implement
 	}
 
 	@Override
-	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos) {
+	public int getAnalogOutputSignal(BlockState state, Level world, BlockPos pos, Direction direction) {
 		return AbstractContainerMenu.getRedstoneSignalFromContainer(getContainer(state, world, pos));
 	}
 
@@ -198,7 +197,7 @@ public abstract class BlockMachineBase extends BaseBlockEntityProvider implement
 					);
 					if (inserted > 0) {
 						stack.shrink(inserted);
-						return InteractionResult.sidedSuccess(worldIn.isClientSide());
+						return InteractionResult.SUCCESS;
 					}
 				}
 			}

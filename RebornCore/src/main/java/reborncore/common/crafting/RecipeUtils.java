@@ -32,8 +32,10 @@ import java.util.stream.Stream;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
@@ -48,27 +50,21 @@ public class RecipeUtils {
 	}
 
 	private static <T extends RebornRecipe> Stream<RecipeHolder<T>> streamRecipeEntries(Level world, RecipeType<T> type) {
-		return world.getRecipeManager().getAllRecipesFor(type).stream();
+		if (!(world instanceof ServerLevel serverWorld)) {
+			throw new IllegalArgumentException("World must be a ServerWorld");
+		}
+
+		return serverWorld.recipeAccess().getRecipes().stream()
+			.filter(recipe -> recipe.value().getType() == type)
+			.map(recipe -> (RecipeHolder<T>) recipe);
 	}
 
-	/**
-	 * Adds the following toast/recipe defaults to an advancement builder:
-	 * <ul>
-	 *     <li>parent as "recipes/root"</li>
-	 *     <li>criterion "has_the_recipe" via OR</li>
-	 *     <li>reward: the specified recipe</li>
-	 * </ul>
-	 * @param builder the advancement task builder to expand
-	 * @param recipeId the ID of the recipe
-	 * @throws NullPointerException If any parameter refers to <code>null</code>.
-	 */
-	public static void addToastDefaults(@NotNull Advancement.Builder builder, @NotNull ResourceLocation recipeId) {
+	public static void addToastDefaults(@NotNull Advancement.Builder builder, @NotNull ResourceKey<Recipe<?>> registryKey) {
 		Objects.requireNonNull(builder);
-		Objects.requireNonNull(recipeId);
+		Objects.requireNonNull(registryKey);
 		builder
-			.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeId))
-			.rewards(AdvancementRewards.Builder.recipe(recipeId))
+			.addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(registryKey))
+			.rewards(AdvancementRewards.Builder.recipe(registryKey))
 			.requirements(AdvancementRequirements.Strategy.OR);
 	}
-
 }

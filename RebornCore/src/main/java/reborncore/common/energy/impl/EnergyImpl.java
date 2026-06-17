@@ -30,7 +30,7 @@ import com.mojang.serialization.DataResult;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
 import org.jetbrains.annotations.ApiStatus;
@@ -45,7 +45,7 @@ public class EnergyImpl {
 	public static void register(RegisterEvent event) {
 		event.register(
 			Registries.DATA_COMPONENT_TYPE,
-			ResourceLocation.fromNamespaceAndPath("team_reborn_energy", "energy"),
+			Identifier.fromNamespaceAndPath("team_reborn_energy", "energy"),
 			() -> ENERGY_COMPONENT
 		);
 	}

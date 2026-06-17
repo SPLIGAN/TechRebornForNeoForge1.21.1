@@ -24,7 +24,7 @@
 
 package techreborn.blockentity.cable;
 
-import net.fabricmc.fabric.api.lookup.v1.block.BlockApiCache;
+import reborncore.common.compat.EnergyLookupBridge;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,8 +49,8 @@ import reborncore.common.network.NetworkManager;
 import reborncore.common.network.clientbound.CustomDescriptionPayload;
 import reborncore.common.powerSystem.PowerSystem;
 import reborncore.common.util.StringUtils;
-import team.reborn.energy.api.EnergyStorage;
-import team.reborn.energy.api.base.SimpleSidedEnergyContainer;
+import reborncore.common.energy.api.EnergyStorage;
+import reborncore.common.energy.api.base.SimpleSidedEnergyContainer;
 import techreborn.blocks.cable.CableBlock;
 import techreborn.init.TRBlockEntities;
 import techreborn.init.TRContent;
@@ -88,8 +88,7 @@ public class CableBlockEntity extends BlockEntity
 	/**
 	 * Adjacent caches, used to quickly query adjacent cable block entities.
 	 */
-	@SuppressWarnings("unchecked")
-	private final BlockApiCache<EnergyStorage, Direction>[] adjacentCaches = new BlockApiCache[6];
+	private final EnergyLookupBridge.AdjacentEnergyAccess[] adjacentCaches = new EnergyLookupBridge.AdjacentEnergyAccess[6];
 	/**
 	 * Bitmask to prevent input or output into/from the cable when the cable already transferred in the target direction.
 	 * This prevents double transfer rates, and back and forth between two cables.
@@ -156,9 +155,9 @@ public class CableBlockEntity extends BlockEntity
 		energyContainer.amount = energy;
 	}
 
-	private BlockApiCache<EnergyStorage, Direction> getAdjacentCache(Direction direction) {
+	private EnergyLookupBridge.AdjacentEnergyAccess getAdjacentCache(Direction direction) {
 		if (adjacentCaches[direction.get3DDataValue()] == null) {
-			adjacentCaches[direction.get3DDataValue()] = BlockApiCache.create(EnergyStorage.SIDED, (ServerLevel) level, worldPosition.relative(direction));
+			adjacentCaches[direction.get3DDataValue()] = EnergyLookupBridge.createAdjacent((ServerLevel) level, worldPosition.relative(direction));
 		}
 		return adjacentCaches[direction.get3DDataValue()];
 	}
@@ -182,7 +181,7 @@ public class CableBlockEntity extends BlockEntity
 			for (Direction direction : Direction.values()) {
 				boolean foundSomething = false;
 
-				BlockApiCache<EnergyStorage, Direction> adjCache = getAdjacentCache(direction);
+				EnergyLookupBridge.AdjacentEnergyAccess adjCache = getAdjacentCache(direction);
 
 				if (adjCache.getBlockEntity() instanceof CableBlockEntity adjCable) {
 					if (adjCable.getCableType().transferRate == getCableType().transferRate) {
@@ -293,12 +292,15 @@ public class CableBlockEntity extends BlockEntity
 		return new ItemStack(getCableType().block);
 	}
 
-	@Override
 	public @Nullable BlockState getRenderData() {
 		return cover;
 	}
 
-	private record CableTarget(Direction directionTo, BlockApiCache<EnergyStorage, Direction> cache) {
+	public @Nullable BlockState getRenderAttachmentData() {
+		return cover;
+	}
+
+	private record CableTarget(Direction directionTo, EnergyLookupBridge.AdjacentEnergyAccess cache) {
 
 		@Nullable
 		EnergyStorage find() {

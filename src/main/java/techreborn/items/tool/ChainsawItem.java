@@ -95,7 +95,7 @@ public class ChainsawItem extends AxeItem implements RcEnergyItem {
 	public long getEnergyCapacity(ItemStack stack) { return maxCharge; }
 
 	@Override
-	public RcEnergyTier getTier() {
+	public RcEnergyTier getEnergyTier() {
 		return tier;
 	}
 

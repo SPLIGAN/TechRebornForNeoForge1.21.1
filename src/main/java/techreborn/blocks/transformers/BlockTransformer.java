@@ -37,7 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import reborncore.api.ToolManager;
 import reborncore.common.BaseBlockEntityProvider;
@@ -50,7 +50,7 @@ import techreborn.init.TRBlockSettings;
  */
 public abstract class BlockTransformer extends BaseBlockEntityProvider {
 
-	public static final DirectionProperty FACING = BlockStateProperties.FACING;
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
 	public final String name;
 
 	public BlockTransformer(String name) {

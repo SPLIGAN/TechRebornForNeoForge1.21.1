@@ -24,35 +24,54 @@
 
 package techreborn.events;
 
-import techreborn.TechReborn;
-import techreborn.init.TRContent;
-
-import java.util.List;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
+import techreborn.TechReborn;
+import techreborn.init.TRContent;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 public class TRRecipeHandler {
 
+	public static void registerNeoForge() {
+		net.neoforged.neoforge.common.NeoForge.EVENT_BUS.addListener(TRRecipeHandler::onDatapackSync);
+	}
+
+	private static void onDatapackSync(OnDatapackSyncEvent event) {
+		event.sendRecipes(reborncore.common.crafting.RecipeManager.getRecipeTypes(TechReborn.MOD_ID).toArray(RecipeType[]::new));
+	}
 
 	public static void unlockTRRecipes(ServerPlayer playerMP) {
-		List<ResourceLocation> recipeList = playerMP.level().getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+		MinecraftServer server = playerMP.level().getServer();
+		if (server == null) {
+			return;
+		}
+		RecipeManager recipeManager = server.getRecipeManager();
+		RecipeMap preparedRecipes = recipeManager.recipeMap();
+
+		Collection<RecipeHolder<?>> recipeList = preparedRecipes.byType(RecipeType.CRAFTING).stream()
 			.filter(TRRecipeHandler::isRecipeValid)
-			.map(RecipeHolder::id)
-			.toList();
-		playerMP.awardRecipesByKey(recipeList);
+			.collect(Collectors.toCollection(ArrayList::new));
+		playerMP.awardRecipes(recipeList);
 	}
 
 	private static boolean isRecipeValid(RecipeHolder<CraftingRecipe> recipe) {
 		if (recipe.id() == null) {
 			return false;
 		}
-		if (!recipe.id().getNamespace().equals(TechReborn.MOD_ID)) {
+		if (!recipe.id().identifier().getNamespace().equals(TechReborn.MOD_ID)) {
 			return false;
 		}
-		return recipe.value().getIngredients().stream().noneMatch(ingredient -> ingredient.test(TRContent.Parts.UU_MATTER.getStack()));
+		return recipe.value().placementInfo().ingredients().stream()
+			.noneMatch(ingredient -> ingredient.test(TRContent.Parts.UU_MATTER.getStack()));
 	}
 
 }

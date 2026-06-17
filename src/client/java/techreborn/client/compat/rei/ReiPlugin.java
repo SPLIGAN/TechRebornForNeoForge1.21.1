@@ -53,7 +53,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
@@ -152,7 +152,7 @@ public class ReiPlugin implements REIClientPlugin {
 		registry.addWorkstations(CategoryIdentifier.of(TechReborn.MOD_ID, Machine.PLASMA_GENERATOR.name), EntryStacks.of(Machine.PLASMA_GENERATOR));
 	}
 
-	private void addWorkstations(ResourceLocation identifier, EntryStack<?>... stacks) {
+	private void addWorkstations(Identifier identifier, EntryStack<?>... stacks) {
 		CategoryRegistry.getInstance().addWorkstations(CategoryIdentifier.of(identifier), stacks);
 	}
 
@@ -160,7 +160,7 @@ public class ReiPlugin implements REIClientPlugin {
 		CategoryRegistry.getInstance().addWorkstations(CategoryIdentifier.of(getTypeId(type)), stacks);
 	}
 
-	private static ResourceLocation getTypeId(RecipeType<?> type) {
+	private static Identifier getTypeId(RecipeType<?> type) {
 		return Objects.requireNonNull(BuiltInRegistries.RECIPE_TYPE.getKey(type));
 	}
 
@@ -226,7 +226,7 @@ public class ReiPlugin implements REIClientPlugin {
 	}
 
 	private void registerFluidGeneratorDisplays(DisplayRegistry registry, RecipeType<FluidGeneratorRecipe> generator, Machine machine) {
-		ResourceLocation identifier = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, machine.name);
+		Identifier identifier = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, machine.name);
 		registry.registerRecipeFiller(FluidGeneratorRecipe.class, recipeType -> recipeType == generator, recipe -> new FluidGeneratorRecipeDisplay(recipe.value(), identifier));
 	}
 

@@ -24,7 +24,7 @@
 
 package reborncore.client.gui.config;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import reborncore.client.network.ClientNetworkingBridge;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
@@ -100,7 +100,7 @@ public class RedstoneConfigGui extends GuiTab {
 					ns = 0;
 				}
 				RedstoneConfiguration.State nextState = RedstoneConfiguration.State.values()[ns];
-				ClientPlayNetworking.send(new SetRedstoneStatePayload(guiBase.getMachine().getBlockPos(), element, nextState));
+				ClientNetworkingBridge.sendToServer(new SetRedstoneStatePayload(guiBase.getMachine().getBlockPos(), element, nextState));
 				return true;
 			}
 			i++;

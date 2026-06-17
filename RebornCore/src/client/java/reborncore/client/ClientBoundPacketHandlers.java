@@ -41,6 +41,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.util.ProblemReporter;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public class ClientBoundPacketHandlers {
@@ -58,7 +60,9 @@ public class ClientBoundPacketHandlers {
 		if (world != null && world.hasChunkAt(payload.pos())) {
 			BlockEntity blockentity = world.getBlockEntity(payload.pos());
 			if (blockentity != null && payload.nbt() != null) {
-				blockentity.loadWithComponents(payload.nbt(), world.registryAccess());
+				try (ProblemReporter.ScopedCollector logging = new ProblemReporter.ScopedCollector(() -> "CustomDescription", RebornCore.LOGGER)) {
+					blockentity.loadWithComponents(TagValueInput.create(logging, world.registryAccess(), payload.nbt()));
+				}
 			}
 		}
 	}

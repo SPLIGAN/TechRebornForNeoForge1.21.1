@@ -42,8 +42,6 @@ import java.util.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.narration.NarratableEntry;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -215,16 +213,6 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 			offset += 24;
 		}
 
-		for (NarratableEntry selectable : narratables) {
-			if (selectable instanceof AbstractWidget clickable) {
-				if (clickable.isHovered()) {
-					// TODO 1.19.3
-					// clickable.renderTooltip(matrixStack, mouseX, mouseY);
-					break;
-				}
-			}
-
-		}
 		super.extractTooltip(drawContext, mouseX, mouseY);
 	}
 
@@ -336,11 +324,13 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	}
 
 	@Override
+	@SuppressWarnings("removal")
 	public int getGuiLeft() {
 		return leftPos;
 	}
 
 	@Override
+	@SuppressWarnings("removal")
 	public int getGuiTop() {
 		return topPos;
 	}
@@ -395,7 +385,7 @@ public class GuiBase<T extends AbstractContainerMenu> extends AbstractContainerS
 	@Override
 	protected boolean hasClickedOutside(double mouseX, double mouseY, int left, int top) {
 		// Upgrades are normally outside the bounds, so let's pretend we are within the bounds if there is a slot here.
-		return getHoveredSlot(mouseX, mouseY) == null && super.hasClickedOutside(mouseX, mouseY, left, top);
+		return getHoveredSlot() == null && super.hasClickedOutside(mouseX, mouseY, left, top);
 	}
 
 	public List<GuiTab> getTabs() {

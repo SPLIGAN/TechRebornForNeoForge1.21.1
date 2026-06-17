@@ -32,7 +32,7 @@ import java.util.Locale;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -82,18 +82,18 @@ public enum ModFluids implements ItemLike {
 
 	private RebornFluidBlock block;
 	private RebornBucketItem bucket;
-	private final ResourceLocation identifier;
+	private final Identifier identifier;
 	private final FluidSettings fluidSettings;
 	private final FluidType fluidType;
 	private final Supplier<FluidType> fluidTypeSupplier;
 
 	ModFluids() {
-		this.identifier = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, this.toString().toLowerCase(Locale.ROOT));
+		this.identifier = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, this.toString().toLowerCase(Locale.ROOT));
 
 		fluidSettings = FluidSettings.create();
 
-		ResourceLocation texture_still = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_still");
-		ResourceLocation texture_flowing = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_flowing");
+		Identifier texture_still = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_still");
+		Identifier texture_flowing = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/fluids/" + this.toString().toLowerCase(Locale.ROOT) + "_flowing");
 
 		fluidSettings.setStillTexture(texture_still);
 		fluidSettings.setFlowingTexture(texture_flowing);
@@ -121,7 +121,7 @@ public enum ModFluids implements ItemLike {
 
 	public void registerFluidsOnly() {
 		RebornFluidManager.register(stillFluid, identifier);
-		RebornFluidManager.register(flowingFluid, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_flowing"));
+		RebornFluidManager.register(flowingFluid, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_flowing"));
 	}
 
 	public void registerFluidBlockOnly() {
@@ -131,7 +131,7 @@ public enum ModFluids implements ItemLike {
 
 	public void registerFluidBucketOnly() {
 		ensureBlockAndBucket();
-		Registry.register(BuiltInRegistries.ITEM, ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_bucket"), bucket);
+		Registry.register(BuiltInRegistries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, identifier.getPath() + "_bucket"), bucket);
 	}
 
 	public RebornFluid getFluid() {
@@ -147,7 +147,7 @@ public enum ModFluids implements ItemLike {
 		return block;
 	}
 
-	public ResourceLocation getIdentifier() {
+	public Identifier getIdentifier() {
 		return identifier;
 	}
 

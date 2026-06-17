@@ -29,37 +29,44 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.RegisterPictureInPictureRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
+import reborncore.common.chunkloading.ChunkLoaderManager;
 import reborncore.common.compat.neoforge.NeoForgeFuelRegistryBridge;
 import reborncore.common.energy.impl.EnergyImpl;
+import reborncore.common.fluid.container.FluidContainerIngredients;
 import reborncore.common.misc.ModSounds;
 import reborncore.common.recipes.PaddedShapedRecipe;
 import reborncore.common.compat.neoforge.NeoForgeItemGroupBridge;
-import reborncore.common.compat.neoforge.NeoForgeVillagerBridge;
 import reborncore.common.network.Packets;
 import reborncore.common.network.ServerBoundPackets;
 import reborncore.client.RebornFluidRenderManager;
 import reborncore.client.gui.ThemeManager;
+import reborncore.client.gui.element.MachineFaceElementRenderer;
+import reborncore.client.gui.element.MachineFaceState;
 
 @Mod(RebornCore.MOD_ID)
 public final class RebornCoreNeoForge {
 
 	public RebornCoreNeoForge(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, EnergyImpl::register);
+		modBus.addListener(RegisterEvent.class, ChunkLoaderManager::register);
 		modBus.addListener(RegisterEvent.class, ModSounds::register);
+		modBus.addListener(RegisterEvent.class, FluidContainerIngredients::register);
 		modBus.addListener(RegisterEvent.class, PaddedShapedRecipe::register);
 		NeoForge.EVENT_BUS.addListener(NeoForgeFuelRegistryBridge::onFurnaceFuelBurnTime);
-		NeoForge.EVENT_BUS.addListener(NeoForgeVillagerBridge::onWandererTrades);
 		modBus.addListener(BuildCreativeModeTabContentsEvent.class, NeoForgeItemGroupBridge::onBuildCreativeTab);
 		modBus.addListener(this::registerPayloads);
 		modBus.addListener(this::commonSetup);
-		if (FMLEnvironment.dist.isClient()) {
+		if (FMLEnvironment.getDist().isClient()) {
 			modBus.addListener(this::clientSetup);
 			modBus.addListener(this::registerClientReloadListeners);
+			modBus.addListener(this::registerPictureInPictureRenderers);
 		}
 	}
 
@@ -77,9 +84,13 @@ public final class RebornCoreNeoForge {
 		event.enqueueWork(() -> new RebornCoreClient().onInitializeClient());
 	}
 
-	private void registerClientReloadListeners(RegisterClientReloadListenersEvent event) {
+	private void registerPictureInPictureRenderers(RegisterPictureInPictureRenderersEvent event) {
+		event.register(MachineFaceState.class, MachineFaceElementRenderer::new);
+	}
+
+	private void registerClientReloadListeners(AddClientReloadListenersEvent event) {
 		RebornFluidRenderManager.bootstrap();
-		event.registerReloadListener(new ThemeManager());
-		event.registerReloadListener(new RebornFluidRenderManager());
+		event.addListener(Identifier.fromNamespaceAndPath(RebornCore.MOD_ID, "theme"), new ThemeManager());
+		event.addListener(Identifier.fromNamespaceAndPath(RebornCore.MOD_ID, "fluid_render"), new RebornFluidRenderManager());
 	}
 }

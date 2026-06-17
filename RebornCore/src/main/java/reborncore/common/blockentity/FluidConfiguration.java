@@ -25,16 +25,16 @@
 package reborncore.common.blockentity;
 
 import io.netty.buffer.ByteBuf;
-import reborncore.common.transfer.RcFluidVariant;
-import reborncore.common.transfer.RcStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import org.jspecify.annotations.Nullable;
 import reborncore.common.compat.TransferApiBridge;
+import reborncore.common.transfer.RcFluidVariant;
+import reborncore.common.transfer.RcStorage;
 import reborncore.common.util.NBTSerializable;
 
 import java.util.*;
@@ -60,9 +60,9 @@ public class FluidConfiguration implements NBTSerializable {
 		Arrays.stream(Direction.values()).forEach(facing -> sideMap.put(facing, new FluidConfig(facing)));
 	}
 
-	public FluidConfiguration(CompoundTag tagCompound) {
+	public FluidConfiguration(ValueInput view) {
 		sideMap = new HashMap<>();
-		read(tagCompound);
+		read(view);
 	}
 
 	private FluidConfiguration(Map<Direction, FluidConfig> sideMap, boolean input, boolean output) {
@@ -137,26 +137,23 @@ public class FluidConfiguration implements NBTSerializable {
 		this.output = output;
 	}
 
-	@NotNull
 	@Override
-	public CompoundTag write() {
-		CompoundTag compound = new CompoundTag();
-		Arrays.stream(Direction.values()).forEach(facing -> compound.put("side_" + facing.ordinal(), sideMap.get(facing).write()));
-		compound.putBoolean("input", input);
-		compound.putBoolean("output", output);
-		return compound;
+	public void write(ValueOutput view) {
+		Arrays.stream(Direction.values()).forEach(facing -> sideMap.get(facing).write(view.child("side_" + facing.ordinal())));
+		view.putBoolean("input", input);
+		view.putBoolean("output", output);
 	}
 
 	@Override
-	public void read(@NotNull CompoundTag nbt) {
+	public void read(ValueInput view) {
 		sideMap.clear();
 		Arrays.stream(Direction.values()).forEach(facing -> {
-			CompoundTag compound = nbt.getCompound("side_" + facing.ordinal());
-			FluidConfig config = new FluidConfig(compound);
-			sideMap.put(facing, config);
+			view.child("side_" + facing.ordinal()).ifPresent(config -> {
+				sideMap.put(facing, new FluidConfig(config));
+			});
 		});
-		input = nbt.getBoolean("input");
-		output = nbt.getBoolean("output");
+		input = view.getBooleanOr("input", false);
+		output = view.getBooleanOr("output", false);
 	}
 
 	public static class FluidConfig implements NBTSerializable {
@@ -179,8 +176,8 @@ public class FluidConfiguration implements NBTSerializable {
 			this.ioConfig = ioConfig;
 		}
 
-		public FluidConfig(CompoundTag tagCompound) {
-			read(tagCompound);
+		public FluidConfig(ValueInput view) {
+			read(view);
 		}
 
 		public Direction getSide() {
@@ -191,19 +188,16 @@ public class FluidConfiguration implements NBTSerializable {
 			return ioConfig;
 		}
 
-		@NotNull
 		@Override
-		public CompoundTag write() {
-			CompoundTag tagCompound = new CompoundTag();
-			tagCompound.putInt("side", side.ordinal());
-			tagCompound.putInt("config", ioConfig.ordinal());
-			return tagCompound;
+		public void write(ValueOutput view) {
+			view.putInt("side", side.ordinal());
+			view.putInt("config", ioConfig.ordinal());
 		}
 
 		@Override
-		public void read(@NotNull CompoundTag nbt) {
-			side = Direction.values()[nbt.getInt("side")];
-			ioConfig = FluidConfiguration.ExtractConfig.values()[nbt.getInt("config")];
+		public void read(ValueInput view) {
+			side = Direction.values()[view.getIntOr("side", 0)];
+			ioConfig = FluidConfiguration.ExtractConfig.values()[view.getIntOr("config", 0)];
 		}
 	}
 

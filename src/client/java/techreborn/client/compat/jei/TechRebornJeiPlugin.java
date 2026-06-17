@@ -26,13 +26,18 @@ package techreborn.client.compat.jei;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.recipe.IRecipeManager;
+import mezz.jei.api.recipe.types.IRecipeHolderType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import mezz.jei.api.runtime.IJeiRuntime;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.neoforged.neoforge.client.event.RecipesReceivedEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import reborncore.common.crafting.RebornRecipe;
 import reborncore.common.crafting.RecipeManager;
 import techreborn.TechReborn;
@@ -41,15 +46,21 @@ import techreborn.init.ModRecipes;
 import techreborn.init.TRContent.Machine;
 import techreborn.recipe.recipes.FluidGeneratorRecipe;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @JeiPlugin
 public class TechRebornJeiPlugin implements IModPlugin {
-	private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(TechReborn.MOD_ID, "jei");
+	private static final Identifier UID = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "jei");
+
+	private static RecipeMap recipeMap = RecipeMap.EMPTY;
+	private static IJeiRuntime jeiRuntime;
+
+	public TechRebornJeiPlugin() {
+		NeoForge.EVENT_BUS.addListener(this::onRecipesReceived);
+	}
 
 	@Override
-	public ResourceLocation getPluginUid() {
+	public Identifier getPluginUid() {
 		return UID;
 	}
 
@@ -86,20 +97,7 @@ public class TechRebornJeiPlugin implements IModPlugin {
 
 	@Override
 	public void registerRecipes(IRecipeRegistration registration) {
-		var mc = Minecraft.getInstance();
-		if (mc.level == null) {
-			return;
-		}
-		net.minecraft.world.item.crafting.RecipeManager vanillaRecipes = mc.level.getRecipeManager();
-		for (RecipeType<?> type : RecipeManager.getRecipeTypes(TechReborn.MOD_ID)) {
-			if (type == ModRecipes.RECYCLER) {
-				continue;
-			}
-			mezz.jei.api.recipe.RecipeType<?> jeiType = mezz.jei.api.recipe.RecipeType.createFromVanilla(type);
-			@SuppressWarnings({"unchecked", "rawtypes"})
-			List<?> holders = new ArrayList<>(vanillaRecipes.getAllRecipesFor((RecipeType) type));
-			registration.addRecipes(jeiType, (List) holders);
-		}
+		addRecipes(registration);
 	}
 
 	@Override
@@ -108,9 +106,57 @@ public class TechRebornJeiPlugin implements IModPlugin {
 			if (type == ModRecipes.RECYCLER) {
 				continue;
 			}
-			mezz.jei.api.recipe.RecipeType<?> jeiType = mezz.jei.api.recipe.RecipeType.createFromVanilla(type);
-			registration.addRecipeCatalyst(TechRebornRecipeIcons.stackForRecipeType(type), jeiType);
+			registration.addCraftingStation(IRecipeHolderType.create(type), TechRebornRecipeIcons.stackForRecipeType(type));
 		}
-		registration.addRecipeCatalyst(new ItemStack(Machine.IRON_ALLOY_FURNACE.asItem()), mezz.jei.api.recipe.RecipeType.createFromVanilla(ModRecipes.ALLOY_SMELTER));
+		registration.addCraftingStation(IRecipeHolderType.create(ModRecipes.ALLOY_SMELTER), new ItemStack(Machine.IRON_ALLOY_FURNACE.asItem()));
+	}
+
+	@Override
+	public void onRuntimeAvailable(IJeiRuntime runtime) {
+		jeiRuntime = runtime;
+		addRecipes(runtime.getRecipeManager());
+	}
+
+	@Override
+	public void onRuntimeUnavailable() {
+		jeiRuntime = null;
+		recipeMap = RecipeMap.EMPTY;
+	}
+
+	private void onRecipesReceived(RecipesReceivedEvent event) {
+		recipeMap = event.getRecipeMap();
+		if (jeiRuntime != null) {
+			addRecipes(jeiRuntime.getRecipeManager());
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void addRecipes(IRecipeRegistration registration) {
+		for (RecipeType<?> type : RecipeManager.getRecipeTypes(TechReborn.MOD_ID)) {
+			if (type == ModRecipes.RECYCLER) {
+				continue;
+			}
+			var jeiType = IRecipeHolderType.create(type);
+			@SuppressWarnings({"unchecked", "rawtypes"})
+			List holders = List.copyOf((java.util.Collection) recipeMap.byType((RecipeType) type));
+			if (!holders.isEmpty()) {
+				registration.addRecipes(jeiType, holders);
+			}
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void addRecipes(IRecipeManager recipeManager) {
+		for (RecipeType<?> type : RecipeManager.getRecipeTypes(TechReborn.MOD_ID)) {
+			if (type == ModRecipes.RECYCLER) {
+				continue;
+			}
+			var jeiType = IRecipeHolderType.create(type);
+			@SuppressWarnings({"unchecked", "rawtypes"})
+			List holders = List.copyOf((java.util.Collection) recipeMap.byType((RecipeType) type));
+			if (!holders.isEmpty()) {
+				recipeManager.addRecipes(jeiType, holders);
+			}
+		}
 	}
 }

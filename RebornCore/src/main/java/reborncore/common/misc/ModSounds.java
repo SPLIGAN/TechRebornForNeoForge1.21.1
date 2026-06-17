@@ -25,7 +25,7 @@
 package reborncore.common.misc;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
@@ -37,7 +37,7 @@ public class ModSounds {
 	public static SoundEvent BLOCK_DISMANTLE;
 
 	public static void register(RegisterEvent event) {
-		ResourceLocation id = ResourceLocation.fromNamespaceAndPath("reborncore", "block_dismantle");
+		Identifier id = Identifier.fromNamespaceAndPath("reborncore", "block_dismantle");
 		event.register(Registries.SOUND_EVENT, id, () -> {
 			SoundEvent sound = SoundEvent.createVariableRangeEvent(id);
 			BLOCK_DISMANTLE = sound;

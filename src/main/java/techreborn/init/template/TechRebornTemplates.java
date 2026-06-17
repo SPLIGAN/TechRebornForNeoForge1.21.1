@@ -37,6 +37,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.server.permissions.Permissions;
 import net.minecraft.network.chat.Component;
 
 import static com.mojang.brigadier.arguments.StringArgumentType.greedyString;
@@ -49,7 +50,7 @@ public class TechRebornTemplates {
 		EventBridge.registerCommands((dispatcher, registryAccess, environment) -> dispatcher.register(
 				literal("techreborn")
 						.then(literal("template")
-								.requires(source -> source.hasPermission(3))
+								.requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_ADMIN))
 								.requires(source -> LoaderBridge.isDevelopmentEnvironment())
 								.then(literal("generate")
 										.then(
