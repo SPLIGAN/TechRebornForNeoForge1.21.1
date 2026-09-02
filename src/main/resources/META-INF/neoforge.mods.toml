@@ -46,3 +46,6 @@ type = "optional"
 versionRange = "[0,)"
 ordering = "NONE"
 side = "CLIENT"
+
+[[mixins]]
+config = "techreborn.client.mixins.json"

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/storage/raw_uranium_storage_block"
+    }
+  }
+}

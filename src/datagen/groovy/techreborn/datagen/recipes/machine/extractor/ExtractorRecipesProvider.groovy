@@ -24,7 +24,7 @@
 
 package techreborn.datagen.recipes.machine.extractor
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.world.level.ItemLike
 import net.minecraft.world.item.Items
 import net.minecraft.core.registries.BuiltInRegistries
@@ -36,7 +36,7 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class ExtractorRecipesProvider extends TechRebornRecipesProvider {
-	ExtractorRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	ExtractorRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

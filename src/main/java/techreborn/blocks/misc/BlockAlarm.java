@@ -64,8 +64,8 @@ public class BlockAlarm extends BaseBlockEntityProvider {
 	public static final BooleanProperty ACTIVE = BlockMachineBase.ACTIVE;
 	protected final VoxelShape[] shape;
 
-	public BlockAlarm() {
-		super(TRBlockSettings.alarm());
+	public BlockAlarm(String name) {
+		super(TRBlockSettings.alarm(name));
 		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
 		this.shape = GenCuboidShapes(3, 10);
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);

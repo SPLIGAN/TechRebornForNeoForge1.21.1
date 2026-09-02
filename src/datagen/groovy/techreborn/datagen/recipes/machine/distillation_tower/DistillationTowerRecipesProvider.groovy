@@ -24,7 +24,7 @@
 
 package techreborn.datagen.recipes.machine.distillation_tower
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.core.HolderLookup
 import techreborn.datagen.recipes.TechRebornRecipesProvider
@@ -33,7 +33,7 @@ import techreborn.init.ModFluids
 import java.util.concurrent.CompletableFuture
 
 class DistillationTowerRecipesProvider extends TechRebornRecipesProvider {
-	DistillationTowerRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	DistillationTowerRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

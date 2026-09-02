@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/storage/hot_tungstensteel_storage_block"
+    }
+  }
+}

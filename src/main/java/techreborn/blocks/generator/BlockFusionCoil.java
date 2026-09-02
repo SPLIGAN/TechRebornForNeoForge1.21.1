@@ -47,8 +47,8 @@ import net.minecraft.world.phys.BlockHitResult;
 
 public class BlockFusionCoil extends BaseBlock {
 
-	public BlockFusionCoil() {
-		super(TRBlockSettings.fusionCoil());
+	public BlockFusionCoil(String name) {
+		super(TRBlockSettings.fusionCoil(name));
 	}
 
 	@Override

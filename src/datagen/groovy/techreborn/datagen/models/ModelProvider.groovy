@@ -24,9 +24,6 @@
 
 package techreborn.datagen.models
 
-
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
-import net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider
 import net.minecraft.world.level.block.Block
 import net.minecraft.client.data.models.BlockModelGenerators
 import net.minecraft.client.data.models.ItemModelGenerators
@@ -38,11 +35,12 @@ import net.minecraft.client.data.models.model.TextureMapping
 import net.minecraft.client.data.models.model.TexturedModel
 import net.minecraft.data.BlockFamilies
 import net.minecraft.data.BlockFamily
+import net.minecraft.data.PackOutput
 import net.minecraft.world.item.Item
 import net.minecraft.world.level.ItemLike
-import net.minecraft.core.HolderLookup
 import net.minecraft.resources.Identifier
 import org.apache.commons.lang3.tuple.Pair
+import techreborn.TechReborn
 import techreborn.client.render.ActiveProperty
 import techreborn.client.render.ItemBucketModel
 import techreborn.client.render.ItemCellModel
@@ -71,17 +69,24 @@ import techreborn.init.TRContent.Upgrades
 import techreborn.init.TRContent.Cables
 import techreborn.init.TRContent.NuclearReactorComponents
 
-import java.util.concurrent.CompletableFuture
 import java.util.function.BiConsumer
 import java.util.function.Consumer
 
-class ModelProvider extends FabricModelProvider {
+class ModelProvider extends net.minecraft.client.data.models.ModelProvider {
 	static BlockModelGenerators stateGenerator
 	static ItemModelGenerators itemGenerator
 	static BiConsumer<Identifier, ModelInstance> modelCollector
 
-	ModelProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
-		super(output)
+	ModelProvider(PackOutput output) {
+		super(output, TechReborn.MOD_ID)
+	}
+
+	@Override
+	protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+		// Populate ModelPathOverrides via TexturePaths static initializer before generators run.
+		TexturePaths.blockPaths
+		generateBlockStateModels(blockModels)
+		generateItemModels(itemModels)
 	}
 
 	static <T extends Enum<T>> void add(Class<T> type, Closure closure) {
@@ -100,7 +105,6 @@ class ModelProvider extends FabricModelProvider {
 		}
 	}
 
-	@Override
 	void generateBlockStateModels(BlockModelGenerators generator) {
 		stateGenerator = generator
 		modelCollector = generator.modelOutput
@@ -532,7 +536,6 @@ class ModelProvider extends FabricModelProvider {
 		// Just make sure Registries.ITEM contains the id of the block
 	}
 
-	@Override
 	void generateItemModels(ItemModelGenerators generator) {
 		itemGenerator = generator
 		modelCollector = generator.modelOutput

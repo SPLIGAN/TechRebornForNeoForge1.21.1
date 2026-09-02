@@ -40,7 +40,7 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
-public enum ModFluids implements ItemLike {
+public enum ModFluids implements techreborn.init.TRContent.BlockInfo {
 	BERYLLIUM,
 	CALCIUM,
 	CALCIUM_CARBONATE,
@@ -75,7 +75,10 @@ public enum ModFluids implements ItemLike {
 	SULFURIC_ACID,
 	TRITIUM,
 	WOLFRAMIUM,
-	BIOFUEL;
+	BIOFUEL,
+	FLUORINE,
+	NITRIC_ACID,
+	URANIUM_HEXAFLUORIDE;
 
 	private RebornFluid stillFluid;
 	private RebornFluid flowingFluid;
@@ -115,8 +118,8 @@ public enum ModFluids implements ItemLike {
 		if (block != null) {
 			return;
 		}
-		block = new RebornFluidBlock(stillFluid, TRBlockSettings.fluid());
-		bucket = new RebornBucketItem(stillFluid, new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
+		block = new RebornFluidBlock(stillFluid, TRBlockSettings.fluid(identifier.getPath()));
+		bucket = new RebornBucketItem(stillFluid, TRItemSettings.item(identifier.getPath() + "_bucket").craftRemainder(Items.BUCKET).stacksTo(1));
 	}
 
 	public void registerFluidsOnly() {
@@ -142,6 +145,12 @@ public enum ModFluids implements ItemLike {
 		return flowingFluid;
 	}
 
+	@Override
+	public String getName() {
+		return identifier.getPath();
+	}
+
+	@Override
 	public RebornFluidBlock getBlock() {
 		ensureBlockAndBucket();
 		return block;

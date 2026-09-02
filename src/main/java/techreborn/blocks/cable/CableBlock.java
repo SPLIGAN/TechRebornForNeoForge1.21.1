@@ -109,7 +109,7 @@ public class CableBlock extends BaseEntityBlock implements SimpleWaterloggedBloc
 	public final TRContent.Cables type;
 
 	public CableBlock(TRContent.Cables type, String name) {
-		super(TRBlockSettings.cable());
+		super(TRBlockSettings.cable(name));
 		this.type = type;
 		registerDefaultState(this.getStateDefinition().any().setValue(EAST, false).setValue(WEST, false).setValue(NORTH, false)
 				.setValue(SOUTH, false).setValue(UP, false).setValue(DOWN, false).setValue(WATERLOGGED, false).setValue(COVERED, false));

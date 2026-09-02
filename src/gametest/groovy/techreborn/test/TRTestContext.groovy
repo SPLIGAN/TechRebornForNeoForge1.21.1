@@ -24,28 +24,31 @@
 
 package techreborn.test
 
-import net.minecraft.item.ItemConvertible
-import net.minecraft.item.ItemStack
-import net.minecraft.test.TestContext
-import net.minecraft.util.math.BlockPos
+import net.minecraft.core.BlockPos
+import net.minecraft.gametest.framework.GameTestHelper
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.level.ItemLike
 import reborncore.common.blockentity.MachineBaseBlockEntity
+import reborncore.common.recipes.RecipeCrafter
+import techreborn.blockentity.machine.GenericMachineBlockEntity
 import techreborn.init.TRContent
 
-class TRTestContext extends TestContext {
-	TRTestContext(TestContext parentContext) {
-		//noinspection GroovyAccessibility
-		super(parentContext.test)
+class TRTestContext {
+	final GameTestHelper helper
+
+	TRTestContext(GameTestHelper helper) {
+		this.helper = helper
 	}
 
 	/**
 	 * Place a machine with a creative solar panel
 	 */
 	def poweredMachine(TRContent.Machine machine, @DelegatesTo(MachineContext) Closure machineContextClosure) {
-		def machinePos = new BlockPos(0, 2, 0)
-		setBlockState(machinePos, machine.block)
-		setBlockState(machinePos.down(), TRContent.SolarPanels.CREATIVE.block)
+		def machinePos = new BlockPos(2, 2, 2)
+		helper.setBlock(machinePos, machine.block)
+		helper.setBlock(machinePos.below(), TRContent.SolarPanels.CREATIVE.block)
 
-		waitAndRun(5) {
+		helper.runAfterDelay(5) {
 			try {
 				new MachineContext(machinePos).with(machineContextClosure)
 			} catch (e) {
@@ -56,10 +59,10 @@ class TRTestContext extends TestContext {
 	}
 
 	def machine(TRContent.Machine machine, @DelegatesTo(MachineContext) Closure machineContextClosure) {
-		def machinePos = new BlockPos(0, 1, 0)
-		setBlockState(machinePos, machine.block)
+		def machinePos = new BlockPos(2, 1, 2)
+		helper.setBlock(machinePos, machine.block)
 
-		waitAndRun(5) {
+		helper.runAfterDelay(5) {
 			try {
 				new MachineContext(machinePos).with(machineContextClosure)
 			} catch (e) {
@@ -76,52 +79,72 @@ class TRTestContext extends TestContext {
 			this.machinePos = machinePos
 		}
 
-		def input(ItemConvertible item, int slot = -1) {
+		def input(ItemLike item, int slot = -1) {
 			this.input(new ItemStack(item), slot)
 		}
 
 		def input(ItemStack stack, int slot = -1) {
 			if (slot == -1) {
-				// If not slot is provided use the first input slot
-				slot = blockEntity.crafter.inputSlots[0]
+				slot = recipeCrafter.inputSlots[0]
 			}
 
-			blockEntity.inventory.setStack(slot, stack)
+			inventory.setItem(slot, stack)
 		}
 
-		def expectOutput(ItemConvertible item, int ticks, int slot = -1) {
+		def expectOutput(ItemLike item, int ticks, int slot = -1) {
 			expectOutput(new ItemStack(item), ticks, slot)
 		}
 
 		def expectOutput(ItemStack stack, int ticks, int slot = -1) {
 			if (slot == -1) {
-				// If not slot is provided use the first output slot
-				slot = blockEntity.crafter.outputSlots[0]
+				slot = recipeCrafter.outputSlots[0]
 			}
 
-			addFinalTaskWithDuration(ticks) {
-				if (!blockEntity.inventory.getStack(slot).isItemEqual(stack)) {
-					throwGameTestException("Failed to find $stack in slot $slot")
+			// Account for the 5-tick setup delay used by machine()/poweredMachine().
+			helper.runAtTickTime(ticks + 5) {
+				def actual = inventory.getItem(slot)
+				if (!ItemStack.isSameItem(actual, stack)) {
+					helper.fail("Failed to find $stack in slot $slot (found $actual)")
 				}
+				helper.succeed()
 			}
 		}
 
 		def withUpgrades(TRContent.Upgrades upgrade, int count = -1) {
-			count = (count != -1 ? count : blockEntity.getUpgradeSlotCount()) -1
+			count = (count != -1 ? count : blockEntity.getUpgradeSlotCount()) - 1
 
 			(0..count).each {
-				blockEntity.upgradeInventory.setStack(it, new ItemStack(upgrade))
+				blockEntity.upgradeInventory.setItem(it, new ItemStack(upgrade))
 			}
 		}
 
 		MachineBaseBlockEntity getBlockEntity() {
-			def be = getBlockEntity(machinePos)
+			MachineBaseBlockEntity be = helper.getBlockEntity(machinePos, MachineBaseBlockEntity.class)
 
-			if (!be) {
-				throwPositionedException("Failed to get machine block entity", machinePos)
+			if (be == null) {
+				helper.fail("Failed to get machine block entity", machinePos)
 			}
 
-			return be as MachineBaseBlockEntity
+			return be
+		}
+
+		private def getInventory() {
+			def be = blockEntity
+			if (be.metaClass.hasProperty(be, "inventory") && be.inventory != null) {
+				return be.inventory
+			}
+			throw new TRGameTest.TRGameTestException("Machine has no inventory field", null)
+		}
+
+		private RecipeCrafter getRecipeCrafter() {
+			def be = blockEntity
+			if (be instanceof GenericMachineBlockEntity && be.crafter != null) {
+				return be.crafter
+			}
+			if (be.metaClass.hasProperty(be, "crafter") && be.crafter != null) {
+				return be.crafter as RecipeCrafter
+			}
+			throw new TRGameTest.TRGameTestException("Machine has no recipe crafter", null)
 		}
 	}
 }

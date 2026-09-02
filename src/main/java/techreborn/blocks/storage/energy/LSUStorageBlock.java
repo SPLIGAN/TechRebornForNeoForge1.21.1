@@ -47,8 +47,8 @@ import techreborn.init.TRBlockSettings;
  */
 public class LSUStorageBlock extends BaseBlockEntityProvider {
 
-	public LSUStorageBlock() {
-		super(TRBlockSettings.lsuStorage());
+	public LSUStorageBlock(String name) {
+		super(TRBlockSettings.lsuStorage(name));
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);
 	}
 

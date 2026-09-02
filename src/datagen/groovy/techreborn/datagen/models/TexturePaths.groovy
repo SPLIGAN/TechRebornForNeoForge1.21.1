@@ -31,6 +31,7 @@ import net.minecraft.client.resources.model.sprite.Material
 import net.minecraft.world.item.Item
 import net.minecraft.resources.Identifier
 import techreborn.TechReborn
+import techreborn.datagen.ModelPathOverrides
 import techreborn.init.ModFluids
 import techreborn.init.TRContent
 import techreborn.init.TRContent.FamilyBlockInfo
@@ -96,12 +97,18 @@ class TexturePaths {
 	}
 
 	static void add(Block block, String path) {
-		blockPaths.put(block, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/" + path))
-		itemPaths.put(block.asItem(), Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "item/" + path))
+		def blockId = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/" + path)
+		def itemId = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "item/" + path)
+		blockPaths.put(block, blockId)
+		itemPaths.put(block.asItem(), itemId)
+		ModelPathOverrides.putBlock(block, blockId)
+		ModelPathOverrides.putItem(block.asItem(), itemId)
 	}
 
 	static void add(Item item, String path) {
-		itemPaths.put(item, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "item/" + path))
+		def id = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "item/" + path)
+		itemPaths.put(item, id)
+		ModelPathOverrides.putItem(item, id)
 	}
 
 	static void add(def info, String path) {
@@ -137,15 +144,19 @@ class TexturePaths {
 	}
 
 	static void alias(Block block, String path) {
-		aliasPaths.put(block, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/" + path))
+		def id = Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "block/" + path)
+		aliasPaths.put(block, id)
+		ModelPathOverrides.putAlias(block, id)
 	}
 
 	static void alias(Block block, Identifier id) {
 		aliasPaths.put(block, id)
+		ModelPathOverrides.putAlias(block, id)
 	}
 
 	static void alias(Block block, Material material) {
 		aliasPaths.put(block, material.sprite())
+		ModelPathOverrides.putAlias(block, material.sprite())
 	}
 
 	static void alias(BlockInfo info, String path) {

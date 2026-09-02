@@ -26,6 +26,7 @@ package techreborn.items;
 
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import techreborn.init.TRItemSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.blockentity.IUpgrade;
@@ -38,7 +39,7 @@ public class UpgradeItem extends Item implements IUpgrade {
 	public final IUpgrade behavior;
 
 	public UpgradeItem(String name, IUpgrade process) {
-		super(new Item.Properties().stacksTo(16));
+		super(TRItemSettings.item(name + "_upgrade").stacksTo(16));
 		this.name = name;
 		this.behavior = process;
 	}

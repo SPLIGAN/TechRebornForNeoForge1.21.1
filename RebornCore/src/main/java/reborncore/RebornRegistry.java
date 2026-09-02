@@ -31,6 +31,7 @@ import java.util.function.Function;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
@@ -83,7 +84,9 @@ public class RebornRegistry {
 	public static void registerBlockItem(Block block, Item.Properties itemGroup) {
 		Validate.isTrue(objIdentMap.containsKey(block));
 		Identifier name = objIdentMap.get(block);
-		BlockItem itemBlock = new BlockItem(block, itemGroup);
+		Item.Properties props = new Item.Properties()
+			.setId(ResourceKey.create(BuiltInRegistries.ITEM.key(), name));
+		BlockItem itemBlock = new BlockItem(block, props);
 		Registry.register(BuiltInRegistries.ITEM, name, itemBlock);
 	}
 

@@ -66,8 +66,8 @@ public class BlockRubberLog extends RotatedPillarBlock {
 	public static final BooleanProperty HAS_SAP = BooleanProperty.create("hassap");
 	public static final BooleanProperty SHOULD_SAP = BooleanProperty.create("shouldsap");
 
-	public BlockRubberLog() {
-		super(TRBlockSettings.rubberLog());
+	public BlockRubberLog(String name) {
+		super(TRBlockSettings.rubberLog(name));
 		this.registerDefaultState(this.defaultBlockState().setValue(SAP_SIDE, Direction.NORTH).setValue(HAS_SAP, false).setValue(SHOULD_SAP, true).setValue(AXIS, Direction.Axis.Y));
 		FlammableBlockBridge.register(this, 5, 5);
 	}

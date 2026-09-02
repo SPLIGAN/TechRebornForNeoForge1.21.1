@@ -60,6 +60,7 @@ import reborncore.common.fluid.FluidUtils;
 import reborncore.common.fluid.container.ItemFluidInfo;
 import techreborn.component.TRDataComponentTypes;
 import techreborn.init.TRContent;
+import techreborn.init.TRItemSettings;
 
 /**
  * Created by modmuss50 on 17/05/2016.
@@ -67,7 +68,7 @@ import techreborn.init.TRContent;
 public class DynamicCellItem extends Item implements ItemFluidInfo {
 
 	public DynamicCellItem() {
-		super(new Item.Properties().stacksTo(16).component(TRDataComponentTypes.FLUID, Fluids.EMPTY.builtInRegistryHolder()));
+		super(TRItemSettings.item("cell").stacksTo(16).component(TRDataComponentTypes.FLUID, Fluids.EMPTY.builtInRegistryHolder()));
 	}
 
 	// Thanks vanilla :)
@@ -79,10 +80,7 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 
 	public static ItemStack getCellWithFluid(Fluid fluid, int stackSize) {
 		Validate.notNull(fluid, "Can't get cell with NULL fluid");
-		ItemStack stack = new ItemStack(TRContent.CELL, stackSize);
-		stack.set(TRDataComponentTypes.FLUID, fluid.builtInRegistryHolder());
-		stack.setCount(stackSize);
-		return stack;
+		return TRContent.Cells.getCellByFluid(fluid).getStack(stackSize);
 	}
 
 	public static ItemStack getCellWithFluid(Fluid fluid) {
@@ -90,7 +88,7 @@ public class DynamicCellItem extends Item implements ItemFluidInfo {
 	}
 
 	public static ItemStack getEmptyCell(int amount) {
-		return new ItemStack(TRContent.CELL, amount);
+		return TRContent.Cells.EMPTY.getStack(amount);
 	}
 
 	private void insertOrDropStack(Player playerEntity, ItemStack stack) {

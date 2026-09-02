@@ -46,8 +46,8 @@ import techreborn.init.TRBlockSettings;
 import techreborn.init.TRContent;
 
 public class BlockComputerCube extends BlockMachineBase {
-	public BlockComputerCube() {
-		super(TRBlockSettings.computerCube());
+	public BlockComputerCube(String name) {
+		super(TRBlockSettings.computerCube(name));
 	}
 
 	@Override

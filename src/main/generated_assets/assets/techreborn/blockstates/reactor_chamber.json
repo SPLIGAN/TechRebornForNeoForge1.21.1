@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/machines/generators/nuclear/reactor_chamber"
+    }
+  }
+}

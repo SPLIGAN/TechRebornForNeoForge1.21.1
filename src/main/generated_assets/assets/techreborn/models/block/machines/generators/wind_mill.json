@@ -1,0 +1,11 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "bottom": "techreborn:block/machines/generators/wind_mill_bottom",
+    "east": "techreborn:block/machines/generators/wind_mill_east",
+    "front": "techreborn:block/machines/generators/wind_mill_front",
+    "south": "techreborn:block/machines/generators/generator_bottom",
+    "up": "techreborn:block/machines/generators/wind_mill_top",
+    "west": "techreborn:block/machines/generators/wind_mill_west"
+  }
+}

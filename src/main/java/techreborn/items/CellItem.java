@@ -24,13 +24,6 @@
 
 package techreborn.items;
 
-import net.fabricmc.fabric.api.transfer.v1.context.ContainerItemContext;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidConstants;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidStorage;
-import net.fabricmc.fabric.api.transfer.v1.fluid.FluidVariant;
-import net.fabricmc.fabric.api.transfer.v1.item.ItemVariant;
-import net.fabricmc.fabric.api.transfer.v1.storage.base.SingleVariantItemStorage;
-import net.fabricmc.fabric.api.transfer.v1.transaction.TransactionContext;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
@@ -59,12 +52,18 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import org.jspecify.annotations.Nullable;
+import org.jetbrains.annotations.Nullable;
+import reborncore.common.compat.TransferApiBridge;
 import reborncore.common.fluid.FluidUtils;
 import reborncore.common.fluid.container.ItemFluidInfo;
+import reborncore.common.transfer.RcItemVariant;
 import techreborn.init.TRContent;
 import techreborn.init.TRItemSettings;
 
+/**
+ * Per-fluid cell item (Fabric TechReborn 6.0.2 parity). Each fluid has its own registry id
+ * (e.g. {@code techreborn:methane_cell}) instead of a single dynamic cell with a fluid component.
+ */
 public class CellItem extends Item implements ItemFluidInfo {
 
 	private final Fluid fluid;
@@ -205,7 +204,6 @@ public class CellItem extends Item implements ItemFluidInfo {
 		return InteractionResult.FAIL;
 	}
 
-	// ItemFluidInfo
 	@Override
 	public ItemStack getEmpty() {
 		return new ItemStack(TRContent.Cells.EMPTY.asItem());
@@ -222,65 +220,16 @@ public class CellItem extends Item implements ItemFluidInfo {
 	}
 
 	public void registerFluidApi() {
-		FluidStorage.ITEM.registerForItems((stack, ctx) -> new CellStorage(ctx), this);
-	}
-
-	public class CellStorage extends SingleVariantItemStorage<FluidVariant> {
-		public CellStorage(ContainerItemContext context) {
-			super(context);
-		}
-
-		@Override
-		protected FluidVariant getBlankResource() {
-			return FluidVariant.blank();
-		}
-
-		@Override
-		protected FluidVariant getResource(ItemVariant currentVariant) {
-			if (fluid != Fluids.EMPTY) {
-				return FluidVariant.of(fluid);
+		TransferApiBridge.registerDynamicCellFluidStorage(this, new TransferApiBridge.DynamicCellFluidStorageProvider() {
+			@Override
+			public Fluid fluidFromItemVariant(RcItemVariant variant) {
+				return fluid;
 			}
-			return FluidVariant.of(Fluids.EMPTY);
-		}
 
-		@Override
-		protected long getAmount(ItemVariant currentVariant) {
-			return fluid == Fluids.EMPTY ? 0 : FluidConstants.BUCKET;
-		}
-
-		@Override
-		protected long getCapacity(FluidVariant variant) {
-			return FluidConstants.BUCKET;
-		}
-
-		@Override
-		protected ItemVariant getUpdatedVariant(ItemVariant currentVariant, FluidVariant newResource, long newAmount) {
-			if (newAmount != 0 && newAmount != FluidConstants.BUCKET) {
-				throw new IllegalArgumentException("Only amounts of 0 and 1 bucket are supported! This is a bug!");
+			@Override
+			public ItemStack stackWithFluid(Fluid target) {
+				return TRContent.Cells.getCellByFluid(target).getStack();
 			}
-			if (newResource.isBlank() || newAmount == 0) {
-				return ItemVariant.of(TRContent.Cells.EMPTY.asItem());
-			} else {
-				return ItemVariant.of(TRContent.Cells.getCellByFluid(newResource.getFluid()).asItem());
-			}
-		}
-
-		@Override
-		public long insert(FluidVariant insertedResource, long maxAmount, TransactionContext transaction) {
-			if (isResourceBlank() && maxAmount >= FluidConstants.BUCKET) {
-				return super.insert(insertedResource, FluidConstants.BUCKET, transaction);
-			} else {
-				return 0;
-			}
-		}
-
-		@Override
-		public long extract(FluidVariant extractedResource, long maxAmount, TransactionContext transaction) {
-			if (!isResourceBlank() && maxAmount >= FluidConstants.BUCKET) {
-				return super.extract(extractedResource, FluidConstants.BUCKET, transaction);
-			} else {
-				return 0;
-			}
-		}
+		});
 	}
 }

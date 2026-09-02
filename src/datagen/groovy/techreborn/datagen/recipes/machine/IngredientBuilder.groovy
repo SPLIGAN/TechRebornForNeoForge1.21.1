@@ -24,17 +24,16 @@
 
 package techreborn.datagen.recipes.machine
 
-import net.fabricmc.fabric.api.recipe.v1.ingredient.DefaultCustomIngredients
-import net.minecraft.world.item.Item
-import net.minecraft.world.item.ItemStackTemplate
-import net.minecraft.world.level.ItemLike
-import net.minecraft.world.item.ItemStack
-import net.minecraft.world.item.crafting.Ingredient
-import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.core.HolderGetter
 import net.minecraft.core.HolderSet
-import net.minecraft.tags.TagKey
+import net.minecraft.core.registries.BuiltInRegistries
 import net.minecraft.resources.Identifier
+import net.minecraft.tags.TagKey
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStackTemplate
+import net.minecraft.world.item.crafting.Ingredient
+import net.minecraft.world.level.ItemLike
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient
 import reborncore.common.crafting.SizedIngredient
 
 class IngredientBuilder {
@@ -66,10 +65,11 @@ class IngredientBuilder {
 			def stack = stacks[0]
 			def components = stack.components()
 
-			Ingredient ingredient = Ingredient.of(HolderSet.direct(stack.item()))
-
+			Ingredient ingredient
 			if (!components.isEmpty()) {
-				ingredient = DefaultCustomIngredients.components(ingredient, components)
+				ingredient = DataComponentIngredient.of(false, stack)
+			} else {
+				ingredient = Ingredient.of(HolderSet.direct(stack.item()))
 			}
 
 			return new SizedIngredient(stack.count(), ingredient)

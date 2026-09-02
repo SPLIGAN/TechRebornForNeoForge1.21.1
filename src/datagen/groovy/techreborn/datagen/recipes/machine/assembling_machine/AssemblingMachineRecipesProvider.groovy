@@ -24,7 +24,7 @@
 
 package techreborn.datagen.recipes.machine.assembling_machine
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.world.item.Items
 import net.minecraft.core.HolderLookup
 import net.minecraft.tags.ItemTags
@@ -37,7 +37,7 @@ import java.util.concurrent.CompletableFuture
 
 class AssemblingMachineRecipesProvider extends TechRebornRecipesProvider {
 
-	AssemblingMachineRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	AssemblingMachineRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

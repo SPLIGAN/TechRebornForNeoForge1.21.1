@@ -24,7 +24,7 @@
 
 package techreborn.datagen.recipes.machine.solid_canning_machine
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.world.level.material.Fluids
 import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
@@ -35,7 +35,7 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class SolidCanningMachineRecipesProvider extends TechRebornRecipesProvider {
-	SolidCanningMachineRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	SolidCanningMachineRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

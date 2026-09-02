@@ -173,14 +173,18 @@ public final class NeoForgeBiomeModifierPack {
 	}
 
 	private static void writePackMcmeta(Path root) throws IOException {
+		int format = DetectedVersion.tryDetectVersion().packVersion(PackType.SERVER_DATA).major();
+		// MC 26.1 requires min_format / max_format (pack_format alone triggers fallback warnings).
 		String mcmeta = """
 				{
 				  "pack": {
 				    "description": "TechReborn dynamic world generation (NeoForge biome modifiers)",
-				    "pack_format": %d
+				    "pack_format": %d,
+				    "min_format": %d,
+				    "max_format": %d
 				  }
 				}
-				""".formatted(DetectedVersion.tryDetectVersion().packVersion(PackType.SERVER_DATA).major());
+				""".formatted(format, format, format);
 		Files.writeString(root.resolve("pack.mcmeta"), mcmeta, StandardCharsets.UTF_8);
 	}
 

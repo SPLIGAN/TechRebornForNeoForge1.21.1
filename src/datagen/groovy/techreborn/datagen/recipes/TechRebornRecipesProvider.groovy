@@ -24,25 +24,24 @@
 
 package techreborn.datagen.recipes
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricRecipeProvider
 import net.minecraft.advancements.Criterion
 import net.minecraft.advancements.criterion.InventoryChangeTrigger
-import net.minecraft.data.recipes.RecipeProvider
-import net.minecraft.data.recipes.RecipeOutput
-import net.minecraft.world.item.ItemStackTemplate
-import net.minecraft.world.level.material.Fluid
-import net.minecraft.world.item.Item
-import net.minecraft.world.level.ItemLike
 import net.minecraft.advancements.criterion.ItemPredicate
+import net.minecraft.core.HolderGetter
+import net.minecraft.core.HolderLookup
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.registries.Registries
+import net.minecraft.data.PackOutput
+import net.minecraft.data.recipes.RecipeOutput
+import net.minecraft.data.recipes.RecipeProvider
+import net.minecraft.resources.Identifier
+import net.minecraft.tags.TagKey
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStackTemplate
 import net.minecraft.world.item.crafting.Ingredient
 import net.minecraft.world.item.crafting.RecipeType
-import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.HolderGetter
-import net.minecraft.core.registries.Registries
-import net.minecraft.core.HolderLookup
-import net.minecraft.tags.TagKey
-import net.minecraft.resources.Identifier
+import net.minecraft.world.level.ItemLike
+import net.minecraft.world.level.material.Fluid
 import techreborn.datagen.recipes.machine.MachineRecipeJsonFactory
 import techreborn.datagen.recipes.machine.assembling_machine.AssemblingMachineRecipeJsonFactory
 import techreborn.datagen.recipes.machine.blast_furnace.BlastFurnaceRecipeJsonFactory
@@ -62,13 +61,13 @@ import techreborn.recipe.recipes.FluidGeneratorRecipe
 
 import java.util.concurrent.CompletableFuture
 
-abstract class TechRebornRecipesProvider extends FabricRecipeProvider {
+abstract class TechRebornRecipesProvider extends RecipeProvider.Runner {
 	protected RecipeOutput exporter
 	public Set<Identifier> exportedRecipes = []
 	public HolderGetter<Item> itemLookup
 	public RecipeProvider generator
 
-	TechRebornRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	TechRebornRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -276,11 +275,6 @@ abstract class TechRebornRecipesProvider extends FabricRecipeProvider {
 
 	def offerFluidGeneratorRecipe(RecipeType<FluidGeneratorRecipe> type, @DelegatesTo(value = FluidGeneratorRecipeJsonFactory.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
 		FluidGeneratorRecipeJsonFactory.createFluidGenerator(type, this, closure).offerTo(exporter)
-	}
-
-	@Override
-	protected Identifier getRecipeIdentifier(Identifier identifier) {
-		return Identifier.fromNamespaceAndPath("techreborn", super.getRecipeIdentifier(identifier).path)
 	}
 
 	@Override

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "techreborn:block/misc/nuke_front",
+    "side": "techreborn:block/misc/nuke_side",
+    "top": "techreborn:block/misc/nuke_top"
+  }
+}

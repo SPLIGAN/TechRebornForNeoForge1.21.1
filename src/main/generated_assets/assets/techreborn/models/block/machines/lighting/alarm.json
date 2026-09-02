@@ -1,0 +1,130 @@
+{
+  "parent": "minecraft:block/block",
+  "display": {
+    "firstperson_lefthand": {
+      "rotation": [
+        0.0,
+        225.0,
+        0.0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ],
+      "translation": [
+        0.0,
+        4.2,
+        0.0
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0.0,
+        35.0,
+        0.0
+      ],
+      "scale": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "translation": [
+        0.0,
+        5.5,
+        0.0
+      ]
+    },
+    "thirdperson_righthand": {
+      "rotation": [
+        75.0,
+        45.0,
+        0.0
+      ],
+      "scale": [
+        0.375,
+        0.375,
+        0.375
+      ],
+      "translation": [
+        0.0,
+        2.5,
+        2.0
+      ]
+    }
+  },
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#0",
+          "uv": [
+            0.0,
+            0.0,
+            1.0,
+            1.0
+          ]
+        },
+        "east": {
+          "texture": "#0",
+          "uv": [
+            1.0,
+            2.0,
+            15.0,
+            0.0
+          ]
+        },
+        "north": {
+          "texture": "#0",
+          "uv": [
+            1.0,
+            2.0,
+            15.0,
+            0.0
+          ]
+        },
+        "south": {
+          "texture": "#0",
+          "uv": [
+            1.0,
+            2.0,
+            15.0,
+            0.0
+          ]
+        },
+        "up": {
+          "texture": "#0",
+          "uv": [
+            1.0,
+            1.0,
+            15.0,
+            15.0
+          ]
+        },
+        "west": {
+          "texture": "#0",
+          "uv": [
+            1.0,
+            2.0,
+            15.0,
+            0.0
+          ]
+        }
+      },
+      "from": [
+        3.0,
+        0.0,
+        3.0
+      ],
+      "to": [
+        13.0,
+        3.0,
+        13.0
+      ]
+    }
+  ],
+  "textures": {
+    "0": "techreborn:block/machines/lighting/alarm_off",
+    "particle": "techreborn:block/machines/lighting/alarm_off"
+  }
+}

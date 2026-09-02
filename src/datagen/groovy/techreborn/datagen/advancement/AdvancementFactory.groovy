@@ -31,7 +31,6 @@ import net.minecraft.advancements.AdvancementType
 import net.minecraft.advancements.CriterionTriggerInstance
 import net.minecraft.world.item.ItemStackTemplate
 import net.minecraft.world.level.ItemLike
-import net.minecraft.world.item.ItemStack
 import net.minecraft.network.chat.Component
 import net.minecraft.resources.Identifier
 

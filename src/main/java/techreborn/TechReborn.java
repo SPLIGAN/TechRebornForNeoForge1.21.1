@@ -86,8 +86,9 @@ public class TechReborn {
 
 		Torus.genSizeMap(TechRebornConfig.fusionControlComputerMaxCoilSize);
 
-		RedstoneConfiguration.fluidStack = DynamicCellItem.getCellWithFluid(Fluids.LAVA);
-		RedstoneConfiguration.powerStack = new ItemStack(TRContent.RED_CELL_BATTERY);
+		// Deferred: mod ItemStacks need holder components bound (after datapack reload).
+		RedstoneConfiguration.fluidStack = () -> DynamicCellItem.getCellWithFluid(Fluids.LAVA);
+		RedstoneConfiguration.powerStack = () -> new ItemStack(TRContent.RED_CELL_BATTERY);
 
 		ComposterBlock.COMPOSTABLES.put(TRContent.RUBBER_SAPLING.asItem(), 0.3F);
 		ComposterBlock.COMPOSTABLES.put(TRContent.RUBBER_LEAVES.asItem(), 0.3F);

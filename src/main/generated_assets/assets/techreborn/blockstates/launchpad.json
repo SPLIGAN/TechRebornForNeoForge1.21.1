@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/machines/tier2_machines/launchpad"
+    }
+  }
+}

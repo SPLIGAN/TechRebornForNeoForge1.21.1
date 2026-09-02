@@ -24,13 +24,14 @@
 
 package techreborn.datagen.compat
 
-import net.fabricmc.loader.api.FabricLoader
-import net.minecraft.world.item.Item
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.core.Registry
-import net.minecraft.resources.ResourceKey
 import net.minecraft.resources.Identifier
+import net.minecraft.world.item.Item
 
+/**
+ * AE2 item references for recipe datagen. Stubs are registered from main during
+ * {@code RegisterEvent} when running datagen without AE2 (see ModRegistry).
+ */
 class Ae2 {
 	static String AE2_MOD_ID = "ae2"
 	static Identifier CERTUS_QUARTZ_DUST = Identifier.fromNamespaceAndPath(AE2_MOD_ID, "certus_quartz_dust")
@@ -38,16 +39,8 @@ class Ae2 {
 	static Identifier FLUIX_CRYSTAL = Identifier.fromNamespaceAndPath(AE2_MOD_ID, "fluix_crystal")
 	static Identifier FLUIX_DUST = Identifier.fromNamespaceAndPath(AE2_MOD_ID, "fluix_dust")
 
-
 	static void setup() {
-		if (FabricLoader.getInstance().isModLoaded(AE2_MOD_ID)) {
-			return
-		}
-
-		registerItem(CERTUS_QUARTZ_DUST)
-		registerItem(CERTUS_QUARTZ_CRYSTAL)
-		registerItem(FLUIX_CRYSTAL)
-		registerItem(FLUIX_DUST)
+		// Registration happens in ModRegistry.registerAe2DatagenStubs during RegisterEvent.
 	}
 
 	static Item getCertusQuartzDust() {
@@ -72,9 +65,5 @@ class Ae2 {
 		}
 
 		return BuiltInRegistries.ITEM.getValue(name)
-	}
-
-	private static void registerItem(Identifier name) {
-		Registry.register(BuiltInRegistries.ITEM, name, new Item(new Item.Properties().setId(ResourceKey.create(BuiltInRegistries.ITEM.key(), name))))
 	}
 }

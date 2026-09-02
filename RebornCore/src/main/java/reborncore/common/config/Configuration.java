@@ -63,6 +63,9 @@ public class Configuration {
 		if (configFiles != null) {
 			final HashMap<String, JsonObject> configs = new HashMap<>();
 			for (File file : configFiles) {
+				if (!file.isFile() || !file.getName().endsWith(".json")) {
+					continue;
+				}
 				final String name = file.getName().substring(0, file.getName().length() - (".json".length()));
 				try {
 					final String fileContents = FileUtils.readFileToString(file, StandardCharsets.UTF_8);

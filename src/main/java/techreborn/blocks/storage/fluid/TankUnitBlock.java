@@ -47,14 +47,14 @@ import techreborn.blockentity.GuiType;
 import techreborn.blockentity.storage.fluid.TankUnitBaseBlockEntity;
 import techreborn.init.TRBlockSettings;
 import techreborn.init.TRContent;
-import techreborn.items.DynamicCellItem;
+import techreborn.items.CellItem;
 
 public class TankUnitBlock extends BlockMachineBase {
 
 	public final TRContent.TankUnit unitType;
 
-	public TankUnitBlock(TRContent.TankUnit unitType) {
-		super(TRBlockSettings.tankUnit());
+	public TankUnitBlock(TRContent.TankUnit unitType, String name) {
+		super(TRBlockSettings.tankUnit(name));
 		this.unitType = unitType;
 	}
 
@@ -75,7 +75,7 @@ public class TankUnitBlock extends BlockMachineBase {
 
 		// Assuming ItemFluidInfo is 1 BUCKET, for now only allow exact amount or less
 		// I am only going to trust cells or buckets, they are known to be 1 BUCKET size, too suss of other items not abiding by that.
-		if ((itemInHand instanceof DynamicCellItem || itemInHand instanceof BucketItem)
+		if ((itemInHand instanceof CellItem || itemInHand instanceof BucketItem)
 				&& tankUnitEntity != null && itemInHand instanceof ItemFluidInfo itemFluid) {
 
 			// Get fluid information from item
@@ -154,8 +154,8 @@ public class TankUnitBlock extends BlockMachineBase {
 
 	boolean isSameItemFluid(ItemStack i1, ItemStack i2){
 		// Only care about cells, buckets don't stack
-		if(i1.getItem() instanceof DynamicCellItem dc1 && i2.getItem() instanceof DynamicCellItem dc2){
-			return dc1.getFluid(i1).isSame(dc2.getFluid(i2));
+		if(i1.getItem() instanceof CellItem c1 && i2.getItem() instanceof CellItem c2){
+			return c1.getCellFluid().isSame(c2.getCellFluid());
 		}
 
 		return false;

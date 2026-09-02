@@ -24,7 +24,7 @@
 
 package techreborn.datagen.recipes.crafting
 
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.data.recipes.ShapedRecipeBuilder
 import net.minecraft.data.recipes.ShapelessRecipeBuilder
 import net.minecraft.data.recipes.SingleItemRecipeBuilder
@@ -46,7 +46,7 @@ import java.util.concurrent.CompletableFuture
 import java.util.function.Function
 
 class CraftingRecipesProvider extends TechRebornRecipesProvider {
-	CraftingRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	CraftingRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

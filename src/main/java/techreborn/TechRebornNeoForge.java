@@ -33,7 +33,11 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import techreborn.client.TechRebornNeoForgeClient;
 import techreborn.client.keybindings.KeyBindings;
+import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.AddPackFindersEvent;
+import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import techreborn.component.TRDataComponentTypes;
@@ -46,16 +50,28 @@ import techreborn.packets.Packets;
 import techreborn.packets.ServerboundPackets;
 import techreborn.client.ClientGuiType;
 import techreborn.compat.pal.PlayerAbilityLibCompat;
+import techreborn.datagen.TRBlockTagsProvider;
+import techreborn.datagen.TRItemTagsProvider;
+import techreborn.datagen.TRPointOfInterestTagsProvider;
+import techreborn.world.TRDynamicRegistries;
 import techreborn.world.compat.neoforge.NeoForgeBiomeModifierPack;
 
 @Mod(TechReborn.MOD_ID)
 public final class TechRebornNeoForge {
+
+	public static final RegistrySetBuilder DATAPACK_ENTRIES = new RegistrySetBuilder()
+		.add(Registries.DAMAGE_TYPE, TRDynamicRegistries::damageTypes)
+		.add(Registries.CONFIGURED_FEATURE, TRDynamicRegistries::configuredFeatures)
+		.add(Registries.PLACED_FEATURE, TRDynamicRegistries::placedFeatures);
 
 	public TechRebornNeoForge(IEventBus modBus) {
 		modBus.addListener(RegisterEvent.class, TRContent::registerEntityTypes);
 		modBus.addListener(RegisterEvent.class, ModRegistry::registerNeoForge);
 		modBus.addListener(RegisterEvent.class, TRDataComponentTypes::register);
 		modBus.addListener(AddPackFindersEvent.class, NeoForgeBiomeModifierPack::register);
+		modBus.addListener(GatherDataEvent.Server.class, TechRebornNeoForge::gatherServerData);
+		modBus.addListener(GatherDataEvent.Client.class, TechRebornNeoForge::gatherClientData);
+		modBus.addListener(RegisterGameTestsEvent.class, TechRebornNeoForge::registerGameTests);
 		modBus.addListener(TechRebornCapabilities::register);
 		modBus.addListener(this::registerPayloads);
 		modBus.addListener(OreDepthSyncHandler::registerConfigurationTasks);
@@ -66,6 +82,47 @@ public final class TechRebornNeoForge {
 			modBus.addListener(RegisterKeyMappingsEvent.class, KeyBindings::registerKeys);
 			modBus.addListener((RegisterMenuScreensEvent e) -> ClientGuiType.registerMenuScreens(e));
 			modBus.addListener(this::clientSetup);
+		}
+	}
+
+	private static void gatherServerData(GatherDataEvent.Server event) {
+		event.createDatapackRegistryObjects(DATAPACK_ENTRIES);
+		event.createProvider(TRItemTagsProvider::new);
+		event.createProvider(TRBlockTagsProvider::new);
+		event.createProvider(TRPointOfInterestTagsProvider::new);
+		// Recipe Groovy providers live on the datagen source set (present for runServerData).
+		try {
+			Class.forName("techreborn.datagen.TechRebornRecipeDatagen")
+				.getMethod("gatherServerData", GatherDataEvent.Server.class)
+				.invoke(null, event);
+		} catch (ClassNotFoundException ignored) {
+			// Production / non-datagen runs do not ship the datagen source set.
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException("Failed to register TechReborn recipe datagen", e);
+		}
+	}
+
+	private static void gatherClientData(GatherDataEvent.Client event) {
+		try {
+			Class.forName("techreborn.datagen.TechRebornRecipeDatagen")
+				.getMethod("gatherClientData", GatherDataEvent.Client.class)
+				.invoke(null, event);
+		} catch (ClassNotFoundException ignored) {
+			// Production / non-datagen runs do not ship the datagen source set.
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException("Failed to register TechReborn client datagen", e);
+		}
+	}
+
+	private static void registerGameTests(RegisterGameTestsEvent event) {
+		try {
+			Class.forName("techreborn.test.TRGameTestRegistration")
+				.getMethod("register", RegisterGameTestsEvent.class)
+				.invoke(null, event);
+		} catch (ClassNotFoundException ignored) {
+			// Production / non-gametest runs do not ship the gametest source set.
+		} catch (ReflectiveOperationException e) {
+			throw new RuntimeException("Failed to register TechReborn game tests", e);
 		}
 	}
 

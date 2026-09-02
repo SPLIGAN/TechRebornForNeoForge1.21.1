@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "techreborn:block/storage/refined_iron_storage_block"
+  }
+}

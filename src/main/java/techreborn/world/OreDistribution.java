@@ -46,7 +46,8 @@ public enum OreDistribution {
 	SODALITE(6, 4, VerticalAnchor.aboveBottom(0), 360, TargetDimension.END),
 	SPHALERITE(6, 4, VerticalAnchor.aboveBottom(0), 128, TargetDimension.NETHER),
 	TIN(8, 16, VerticalAnchor.absolute(25), 80, TargetDimension.OVERWORLD),
-	TUNGSTEN(6, 3, VerticalAnchor.aboveBottom(0), 360, TargetDimension.END);
+	TUNGSTEN(6, 3, VerticalAnchor.aboveBottom(0), 360, TargetDimension.END),
+	URANIUM(4, 4, VerticalAnchor.aboveBottom(0), 32, TargetDimension.OVERWORLD);
 
 	public final int veinSize;
 	public final int veinsPerChunk;
@@ -88,6 +89,7 @@ public enum OreDistribution {
 			case SPHALERITE -> TechRebornConfig.enableSphaleriteOreGeneration;
 			case TIN -> TechRebornConfig.enableTinOreGeneration;
 			case TUNGSTEN -> TechRebornConfig.enableTungstenOreGeneration;
+			case URANIUM -> TechRebornConfig.enableUraniumOreGeneration;
 		};
 	}
 }

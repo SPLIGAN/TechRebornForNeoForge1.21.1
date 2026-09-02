@@ -36,6 +36,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SlabBlock;
@@ -98,7 +100,7 @@ import techreborn.blocks.transformers.BlockLVTransformer;
 import techreborn.blocks.transformers.BlockMVTransformer;
 import techreborn.config.TechRebornConfig;
 import techreborn.entities.EntityNukePrimed;
-import techreborn.items.DynamicCellItem;
+import techreborn.items.CellItem;
 import techreborn.items.UpgradeItem;
 import techreborn.items.UpgraderItem;
 import techreborn.items.reactor.CoolantCellItem;
@@ -122,6 +124,32 @@ public class TRContent {
 	public static final Marker DATAGEN = MarkerFactory.getMarker("datagen");
 	public static final BlockSetType RUBBER_WOOD_SET_TYPE = WoodTypeBridge.createBlockSetType(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), BlockSetType.OAK);
 	public static final WoodType RUBBER_WOOD_TYPE = WoodTypeBridge.registerWoodType(Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "rubber_wood"), WoodType.OAK, RUBBER_WOOD_SET_TYPE);
+
+	public interface BlockInfo extends ItemLike {
+		String getName();
+
+		Block getBlock();
+	}
+
+	public interface FamilyBlockInfo extends BlockInfo {
+		Block getSlabBlock();
+
+		Block getStairsBlock();
+
+		Block getWallBlock();
+	}
+
+	public interface MachineBlockInfo {
+		String getName();
+
+		Block getFrame();
+
+		Block getCasing();
+	}
+
+	public interface ItemInfo extends ItemLike {
+		String getName();
+	}
 
 	// Misc Blocks
 	public static Block COMPUTER_CUBE;
@@ -186,7 +214,8 @@ public class TRContent {
 	public static Item GPS;
 	public static Item SCRAP_BOX;
 	public static Item MANUAL;
-	public static DynamicCellItem CELL;
+	/** Empty cell; set after {@link Cells} loads (Fabric 6.0.2 parity). */
+	public static Item CELL;
 
 	//Quantum Suit
 	public static QuantumSuitItem QUANTUM_HELMET;
@@ -267,6 +296,7 @@ public class TRContent {
 		public static final TagKey<Item> NUGGETS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "nuggets"));
 		public static final TagKey<Item> PLATES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "plates"));
 		public static final TagKey<Item> STORAGE_UNITS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "storage_units"));
+		public static final TagKey<Item> TRIM_TEMPLATES = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, "trim_templates"));
 		public static final TagKey<Item> BRONZE_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "bronze_tool_materials"));
 		public static final TagKey<Item> RUBY_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ruby_tool_materials"));
 		public static final TagKey<Item> SAPPHIRE_TOOL_MATERIALS = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "sapphire_tool_materials"));
@@ -276,7 +306,7 @@ public class TRContent {
 		}
 	}
 
-	public enum SolarPanels implements ItemLike {
+	public enum SolarPanels implements BlockInfo {
 		BASIC(RcEnergyTier.MICRO, TechRebornConfig.basicGenerationRateD, TechRebornConfig.basicGenerationRateN),
 		ADVANCED(RcEnergyTier.LOW, TechRebornConfig.advancedGenerationRateD, TechRebornConfig.advancedGenerationRateN),
 		INDUSTRIAL(RcEnergyTier.MEDIUM, TechRebornConfig.industrialGenerationRateD, TechRebornConfig.industrialGenerationRateN),
@@ -298,7 +328,7 @@ public class TRContent {
 		SolarPanels(RcEnergyTier tier, int generationRateD, int generationRateN) {
 			name = this.toString().toLowerCase(Locale.ROOT);
 			powerTier = tier;
-			block = new BlockSolarPanel(this);
+			block = new BlockSolarPanel(this, name + "_solar_panel");
 			this.generationRateD = generationRateD;
 			this.generationRateN = generationRateN;
 
@@ -308,12 +338,22 @@ public class TRContent {
 		}
 
 		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
+			return block;
+		}
+
+		@Override
 		public Item asItem() {
 			return block.asItem();
 		}
 	}
 
-	public enum StorageUnit implements ItemLike {
+	public enum StorageUnit implements BlockInfo {
 		BUFFER(1, false),
 		CRUDE(TechRebornConfig.crudeStorageUnitMaxStorage, true),
 		BASIC(TechRebornConfig.basicStorageUnitMaxStorage, true),
@@ -335,6 +375,11 @@ public class TRContent {
 			block = new StorageUnitBlock(this, name.equals("buffer") ? "storage_buffer" : name + "_storage_unit");
 			this.capacity = capacity;
 
+			if (name.equals("buffer"))
+				InitUtils.setup(block, "storage_buffer");
+			else
+				InitUtils.setup(block, name + "_storage_unit");
+
 			if (upgradable) {
 				if (name.equals("buffer"))
 					upgrader = InitUtils.setup(new UpgraderItem("storage_buffer_upgrader"), "storage_buffer_upgrader");
@@ -346,6 +391,16 @@ public class TRContent {
 		}
 
 		public Block asBlock() {
+			return block;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
 			return block;
 		}
 
@@ -369,7 +424,7 @@ public class TRContent {
 		}
 	}
 
-	public enum TankUnit implements ItemLike {
+	public enum TankUnit implements BlockInfo {
 		BASIC(TechRebornConfig.basicTankUnitCapacity),
 		ADVANCED(TechRebornConfig.advancedTankUnitMaxStorage),
 		INDUSTRIAL(TechRebornConfig.industrialTankUnitCapacity),
@@ -385,13 +440,23 @@ public class TRContent {
 
 		TankUnit(int capacity) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			block = new TankUnitBlock(this);
+			block = new TankUnitBlock(this, name + "_tank_unit");
 			this.capacity = FluidValue.BUCKET.multiply(capacity);
 
 			InitUtils.setup(block, name + "_tank_unit");
 		}
 
 		public Block asBlock() {
+			return block;
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
 			return block;
 		}
 
@@ -420,7 +485,7 @@ public class TRContent {
 		}
 	}
 
-	public enum Cables implements ItemLike {
+	public enum Cables implements BlockInfo {
 		COPPER(128, 12.0, true, RcEnergyTier.MEDIUM),
 		TIN(32, 12.0, true, RcEnergyTier.LOW),
 		GOLD(512, 12.0, true, RcEnergyTier.HIGH),
@@ -460,6 +525,16 @@ public class TRContent {
 		}
 
 		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
+			return block;
+		}
+
+		@Override
 		public Item asItem() {
 			return block.asItem();
 		}
@@ -471,7 +546,7 @@ public class TRContent {
 
 	private final static Map<Ores, Ores> unDeepslateMap = new HashMap<>();
 
-	public enum Ores implements ItemLike, TagConvertible<Item> {
+	public enum Ores implements BlockInfo, TagConvertible<Item> {
 		// when changing ores also change data/minecraft/tags/blocks for correct mining level
 		BAUXITE(OreDistribution.BAUXITE),
 		CINNABAR(OreDistribution.CINNABAR),
@@ -488,6 +563,7 @@ public class TRContent {
 		SPHALERITE(OreDistribution.SPHALERITE),
 		TIN(OreDistribution.TIN),
 		TUNGSTEN(OreDistribution.TUNGSTEN, true),
+		URANIUM(OreDistribution.URANIUM),
 
 		DEEPSLATE_BAUXITE(BAUXITE),
 		DEEPSLATE_GALENA(GALENA),
@@ -500,7 +576,8 @@ public class TRContent {
 		DEEPSLATE_SILVER(SILVER),
 		DEEPSLATE_SODALITE(SODALITE),
 		DEEPSLATE_TIN(TIN),
-		DEEPSLATE_TUNGSTEN(TUNGSTEN);
+		DEEPSLATE_TUNGSTEN(TUNGSTEN),
+		DEEPSLATE_URANIUM(URANIUM);
 
 		public final String name;
 		public final Block block;
@@ -510,7 +587,7 @@ public class TRContent {
 
 		Ores(OreDistribution distribution, UniformInt experienceDroppedFallback, boolean industrial) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			block = new DropExperienceBlock(distribution != null ? distribution.experienceDropped : experienceDroppedFallback, TRBlockSettings.ore(name.startsWith("deepslate")));
+			block = new DropExperienceBlock(distribution != null ? distribution.experienceDropped : experienceDroppedFallback, TRBlockSettings.ore(name.startsWith("deepslate"), name + "_ore"));
 			this.industrial = industrial;
 			InitUtils.setup(block, name + "_ore");
 			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "ores/" +
@@ -535,6 +612,16 @@ public class TRContent {
 		@Override
 		public Item asItem() {
 			return block.asItem();
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
+			return block;
 		}
 
 		public boolean isIndustrial() {
@@ -568,7 +655,7 @@ public class TRContent {
 	 */
 	public static final String CHROME_TAG_NAME_BASE = "chromium";
 
-	public enum StorageBlocks implements ItemLike, TagConvertible<Item> {
+	public enum StorageBlocks implements FamilyBlockInfo, TagConvertible<Item> {
 		ADVANCED_ALLOY(5f, 6f),
 		ALUMINUM(),
 		BRASS(),
@@ -589,6 +676,7 @@ public class TRContent {
 		RAW_SILVER(2f, 2f),
 		RAW_TIN(2f, 2f),
 		RAW_TUNGSTEN(2f, 2f),
+		RAW_URANIUM(2f, 2f),
 		RED_GARNET(5f, 6f),
 		REFINED_IRON(5f, 6f),
 		RUBY(5f, 6f),
@@ -611,17 +699,17 @@ public class TRContent {
 
 		StorageBlocks(boolean isHot, float hardness, float resistance, String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			block = new BlockStorage(isHot, hardness, resistance);
+			block = new BlockStorage(isHot, hardness, resistance, name + "_storage_block");
 			InitUtils.setup(block, name + "_storage_block");
 			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "storage_blocks/" + Objects.requireNonNullElse(tagNameBase, name)));
 
-			stairsBlock = new TechRebornStairsBlock(block.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(block));
+			stairsBlock = new TechRebornStairsBlock(block.defaultBlockState(), BlockBehaviour.Properties.ofFullCopy(block).setId(TRBlockSettings.key(name + "_storage_block_stairs")));
 			InitUtils.setup(stairsBlock, name + "_storage_block_stairs");
 
-			slabBlock = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(block));
+			slabBlock = new SlabBlock(BlockBehaviour.Properties.ofFullCopy(block).setId(TRBlockSettings.key(name + "_storage_block_slab")));
 			InitUtils.setup(slabBlock, name + "_storage_block_slab");
 
-			wallBlock = new WallBlock(BlockBehaviour.Properties.ofFullCopy(block));
+			wallBlock = new WallBlock(BlockBehaviour.Properties.ofFullCopy(block).setId(TRBlockSettings.key(name + "_storage_block_wall")));
 			InitUtils.setup(wallBlock, name + "_storage_block_wall");
 		}
 
@@ -647,6 +735,12 @@ public class TRContent {
 			return tag;
 		}
 
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
 		public Block getBlock() {
 			return block;
 		}
@@ -674,7 +768,7 @@ public class TRContent {
 		}
 	}
 
-	public enum MachineBlocks {
+	public enum MachineBlocks implements MachineBlockInfo {
 		BASIC(1020 / 25),
 		ADVANCED(1700 / 25),
 		INDUSTRIAL(2380 / 25);
@@ -685,16 +779,23 @@ public class TRContent {
 
 		MachineBlocks(int casingHeatCapacity) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			frame = new BlockMachineFrame();
+			frame = new BlockMachineFrame(name + "_machine_frame");
 			InitUtils.setup(frame, name + "_machine_frame");
-			casing = new BlockMachineCasing(casingHeatCapacity);
+			casing = new BlockMachineCasing(casingHeatCapacity, name + "_machine_casing");
 			InitUtils.setup(casing, name + "_machine_casing");
 		}
 
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
 		public Block getFrame() {
 			return frame;
 		}
 
+		@Override
 		public Block getCasing() {
 			return casing;
 		}
@@ -707,74 +808,74 @@ public class TRContent {
 	}
 
 
-	public enum Machine implements ItemLike {
-		ALLOY_SMELTER(new GenericMachineBlock(GuiType.ALLOY_SMELTER, AlloySmelterBlockEntity::new)),
-		ASSEMBLY_MACHINE(new GenericMachineBlock(GuiType.ASSEMBLING_MACHINE, AssemblingMachineBlockEntity::new)),
-		AUTO_CRAFTING_TABLE(new GenericMachineBlock(GuiType.AUTO_CRAFTING_TABLE, AutoCraftingTableBlockEntity::new)),
-		CHEMICAL_REACTOR(new GenericMachineBlock(GuiType.CHEMICAL_REACTOR, ChemicalReactorBlockEntity::new)),
-		COMPRESSOR(new GenericMachineBlock(GuiType.COMPRESSOR, CompressorBlockEntity::new)),
-		DISTILLATION_TOWER(new GenericMachineBlock(GuiType.DISTILLATION_TOWER, DistillationTowerBlockEntity::new)),
-		EXTRACTOR(new GenericMachineBlock(GuiType.EXTRACTOR, ExtractorBlockEntity::new)),
-		RESIN_BASIN(new ResinBasinBlock(ResinBasinBlockEntity::new)),
-		FLUID_REPLICATOR(new GenericMachineBlock(GuiType.FLUID_REPLICATOR, FluidReplicatorBlockEntity::new)),
-		GRINDER(new GenericMachineBlock(GuiType.GRINDER, GrinderBlockEntity::new)),
-		ELECTRIC_FURNACE(new GenericMachineBlock(GuiType.ELECTRIC_FURNACE, ElectricFurnaceBlockEntity::new)),
-		IMPLOSION_COMPRESSOR(new GenericMachineBlock(GuiType.IMPLOSION_COMPRESSOR, ImplosionCompressorBlockEntity::new)),
-		INDUSTRIAL_BLAST_FURNACE(new GenericMachineBlock(GuiType.BLAST_FURNACE, IndustrialBlastFurnaceBlockEntity::new)),
-		INDUSTRIAL_CENTRIFUGE(new GenericMachineBlock(GuiType.CENTRIFUGE, IndustrialCentrifugeBlockEntity::new)),
-		INDUSTRIAL_ELECTROLYZER(new GenericMachineBlock(GuiType.INDUSTRIAL_ELECTROLYZER, IndustrialElectrolyzerBlockEntity::new)),
-		INDUSTRIAL_GRINDER(new GenericMachineBlock(GuiType.INDUSTRIAL_GRINDER, IndustrialGrinderBlockEntity::new)),
-		INDUSTRIAL_SAWMILL(new GenericMachineBlock(GuiType.SAWMILL, IndustrialSawmillBlockEntity::new)),
-		IRON_ALLOY_FURNACE(new IronAlloyFurnaceBlock()),
-		IRON_FURNACE(new IronFurnaceBlock()),
-		MATTER_FABRICATOR(new GenericMachineBlock(GuiType.MATTER_FABRICATOR, MatterFabricatorBlockEntity::new)),
-		RECYCLER(new GenericMachineBlock(GuiType.RECYCLER, RecyclerBlockEntity::new)),
-		ROLLING_MACHINE(new GenericMachineBlock(GuiType.ROLLING_MACHINE, RollingMachineBlockEntity::new)),
-		SCRAPBOXINATOR(new GenericMachineBlock(GuiType.SCRAPBOXINATOR, ScrapboxinatorBlockEntity::new)),
-		VACUUM_FREEZER(new GenericMachineBlock(GuiType.VACUUM_FREEZER, VacuumFreezerBlockEntity::new)),
-		SOLID_CANNING_MACHINE(new GenericMachineBlock(GuiType.SOLID_CANNING_MACHINE, SolidCanningMachineBlockEntity::new)),
-		WIRE_MILL(new GenericMachineBlock(GuiType.WIRE_MILL, WireMillBlockEntity::new)),
-		GREENHOUSE_CONTROLLER(new GenericMachineBlock(GuiType.GREENHOUSE_CONTROLLER, GreenhouseControllerBlockEntity::new)),
-		BLOCK_BREAKER(new GenericMachineBlock(GuiType.BLOCK_BREAKER, BlockBreakerBlockEntity::new)),
-		BLOCK_PLACER(new GenericMachineBlock(GuiType.BLOCK_PLACER, BlockPlacerBlockEntity::new)),
-		LAUNCHPAD(new GenericMachineBlock(GuiType.LAUNCHPAD, LaunchpadBlockEntity::new)),
-		ELEVATOR(new GenericMachineBlock(GuiType.ELEVATOR, ElevatorBlockEntity::new)),
-		FISHING_STATION(new GenericMachineBlock(GuiType.FISHING_STATION, FishingStationBlockEntity::new)),
+	public enum Machine implements BlockInfo {
+		ALLOY_SMELTER(new GenericMachineBlock(GuiType.ALLOY_SMELTER, AlloySmelterBlockEntity::new, "alloy_smelter")),
+		ASSEMBLY_MACHINE(new GenericMachineBlock(GuiType.ASSEMBLING_MACHINE, AssemblingMachineBlockEntity::new, "assembly_machine")),
+		AUTO_CRAFTING_TABLE(new GenericMachineBlock(GuiType.AUTO_CRAFTING_TABLE, AutoCraftingTableBlockEntity::new, "auto_crafting_table")),
+		CHEMICAL_REACTOR(new GenericMachineBlock(GuiType.CHEMICAL_REACTOR, ChemicalReactorBlockEntity::new, "chemical_reactor")),
+		COMPRESSOR(new GenericMachineBlock(GuiType.COMPRESSOR, CompressorBlockEntity::new, "compressor")),
+		DISTILLATION_TOWER(new GenericMachineBlock(GuiType.DISTILLATION_TOWER, DistillationTowerBlockEntity::new, "distillation_tower")),
+		EXTRACTOR(new GenericMachineBlock(GuiType.EXTRACTOR, ExtractorBlockEntity::new, "extractor")),
+		RESIN_BASIN(new ResinBasinBlock(ResinBasinBlockEntity::new, "resin_basin")),
+		FLUID_REPLICATOR(new GenericMachineBlock(GuiType.FLUID_REPLICATOR, FluidReplicatorBlockEntity::new, "fluid_replicator")),
+		GRINDER(new GenericMachineBlock(GuiType.GRINDER, GrinderBlockEntity::new, "grinder")),
+		ELECTRIC_FURNACE(new GenericMachineBlock(GuiType.ELECTRIC_FURNACE, ElectricFurnaceBlockEntity::new, "electric_furnace")),
+		IMPLOSION_COMPRESSOR(new GenericMachineBlock(GuiType.IMPLOSION_COMPRESSOR, ImplosionCompressorBlockEntity::new, "implosion_compressor")),
+		INDUSTRIAL_BLAST_FURNACE(new GenericMachineBlock(GuiType.BLAST_FURNACE, IndustrialBlastFurnaceBlockEntity::new, "industrial_blast_furnace")),
+		INDUSTRIAL_CENTRIFUGE(new GenericMachineBlock(GuiType.CENTRIFUGE, IndustrialCentrifugeBlockEntity::new, "industrial_centrifuge")),
+		INDUSTRIAL_ELECTROLYZER(new GenericMachineBlock(GuiType.INDUSTRIAL_ELECTROLYZER, IndustrialElectrolyzerBlockEntity::new, "industrial_electrolyzer")),
+		INDUSTRIAL_GRINDER(new GenericMachineBlock(GuiType.INDUSTRIAL_GRINDER, IndustrialGrinderBlockEntity::new, "industrial_grinder")),
+		INDUSTRIAL_SAWMILL(new GenericMachineBlock(GuiType.SAWMILL, IndustrialSawmillBlockEntity::new, "industrial_sawmill")),
+		IRON_ALLOY_FURNACE(new IronAlloyFurnaceBlock("iron_alloy_furnace")),
+		IRON_FURNACE(new IronFurnaceBlock("iron_furnace")),
+		MATTER_FABRICATOR(new GenericMachineBlock(GuiType.MATTER_FABRICATOR, MatterFabricatorBlockEntity::new, "matter_fabricator")),
+		RECYCLER(new GenericMachineBlock(GuiType.RECYCLER, RecyclerBlockEntity::new, "recycler")),
+		ROLLING_MACHINE(new GenericMachineBlock(GuiType.ROLLING_MACHINE, RollingMachineBlockEntity::new, "rolling_machine")),
+		SCRAPBOXINATOR(new GenericMachineBlock(GuiType.SCRAPBOXINATOR, ScrapboxinatorBlockEntity::new, "scrapboxinator")),
+		VACUUM_FREEZER(new GenericMachineBlock(GuiType.VACUUM_FREEZER, VacuumFreezerBlockEntity::new, "vacuum_freezer")),
+		SOLID_CANNING_MACHINE(new GenericMachineBlock(GuiType.SOLID_CANNING_MACHINE, SolidCanningMachineBlockEntity::new, "solid_canning_machine")),
+		WIRE_MILL(new GenericMachineBlock(GuiType.WIRE_MILL, WireMillBlockEntity::new, "wire_mill")),
+		GREENHOUSE_CONTROLLER(new GenericMachineBlock(GuiType.GREENHOUSE_CONTROLLER, GreenhouseControllerBlockEntity::new, "greenhouse_controller")),
+		BLOCK_BREAKER(new GenericMachineBlock(GuiType.BLOCK_BREAKER, BlockBreakerBlockEntity::new, "block_breaker")),
+		BLOCK_PLACER(new GenericMachineBlock(GuiType.BLOCK_PLACER, BlockPlacerBlockEntity::new, "block_placer")),
+		LAUNCHPAD(new GenericMachineBlock(GuiType.LAUNCHPAD, LaunchpadBlockEntity::new, "launchpad")),
+		ELEVATOR(new GenericMachineBlock(GuiType.ELEVATOR, ElevatorBlockEntity::new, "elevator")),
+		FISHING_STATION(new GenericMachineBlock(GuiType.FISHING_STATION, FishingStationBlockEntity::new, "fishing_station")),
 
-		DIESEL_GENERATOR(new GenericGeneratorBlock(GuiType.DIESEL_GENERATOR, DieselGeneratorBlockEntity::new)),
-		DRAGON_EGG_SYPHON(new GenericGeneratorBlock(null, DragonEggSyphonBlockEntity::new)),
-		FUSION_COIL(new BlockFusionCoil()),
-		FUSION_CONTROL_COMPUTER(new BlockFusionControlComputer()),
-		GAS_TURBINE(new GenericGeneratorBlock(GuiType.GAS_TURBINE, GasTurbineBlockEntity::new)),
-		LIGHTNING_ROD(new GenericGeneratorBlock(null, LightningRodBlockEntity::new)),
-		PLASMA_GENERATOR(new GenericGeneratorBlock(GuiType.PLASMA_GENERATOR, PlasmaGeneratorBlockEntity::new)),
-		SEMI_FLUID_GENERATOR(new GenericGeneratorBlock(GuiType.SEMIFLUID_GENERATOR, SemiFluidGeneratorBlockEntity::new)),
-		SOLID_FUEL_GENERATOR(new GenericGeneratorBlock(GuiType.GENERATOR, SolidFuelGeneratorBlockEntity::new)),
-		THERMAL_GENERATOR(new GenericGeneratorBlock(GuiType.THERMAL_GENERATOR, ThermalGeneratorBlockEntity::new)),
-		WATER_MILL(new GenericGeneratorBlock(null, WaterMillBlockEntity::new)),
-		WIND_MILL(new GenericGeneratorBlock(null, WindMillBlockEntity::new)),
+		DIESEL_GENERATOR(new GenericGeneratorBlock(GuiType.DIESEL_GENERATOR, DieselGeneratorBlockEntity::new, "diesel_generator")),
+		DRAGON_EGG_SYPHON(new GenericGeneratorBlock(null, DragonEggSyphonBlockEntity::new, "dragon_egg_syphon")),
+		FUSION_COIL(new BlockFusionCoil("fusion_coil")),
+		FUSION_CONTROL_COMPUTER(new BlockFusionControlComputer("fusion_control_computer")),
+		GAS_TURBINE(new GenericGeneratorBlock(GuiType.GAS_TURBINE, GasTurbineBlockEntity::new, "gas_turbine")),
+		LIGHTNING_ROD(new GenericGeneratorBlock(null, LightningRodBlockEntity::new, "lightning_rod")),
+		PLASMA_GENERATOR(new GenericGeneratorBlock(GuiType.PLASMA_GENERATOR, PlasmaGeneratorBlockEntity::new, "plasma_generator")),
+		SEMI_FLUID_GENERATOR(new GenericGeneratorBlock(GuiType.SEMIFLUID_GENERATOR, SemiFluidGeneratorBlockEntity::new, "semi_fluid_generator")),
+		SOLID_FUEL_GENERATOR(new GenericGeneratorBlock(GuiType.GENERATOR, SolidFuelGeneratorBlockEntity::new, "solid_fuel_generator")),
+		THERMAL_GENERATOR(new GenericGeneratorBlock(GuiType.THERMAL_GENERATOR, ThermalGeneratorBlockEntity::new, "thermal_generator")),
+		WATER_MILL(new GenericGeneratorBlock(null, WaterMillBlockEntity::new, "water_mill")),
+		WIND_MILL(new GenericGeneratorBlock(null, WindMillBlockEntity::new, "wind_mill")),
 		NUCLEAR_REACTOR(new NuclearReactorBlock("nuclear_reactor")),
 		REACTOR_CHAMBER(new ReactorChamberBlock("reactor_chamber")),
 
-		DRAIN(new GenericMachineBlock(null, DrainBlockEntity::new)),
-		PUMP(new GenericMachineBlock(GuiType.PUMP, PumpBlockEntity::new)),
-		ADJUSTABLE_SU(new AdjustableSUBlock()),
-		CHARGE_O_MAT(new GenericMachineBlock(GuiType.CHARGEBENCH, ChargeOMatBlockEntity::new)),
-		INTERDIMENSIONAL_SU(new InterdimensionalSUBlock()),
-		LAPOTRONIC_SU(new LapotronicSUBlock()),
-		LSU_STORAGE(new LSUStorageBlock()),
-		LOW_VOLTAGE_SU(new LowVoltageSUBlock()),
-		MEDIUM_VOLTAGE_SU(new MediumVoltageSUBlock()),
-		HIGH_VOLTAGE_SU(new HighVoltageSUBlock()),
-		LV_TRANSFORMER(new BlockLVTransformer()),
-		MV_TRANSFORMER(new BlockMVTransformer()),
-		HV_TRANSFORMER(new BlockHVTransformer()),
-		EV_TRANSFORMER(new BlockEVTransformer()),
+		DRAIN(new GenericMachineBlock(null, DrainBlockEntity::new, "drain")),
+		PUMP(new GenericMachineBlock(GuiType.PUMP, PumpBlockEntity::new, "pump")),
+		ADJUSTABLE_SU(new AdjustableSUBlock("adjustable_su")),
+		CHARGE_O_MAT(new GenericMachineBlock(GuiType.CHARGEBENCH, ChargeOMatBlockEntity::new, "charge_o_mat")),
+		INTERDIMENSIONAL_SU(new InterdimensionalSUBlock("interdimensional_su")),
+		LAPOTRONIC_SU(new LapotronicSUBlock("lapotronic_su")),
+		LSU_STORAGE(new LSUStorageBlock("lsu_storage")),
+		LOW_VOLTAGE_SU(new LowVoltageSUBlock("low_voltage_su")),
+		MEDIUM_VOLTAGE_SU(new MediumVoltageSUBlock("medium_voltage_su")),
+		HIGH_VOLTAGE_SU(new HighVoltageSUBlock("high_voltage_su")),
+		LV_TRANSFORMER(new BlockLVTransformer("lv_transformer")),
+		MV_TRANSFORMER(new BlockMVTransformer("mv_transformer")),
+		HV_TRANSFORMER(new BlockHVTransformer("hv_transformer")),
+		EV_TRANSFORMER(new BlockEVTransformer("ev_transformer")),
 
-		ALARM(new BlockAlarm()),
-		CHUNK_LOADER(new GenericMachineBlock(GuiType.CHUNK_LOADER, ChunkLoaderBlockEntity::new)),
-		LAMP_INCANDESCENT(new LampBlock(4, 10, 8)),
-		LAMP_LED(new LampBlock(1, 1, 12)),
+		ALARM(new BlockAlarm("alarm")),
+		CHUNK_LOADER(new GenericMachineBlock(GuiType.CHUNK_LOADER, ChunkLoaderBlockEntity::new, "chunk_loader")),
+		LAMP_INCANDESCENT(new LampBlock(4, 10, 8, "lamp_incandescent")),
+		LAMP_LED(new LampBlock(1, 1, 12, "lamp_led")),
 		PLAYER_DETECTOR(new PlayerDetectorBlock("player_detector"));
 
 		public final String name;
@@ -788,6 +889,16 @@ public class TRContent {
 
 		public ItemStack getStack() {
 			return new ItemStack(block);
+		}
+
+		@Override
+		public String getName() {
+			return name;
+		}
+
+		@Override
+		public Block getBlock() {
+			return block;
 		}
 
 		@Override
@@ -860,12 +971,116 @@ public class TRContent {
 		}
 	}
 
+	/**
+	 * Per-fluid cell items (Fabric TechReborn 6.0.2). Recipe JSON references these registry ids
+	 * (e.g. {@code techreborn:methane_cell}).
+	 */
+	public enum Cells implements ItemLike {
+		EMPTY("cell", Fluids.EMPTY),
+		WATER("water_cell", Fluids.WATER),
+		LAVA("lava_cell", Fluids.LAVA),
+		BERYLLIUM("beryllium_cell", ModFluids.BERYLLIUM),
+		CALCIUM("calcium_cell", ModFluids.CALCIUM),
+		CALCIUM_CARBONATE("calcium_carbonate_cell", ModFluids.CALCIUM_CARBONATE),
+		CARBON("carbon_cell", ModFluids.CARBON),
+		CARBON_FIBER("carbon_fiber_cell", ModFluids.CARBON_FIBER),
+		CHLORITE("chlorite_cell", ModFluids.CHLORITE),
+		COMPRESSED_AIR("compressed_air_cell", ModFluids.COMPRESSED_AIR),
+		DEUTERIUM("deuterium_cell", ModFluids.DEUTERIUM),
+		DIESEL("diesel_cell", ModFluids.DIESEL),
+		ELECTROLYZED_WATER("electrolyzed_water_cell", ModFluids.ELECTROLYZED_WATER),
+		GLYCERYL("glyceryl_cell", ModFluids.GLYCERYL),
+		HELIUM("helium_cell", ModFluids.HELIUM),
+		HELIUM3("helium3_cell", ModFluids.HELIUM3),
+		HELIUMPLASMA("heliumplasma_cell", ModFluids.HELIUMPLASMA),
+		HYDROGEN("hydrogen_cell", ModFluids.HYDROGEN),
+		LITHIUM("lithium_cell", ModFluids.LITHIUM),
+		MERCURY("mercury_cell", ModFluids.MERCURY),
+		METHANE("methane_cell", ModFluids.METHANE),
+		NITRO_CARBON("nitro_carbon_cell", ModFluids.NITRO_CARBON),
+		NITRO_DIESEL("nitro_diesel_cell", ModFluids.NITRO_DIESEL),
+		NITROCOAL_FUEL("nitrocoal_fuel_cell", ModFluids.NITROCOAL_FUEL),
+		NITROFUEL("nitrofuel_cell", ModFluids.NITROFUEL),
+		NITROGEN("nitrogen_cell", ModFluids.NITROGEN),
+		NITROGEN_DIOXIDE("nitrogen_dioxide_cell", ModFluids.NITROGEN_DIOXIDE),
+		OIL("oil_cell", ModFluids.OIL),
+		POTASSIUM("potassium_cell", ModFluids.POTASSIUM),
+		SILICON("silicon_cell", ModFluids.SILICON),
+		SODIUM("sodium_cell", ModFluids.SODIUM),
+		SODIUM_SULFIDE("sodium_sulfide_cell", ModFluids.SODIUM_SULFIDE),
+		SODIUM_PERSULFATE("sodium_persulfate_cell", ModFluids.SODIUM_PERSULFATE),
+		SULFUR("sulfur_cell", ModFluids.SULFUR),
+		SULFURIC_ACID("sulfuric_acid_cell", ModFluids.SULFURIC_ACID),
+		TRITIUM("tritium_cell", ModFluids.TRITIUM),
+		WOLFRAMIUM("wolframium_cell", ModFluids.WOLFRAMIUM),
+		BIOFUEL("biofuel_cell", ModFluids.BIOFUEL),
+		FLUORINE("fluorine_cell", ModFluids.FLUORINE),
+		NITRIC_ACID("nitric_acid_cell", ModFluids.NITRIC_ACID),
+		URANIUM_HEXAFLUORIDE("uranium_hexafluoride_cell", ModFluids.URANIUM_HEXAFLUORIDE);
+
+		private final String name;
+		private final CellItem item;
+		private final Fluid fluid;
+
+		private static final Map<Fluid, Cells> BY_FLUID = new IdentityHashMap<>();
+
+		static {
+			for (Cells cell : values()) {
+				BY_FLUID.put(cell.fluid, cell);
+			}
+		}
+
+		Cells(String name, Fluid fluid) {
+			this.name = name;
+			this.fluid = fluid;
+			this.item = new CellItem(name, fluid);
+			InitUtils.setup(item, name);
+		}
+
+		Cells(String name, ModFluids modFluid) {
+			this(name, modFluid.getFluid());
+		}
+
+		public static Cells getCellByFluid(Fluid fluid) {
+			return BY_FLUID.getOrDefault(fluid, EMPTY);
+		}
+
+		public CellItem getCellItem() {
+			return item;
+		}
+
+		public Fluid getFluid() {
+			return fluid;
+		}
+
+		public String getName() {
+			return name;
+		}
+
+		public ItemStack getStack() {
+			return new ItemStack(item);
+		}
+
+		public ItemStack getStack(int amount) {
+			return new ItemStack(item, amount);
+		}
+
+		@Override
+		public Item asItem() {
+			return item;
+		}
+	}
+
+	static {
+		CELL = Cells.EMPTY.asItem();
+	}
+
 	public enum Dusts implements ItemLike, TagConvertible<Item> {
 		ALMANDINE, ALUMINUM, AMETHYST, ANDESITE, ANDRADITE, ASHES, BASALT, BAUXITE, BRASS, BRONZE, CALCITE, CHARCOAL, CHROME(CHROME_TAG_NAME_BASE),
 		CINNABAR, CLAY, COAL, DARK_ASHES, DIAMOND, DIORITE, ELECTRUM, EMERALD, ENDER_EYE, ENDER_PEARL, ENDSTONE,
 		FLINT, GALENA, GRANITE, GROSSULAR, INVAR, LAZURITE, MAGNESIUM, MANGANESE, MARBLE, NETHERRACK,
 		NICKEL, OBSIDIAN, OLIVINE, PERIDOT, PHOSPHOROUS, PLATINUM, PYRITE, PYROPE, QUARTZ, RED_GARNET, RUBY, SALTPETER,
-		SAPPHIRE, SAW, SODALITE, SPESSARTINE, SPHALERITE, STEEL, SULFUR, TITANIUM, UVAROVITE, YELLOW_GARNET, ZINC;
+		SAPPHIRE, SAW, SODALITE, SPESSARTINE, SPHALERITE, STEEL, SULFUR, TITANIUM, URANIUM, URANIUM_235, URANIUM_238, UVAROVITE, YELLOW_GARNET, ZINC;
 
 		private final String name;
 		private final Item item;
@@ -873,7 +1088,7 @@ public class TRContent {
 
 		Dusts(String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name + "_dust"));
 			InitUtils.setup(item, name + "_dust");
 			tag = TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", "dusts/" + Objects.requireNonNullElse(tagNameBase, name)));
 		}
@@ -902,7 +1117,7 @@ public class TRContent {
 	}
 
 	public enum RawMetals implements ItemLike, TagConvertible<Item> {
-		IRIDIUM, LEAD, SILVER, TIN, TUNGSTEN;
+		IRIDIUM, LEAD, SILVER, TIN, TUNGSTEN, URANIUM;
 
 		private final String name;
 		private final Item item;
@@ -912,7 +1127,7 @@ public class TRContent {
 
 		RawMetals() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item("raw_" + name));
 			Ores oreVariant = null;
 			try {
 				oreVariant = Ores.valueOf(this.toString());
@@ -984,7 +1199,7 @@ public class TRContent {
 		FLINT, GALENA, GLOWSTONE(Items.GLOWSTONE_DUST), GRANITE, GROSSULAR, INVAR, LAZURITE, MAGNESIUM, MANGANESE, MARBLE,
 		NETHERRACK, NICKEL, OBSIDIAN, OLIVINE, PERIDOT, PHOSPHOROUS, PLATINUM, PYRITE, PYROPE, QUARTZ, REDSTONE(Items.REDSTONE),
 		RED_GARNET, RUBY, SALTPETER, SAPPHIRE, SAW, SODALITE, SPESSARTINE, SPHALERITE, STEEL, SULFUR, TITANIUM,
-		TUNGSTEN(RawMetals.TUNGSTEN), UVAROVITE, YELLOW_GARNET, ZINC;
+		TUNGSTEN(RawMetals.TUNGSTEN), URANIUM, URANIUM_235, URANIUM_238, UVAROVITE, YELLOW_GARNET, ZINC;
 
 		private final String name;
 		private final Item item;
@@ -993,8 +1208,7 @@ public class TRContent {
 
 		SmallDusts(String tagNameBase, ItemLike dustVariant) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
-			if (dustVariant == null)
+			item = new Item(TRItemSettings.item(name + "_small_dust"));
 				try {
 					dustVariant = Dusts.valueOf(this.toString());
 				}
@@ -1069,7 +1283,7 @@ public class TRContent {
 
 		Gems() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name + "_gem"));
 			Dusts dustVariant = null;
 			try {
 				dustVariant = Dusts.valueOf(this.toString());
@@ -1157,7 +1371,7 @@ public class TRContent {
 
 
 	public enum Ingots implements ItemLike, TagConvertible<Item> {
-		ADVANCED_ALLOY, ALUMINUM, BRASS, BRONZE, CHROME(CHROME_TAG_NAME_BASE), ELECTRUM, HOT_TUNGSTENSTEEL, INVAR, IRIDIUM_ALLOY, IRIDIUM,
+		ADVANCED_ALLOY, ALUMINUM, BRASS, BRONZE, CHROME(CHROME_TAG_NAME_BASE), ELECTRUM, HOT_TUNGSTENSTEEL, INDUSTRIAL_ALLOY, INVAR, IRIDIUM_ALLOY, IRIDIUM,
 		LEAD, MIXED_METAL, NICKEL, PLATINUM, REFINED_IRON, SILVER, STEEL, TIN, TITANIUM, TUNGSTEN, TUNGSTENSTEEL, ZINC;
 
 		private final String name;
@@ -1168,7 +1382,7 @@ public class TRContent {
 
 		Ingots(String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name + "_ingot"));
 			Dusts dustVariant = null;
 			try {
 				dustVariant = Dusts.valueOf(this.toString());
@@ -1267,7 +1481,7 @@ public class TRContent {
 
 		Nuggets(String tagNameBase, ItemLike ingotVariant, boolean ofGem) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name + "_nugget"));
 			if (ingotVariant == null)
 				try {
 					ingotVariant = Ingots.valueOf(this.toString());
@@ -1376,7 +1590,7 @@ public class TRContent {
 
 		Parts() {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name));
 			InitUtils.setup(item, name);
 		}
 
@@ -1411,6 +1625,7 @@ public class TRContent {
 		IRIDIUM_ALLOY(true),
 		IRIDIUM,
 		IRON(Items.IRON_INGOT, Items.IRON_BLOCK),
+		INDUSTRIAL_ALLOY(true),
 		LAPIS(Items.LAPIS_BLOCK),
 		LAZURITE(Dusts.LAZURITE),
 		LEAD,
@@ -1445,7 +1660,7 @@ public class TRContent {
 
 		Plates(ItemLike source, ItemLike sourceBlock, boolean industrial, String tagNameBase) {
 			name = this.toString().toLowerCase(Locale.ROOT);
-			item = new Item(new Item.Properties());
+			item = new Item(TRItemSettings.item(name + "_plate"));
 			ItemLike sourceVariant = null;
 			if (source != null) {
 				sourceVariant = source;

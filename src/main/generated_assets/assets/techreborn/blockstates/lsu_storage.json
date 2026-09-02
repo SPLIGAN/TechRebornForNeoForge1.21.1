@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/machines/energy/lsu_storage"
+    }
+  }
+}

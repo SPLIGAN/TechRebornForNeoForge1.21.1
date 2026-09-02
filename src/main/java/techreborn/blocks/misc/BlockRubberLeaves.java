@@ -42,8 +42,8 @@ public class BlockRubberLeaves extends LeavesBlock {
 		instance -> instance.group(propertiesCodec()).apply(instance, BlockRubberLeaves::new)
 	);
 
-	public BlockRubberLeaves() {
-		super(0.01F, TRBlockSettings.rubberLeaves());
+	public BlockRubberLeaves(String name) {
+		super(0.01F, TRBlockSettings.rubberLeaves(name));
 		FlammableBlockBridge.register(this, 30, 60);
 	}
 

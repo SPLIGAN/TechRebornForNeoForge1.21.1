@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=east,full=false,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin",
+      "y": 90
+    },
+    "facing=east,full=false,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_flowing",
+      "y": 90
+    },
+    "facing=east,full=true,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 90
+    },
+    "facing=east,full=true,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 90
+    },
+    "facing=north,full=false,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin"
+    },
+    "facing=north,full=false,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_flowing"
+    },
+    "facing=north,full=true,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full"
+    },
+    "facing=north,full=true,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full"
+    },
+    "facing=south,full=false,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin",
+      "y": 180
+    },
+    "facing=south,full=false,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_flowing",
+      "y": 180
+    },
+    "facing=south,full=true,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 180
+    },
+    "facing=south,full=true,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 180
+    },
+    "facing=west,full=false,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin",
+      "y": 270
+    },
+    "facing=west,full=false,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_flowing",
+      "y": 270
+    },
+    "facing=west,full=true,pouring=false": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 270
+    },
+    "facing=west,full=true,pouring=true": {
+      "model": "techreborn:block/machines/tier0_machines/resin_basin/resin_basin_full",
+      "y": 270
+    }
+  }
+}

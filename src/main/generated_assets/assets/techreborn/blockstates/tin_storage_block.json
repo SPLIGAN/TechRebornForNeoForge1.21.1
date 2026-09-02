@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/storage/tin_storage_block"
+    }
+  }
+}

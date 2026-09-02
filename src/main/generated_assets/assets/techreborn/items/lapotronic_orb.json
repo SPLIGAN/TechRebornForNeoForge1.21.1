@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "techreborn:item/battery/lapotronic_orb_active"
+        },
+        "when": "on"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "techreborn:item/battery/lapotronic_orb"
+    },
+    "property": "techreborn:active"
+  }
+}

@@ -26,7 +26,7 @@ package techreborn.datagen.recipes.machine.scrapbox
 
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.data.PackOutput
 import net.minecraft.core.HolderLookup
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.TRContent
@@ -318,7 +318,7 @@ class ScrapboxRecipesProvider extends TechRebornRecipesProvider {
 		"techreborn:flint_dust",
 	]
 
-	ScrapboxRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+	ScrapboxRecipesProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

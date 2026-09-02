@@ -39,12 +39,23 @@ import reborncore.common.transfer.RcFluidVariant;
 public record FluidInstance(Fluid fluid, FluidValue amount) {
 	public static final FluidInstance EMPTY = new FluidInstance(Fluids.EMPTY, FluidValue.EMPTY);
 
+	/**
+	 * Fabric FluidVariant JSON is either a bare id or {@code {"fluid":"mod:id"}}.
+	 * Accept both so upstream machine recipes parse on NeoForge.
+	 */
+	private static final Codec<Fluid> FLUID_CODEC = Codec.withAlternative(
+		BuiltInRegistries.FLUID.byNameCodec(),
+		RecordCodecBuilder.create(instance -> instance.group(
+			BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(f -> f)
+		).apply(instance, f -> f))
+	);
+
 	private static final Codec<FluidInstance> OBJECT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-		BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(FluidInstance::fluid),
+		FLUID_CODEC.fieldOf("fluid").forGetter(FluidInstance::fluid),
 		FluidValue.RECIPE_AMOUNT_CODEC.optionalFieldOf("amount", FluidValue.fromMillibuckets(1000)).forGetter(FluidInstance::getAmount)
 	).apply(instance, FluidInstance::new));
 
-	/** JSON may be {@code {"fluid":"...","amount":...}} or a bare fluid id string (defaults to 1000 mB). */
+	/** JSON may be {@code {"fluid":"...","amount":...}}, Fabric nested fluid, or a bare fluid id (defaults to 1000 mB). */
 	public static final Codec<FluidInstance> CODEC = Codec.withAlternative(
 		OBJECT_CODEC,
 		BuiltInRegistries.FLUID.byNameCodec().xmap(

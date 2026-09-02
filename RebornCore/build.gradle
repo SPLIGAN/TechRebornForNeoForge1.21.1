@@ -67,20 +67,38 @@ runs {
 	}
 
 	client {
-		systemProperty 'neoforge.enabledGameTestNamespaces', 'reborncore'
+		systemProperty 'neoforge.enabledGameTestNamespaces', 'techreborn'
 	}
 
 	server {
-		systemProperty 'neoforge.enabledGameTestNamespaces', 'reborncore'
+		systemProperty 'neoforge.enabledGameTestNamespaces', 'techreborn'
 		argument '--nogui'
 	}
 
 	gameTestServer {
-		systemProperty 'neoforge.enabledGameTestNamespaces', 'reborncore'
+		systemProperty 'neoforge.enabledGameTestNamespaces', 'techreborn'
+		systemProperty 'neoforge.enableGameTest', 'true'
+		modSource rootProject.sourceSets.main
+		modSource rootProject.sourceSets.gametest
 	}
 
 	clientData {
-		arguments.addAll '--mod', 'reborncore', '--all', '--output', file('src/generated/resources/').absolutePath, '--existing', file('src/main/resources/').absolutePath
+		modSource rootProject.sourceSets.main
+		modSource rootProject.sourceSets.datagen
+		arguments.addAll '--mod', 'techreborn', '--all',
+			'--output', rootProject.file('src/main/generated_assets').absolutePath,
+			'--existing', rootProject.file('src/main/resources').absolutePath,
+			'--existing', file('src/main/resources').absolutePath
+	}
+
+	serverData {
+		modSource rootProject.sourceSets.main
+		// Recipe Groovy providers live in rootProject datagen sourceSet.
+		modSource rootProject.sourceSets.datagen
+		arguments.addAll '--mod', 'techreborn', '--all',
+			'--output', rootProject.file('src/main/generated').absolutePath,
+			'--existing', rootProject.file('src/main/resources').absolutePath,
+			'--existing', file('src/main/resources').absolutePath
 	}
 }
 

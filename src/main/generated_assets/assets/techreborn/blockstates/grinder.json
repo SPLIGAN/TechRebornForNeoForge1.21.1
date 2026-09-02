@@ -1,0 +1,34 @@
+{
+  "variants": {
+    "active=false,facing=east": {
+      "model": "techreborn:block/machines/tier1_machines/grinder",
+      "y": 90
+    },
+    "active=false,facing=north": {
+      "model": "techreborn:block/machines/tier1_machines/grinder"
+    },
+    "active=false,facing=south": {
+      "model": "techreborn:block/machines/tier1_machines/grinder",
+      "y": 180
+    },
+    "active=false,facing=west": {
+      "model": "techreborn:block/machines/tier1_machines/grinder",
+      "y": 270
+    },
+    "active=true,facing=east": {
+      "model": "techreborn:block/machines/tier1_machines/grinder_on",
+      "y": 90
+    },
+    "active=true,facing=north": {
+      "model": "techreborn:block/machines/tier1_machines/grinder_on"
+    },
+    "active=true,facing=south": {
+      "model": "techreborn:block/machines/tier1_machines/grinder_on",
+      "y": 180
+    },
+    "active=true,facing=west": {
+      "model": "techreborn:block/machines/tier1_machines/grinder_on",
+      "y": 270
+    }
+  }
+}

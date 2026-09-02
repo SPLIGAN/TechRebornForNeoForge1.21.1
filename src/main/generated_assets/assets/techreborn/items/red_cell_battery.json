@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "cases": [
+      {
+        "model": {
+          "type": "minecraft:model",
+          "model": "techreborn:item/battery/red_cell_battery_active"
+        },
+        "when": "on"
+      }
+    ],
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "techreborn:item/battery/red_cell_battery"
+    },
+    "property": "techreborn:active"
+  }
+}

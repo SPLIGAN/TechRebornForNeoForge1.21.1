@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "bottom": "techreborn:block/machines/generators/nuclear/nuclear_reactor_bottom",
+    "front": "techreborn:block/machines/generators/nuclear/nuclear_reactor_front_off",
+    "side": "techreborn:block/machines/generators/nuclear/nuclear_reactor_side",
+    "top": "techreborn:block/machines/generators/nuclear/nuclear_reactor_top"
+  }
+}

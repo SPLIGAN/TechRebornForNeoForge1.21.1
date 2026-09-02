@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "techreborn:block/storage/platinum_storage_block"
+    }
+  }
+}

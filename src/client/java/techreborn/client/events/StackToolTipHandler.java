@@ -33,7 +33,7 @@ import reborncore.common.BaseBlockEntityProvider;
 import techreborn.blocks.cable.CableBlock;
 import techreborn.events.OreDepthSyncHandler;
 import techreborn.init.TRContent;
-import techreborn.items.DynamicCellItem;
+import techreborn.items.CellItem;
 import techreborn.items.UpgradeItem;
 import techreborn.items.armor.NanoSuitItem;
 import techreborn.items.armor.QuantumSuitItem;
@@ -106,8 +106,8 @@ public class StackToolTipHandler implements TooltipAppender {
 			lines.addAll(ToolTipAssistUtils.getUpgradeStats(TRContent.Upgrades.valueOf(upgrade.name.toUpperCase()), stack.getCount(), Minecraft.getInstance().hasShiftDown()));
 		}
 
-		if (item instanceof DynamicCellItem cell) {
-			Fluid fluid = cell.getFluid(stack);
+		if (item instanceof CellItem cell) {
+			Fluid fluid = cell.getCellFluid();
 			if (!(fluid instanceof FlowingFluid) && fluid != Fluids.EMPTY)
 				ToolTipAssistUtils.addInfo("unplaceable_fluid", lines, false);
 		}

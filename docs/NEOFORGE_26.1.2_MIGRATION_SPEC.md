@@ -87,8 +87,9 @@ TechRebornForNeoForge1.21.1/
 ├── src/main/resources/
 ├── src/client/resources/
 ├── src/main/generated/
-├── src/datagen/groovy/          # 未ポート（コンパイル除外）
-└── src/gametest/groovy/         # 未ポート（コンパイル除外）
+├── src/main/generated_assets/   # client ModelProvider output
+├── src/datagen/groovy/          # recipe / loot / advancement / model datagen
+└── src/gametest/                # NeoForge GameTest (groovy + java; gameTestServer modSource)
 ```
 
 **対象外:** `migration-tool/`、CurseForge 公開パイプライン細部。
@@ -340,8 +341,8 @@ Minecraft は **26.1** から calver 体系（`year.release.patch`）。NeoForge
 
 | ID | 内容 | 1.21.1 状態 | 26.1.2 | 状態 |
 |----|------|-------------|--------|------|
-| TR-D01 | Datagen ポート | 未実施 | `GatherDataEvent` + Java 化 | **未実施** |
-| TR-G01 | GameTest ポート | 未実施 | NeoForge GameTest | **未実施** |
+| TR-D01 | Datagen ポート | 未実施 | `GatherDataEvent` + Java 化 | **レシピ + block/POI タグ + block loot + advancements + ModelProvider 配線完了** |
+| TR-G01 | GameTest ポート | 未実施 | NeoForge GameTest | **完了**（`RegisterGameTestsEvent` + `GameTestHelper`、3 tests green。Fabric の raw_iron_block 精錬ケースはバニラ/TR にレシピ無しのため未登録） |
 | TR-P01 | PAL 量子スーツ | compile 除外 | 26.1 PAL 版があれば再有効化 | **未実施** |
 | TR-N01 | `RcFabricEnergyItem` リネーム | 未実施 | 低優先 | **未実施** |
 | TR-N05 | `mods.toml` modId 統一 | 要確認 | 維持 | **要確認** |

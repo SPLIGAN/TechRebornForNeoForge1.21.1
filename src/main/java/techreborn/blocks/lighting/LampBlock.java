@@ -47,6 +47,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.ToolManager;
 import reborncore.common.BaseBlockEntityProvider;
+import reborncore.common.blocks.BlockMachineBase;
 import reborncore.common.blocks.BlockWrenchEventHandler;
 import reborncore.common.util.WrenchUtils;
 import techreborn.blockentity.lighting.LampBlockEntity;
@@ -59,14 +60,14 @@ import static net.minecraft.world.level.block.Block.box;
 public class LampBlock extends BaseBlockEntityProvider {
 
 	public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
-	public static final BooleanProperty ACTIVE = BooleanProperty.create("active");
+	public static final BooleanProperty ACTIVE = BlockMachineBase.ACTIVE;
 	protected final VoxelShape[] shape;
 
 	private final int cost;
 	private static final int brightness = 15;
 
-	public LampBlock(int cost, double depth, double width) {
-		super(TRBlockSettings.lightBlock().lightLevel(createLightLevelFromBlockState()));
+	public LampBlock(int cost, double depth, double width, String name) {
+		super(TRBlockSettings.lightBlock(name).lightLevel(createLightLevelFromBlockState()));
 		this.shape = genCuboidShapes(depth, width);
 		this.cost = cost;
 		registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));

@@ -24,28 +24,27 @@
 
 package techreborn.datagen.recipes.machine
 
-import com.mojang.serialization.JsonOps
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceCondition
-import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions
-import net.fabricmc.fabric.impl.datagen.FabricDataGenHelper
 import net.minecraft.advancements.Advancement.Builder
 import net.minecraft.advancements.Criterion
 import net.minecraft.advancements.criterion.InventoryChangeTrigger
-import net.minecraft.data.recipes.RecipeOutput
-import net.minecraft.world.item.ItemStackTemplate
-import net.minecraft.world.level.ItemLike
-import net.minecraft.world.item.crafting.Recipe
-import net.minecraft.world.item.crafting.RecipeType
 import net.minecraft.core.registries.BuiltInRegistries
-import net.minecraft.resources.ResourceKey
 import net.minecraft.core.registries.Registries
+import net.minecraft.data.recipes.RecipeOutput
+import net.minecraft.resources.Identifier
+import net.minecraft.resources.ResourceKey
 import net.minecraft.tags.TagKey
 import net.minecraft.world.flag.FeatureFlag
-import net.minecraft.resources.Identifier
+import net.minecraft.world.flag.FeatureFlagSet
+import net.minecraft.world.item.ItemStackTemplate
+import net.minecraft.world.item.crafting.Recipe
+import net.minecraft.world.item.crafting.RecipeType
+import net.minecraft.world.level.ItemLike
+import net.neoforged.neoforge.common.conditions.FeatureFlagsEnabledCondition
+import net.neoforged.neoforge.common.conditions.ICondition
 import org.jspecify.annotations.NonNull
-import reborncore.common.crafting.SizedIngredient
 import reborncore.common.crafting.RebornRecipe
 import reborncore.common.crafting.RecipeUtils
+import reborncore.common.crafting.SizedIngredient
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.ModRecipes
 
@@ -60,7 +59,7 @@ class MachineRecipeJsonFactory<R extends RebornRecipe> {
 	protected int time = -1
 	protected Identifier customId = null
 	protected String source = null
-	protected List<ResourceCondition> conditions = []
+	protected List<ICondition> conditions = []
 
 	protected MachineRecipeJsonFactory(RecipeType<R> type, TechRebornRecipesProvider provider) {
 		this.type = type
@@ -168,8 +167,8 @@ class MachineRecipeJsonFactory<R extends RebornRecipe> {
 		return this
 	}
 
-	def condition(ResourceCondition conditionJsonProvider) {
-		this.conditions.add(conditionJsonProvider)
+	def condition(ICondition condition) {
+		this.conditions.add(condition)
 		return this
 	}
 
@@ -231,16 +230,17 @@ class MachineRecipeJsonFactory<R extends RebornRecipe> {
 		provider.exportedRecipes.add(recipeId)
 
 		Identifier advancementId = Identifier.fromNamespaceAndPath(recipeId.getNamespace(), "recipes/" + recipeId.getPath())
-		ResourceKey<Recipe> key = ResourceKey.create(Registries.RECIPE, recipeId)
+		ResourceKey<Recipe<?>> key = ResourceKey.create(Registries.RECIPE, recipeId)
 		RecipeUtils.addToastDefaults(builder, key)
 
 		def recipe = createRecipe()
+		def advancement = builder.build(advancementId)
 
-		if (!conditions.isEmpty()) {
-			FabricDataGenHelper.addConditions(recipe, conditions.toArray(new ResourceCondition[0]))
+		if (conditions.isEmpty()) {
+			exporter.accept(key, recipe, advancement)
+		} else {
+			exporter.accept(key, recipe, advancement, conditions as ICondition[])
 		}
-
-		exporter.accept(key, recipe, builder.build(advancementId))
 	}
 
 	def getIdentifier() {
@@ -252,12 +252,13 @@ class MachineRecipeJsonFactory<R extends RebornRecipe> {
 			throw new IllegalStateException("Recipe has no outputs")
 		}
 
-		def outputId = BuiltInRegistries.ITEM.getKey(outputs[0].item)
+		def itemHolder = outputs[0].item()
+		def outputId = BuiltInRegistries.ITEM.getKey(itemHolder.value())
 		def recipeId = BuiltInRegistries.RECIPE_TYPE.getKey(type)
 		return Identifier.fromNamespaceAndPath("techreborn", "${recipeId.path}/${outputId.path}${getSourceAppendix()}")
 	}
 
 	def feature(FeatureFlag flag) {
-		condition(DefaultResourceConditions.featuresEnabled(flag))
+		condition(new FeatureFlagsEnabledCondition(FeatureFlagSet.of(flag)))
 	}
 }

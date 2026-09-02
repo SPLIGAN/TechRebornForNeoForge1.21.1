@@ -54,7 +54,7 @@ public abstract class BlockTransformer extends BaseBlockEntityProvider {
 	public final String name;
 
 	public BlockTransformer(String name) {
-		super(TRBlockSettings.transformer());
+		super(TRBlockSettings.transformer(name));
 		registerDefaultState(getStateDefinition().any().setValue(FACING, Direction.NORTH));
 		this.name = name;
 		BlockWrenchEventHandler.wrenchableBlocks.add(this);

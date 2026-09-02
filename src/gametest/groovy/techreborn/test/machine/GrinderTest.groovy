@@ -24,14 +24,12 @@
 
 package techreborn.test.machine
 
-import net.minecraft.item.Items
-import net.minecraft.test.GameTest
+import net.minecraft.world.item.Items
 import techreborn.init.TRContent
 import techreborn.test.TRGameTest
 import techreborn.test.TRTestContext
 
 class GrinderTest extends TRGameTest {
-	@GameTest(templateName = "fabric-gametest-api-v1:empty", tickLimit = 150)
 	def testGrind2OCs(TRTestContext context) {
 		/**
 		 * Test that grinder with 2 overclocker upgrades grinds coal into coal dust in 116 ticks
