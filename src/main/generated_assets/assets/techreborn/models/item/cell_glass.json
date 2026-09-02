@@ -1,0 +1,39 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "north": {
+          "texture": "#texture",
+          "uv": [
+            7.0,
+            4.0,
+            10.0,
+            12.0
+          ]
+        },
+        "south": {
+          "texture": "#texture",
+          "uv": [
+            7.0,
+            4.0,
+            10.0,
+            12.0
+          ]
+        }
+      },
+      "from": [
+        7.0,
+        4.0,
+        7.5
+      ],
+      "to": [
+        10.0,
+        12.0,
+        8.5
+      ]
+    }
+  ],
+  "textures": {
+    "texture": "techreborn:item/cell_glass"
+  }
+}

@@ -1,0 +1,135 @@
+{
+  "elements": [
+    {
+      "faces": {
+        "north": {
+          "texture": "#texture",
+          "uv": [
+            4.0,
+            3.0,
+            12.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#texture",
+          "uv": [
+            4.0,
+            3.0,
+            12.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        4.0,
+        11.0,
+        7.5
+      ],
+      "to": [
+        12.0,
+        13.0,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#texture",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            6.0
+          ]
+        },
+        "south": {
+          "texture": "#texture",
+          "uv": [
+            5.0,
+            5.0,
+            11.0,
+            6.0
+          ]
+        }
+      },
+      "from": [
+        5.0,
+        10.0,
+        7.5
+      ],
+      "to": [
+        11.0,
+        11.0,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#texture",
+          "uv": [
+            12.0,
+            4.0,
+            13.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#texture",
+          "uv": [
+            12.0,
+            4.0,
+            13.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        3.0,
+        11.0,
+        7.5
+      ],
+      "to": [
+        4.0,
+        12.0,
+        8.5
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#texture",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            5.0
+          ]
+        },
+        "south": {
+          "texture": "#texture",
+          "uv": [
+            3.0,
+            4.0,
+            4.0,
+            5.0
+          ]
+        }
+      },
+      "from": [
+        12.0,
+        11.0,
+        7.5
+      ],
+      "to": [
+        13.0,
+        12.0,
+        8.5
+      ]
+    }
+  ],
+  "textures": {
+    "texture": "techreborn:item/bucket_background"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "techreborn:item/cables/insulated_hv_cable"
+  }
+}
