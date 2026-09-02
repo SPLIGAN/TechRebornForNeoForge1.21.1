@@ -24,10 +24,10 @@
 
 package techreborn.datagen.recipes.machine.compressor
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.registry.tag.ItemTags
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
+import net.minecraft.tags.ItemTags
 import reborncore.common.misc.TagConvertible
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
@@ -37,15 +37,15 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class CompressorRecipesProvider extends TechRebornRecipesProvider {
-	CompressorRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	CompressorRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
 	@Override
 	void generateRecipes() {
 		TRContent.Plates.values().each {plate ->
-			if (plate == TRContent.Plates.IRIDIUM_ALLOY) {
-				// Iridium alloy plate should be gated behind Implosion Compressor
+			if (plate == TRContent.Plates.IRIDIUM_ALLOY || plate == TRContent.Plates.INDUSTRIAL_ALLOY) {
+				// Iridium and industrial alloy plates should be gated behind Implosion Compressor
 				return
 			}
 			if (plate.getSource() != null) {

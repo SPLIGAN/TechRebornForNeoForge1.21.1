@@ -1,33 +1,42 @@
-accessWidener	v2	named
+accessWidener	v2	official
 
 
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    output           Lnet/minecraft/item/Item;
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    count            I
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    showNotification Z
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    group            Ljava/lang/String;
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    pattern          Ljava/util/List;
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    inputs           Ljava/util/Map;
-accessible    field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    category         Lnet/minecraft/recipe/book/RecipeCategory;
-accessible 	  field    net/minecraft/data/server/recipe/ShapedRecipeJsonBuilder    criteria         Ljava/util/Map;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder items Lnet/minecraft/core/HolderGetter;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder category Lnet/minecraft/data/recipes/RecipeCategory;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder result Lnet/minecraft/world/item/ItemStackTemplate;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder rows Ljava/util/List;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder key Ljava/util/Map;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder group Ljava/lang/String;
+accessible field net/minecraft/data/recipes/ShapedRecipeBuilder showNotification Z
+accessible method net/minecraft/data/recipes/ShapedRecipeBuilder <init> (Lnet/minecraft/core/HolderGetter;Lnet/minecraft/data/recipes/RecipeCategory;Lnet/minecraft/world/level/ItemLike;I)V
 
-accessible    class    net/minecraft/recipe/Ingredient$Entry
-accessible    class    net/minecraft/recipe/Ingredient$TagEntry
-accessible    class    net/minecraft/recipe/Ingredient$StackEntry
-accessible    field    net/minecraft/recipe/Ingredient    entries    [Lnet/minecraft/recipe/Ingredient$Entry;
-accessible    field    net/minecraft/recipe/Ingredient$TagEntry    tag    Lnet/minecraft/registry/tag/TagKey;
+accessible field net/minecraft/world/item/crafting/Ingredient values Lnet/minecraft/core/HolderSet;
 
-accessible    method    net/minecraft/client/gui/screen/ingame/HandledScreen    getSlotAt     (DD)Lnet/minecraft/screen/slot/Slot;
+accessible field net/minecraft/world/item/crafting/RecipeManager recipes Lnet/minecraft/world/item/crafting/RecipeMap;
 
-accessible    method    net/minecraft/client/render/WorldRenderer    drawShapeOutline    (Lnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;Lnet/minecraft/util/shape/VoxelShape;DDDFFFFZ)V
+accessible method net/minecraft/client/gui/screens/inventory/AbstractContainerScreen getHoveredSlot (DD)Lnet/minecraft/world/inventory/Slot;
 
-accessible    field    net/minecraft/client/gui/screen/Screen    selectables    Ljava/util/List;
-accessible    field    net/minecraft/block/FluidBlock    fluid    Lnet/minecraft/fluid/FlowableFluid;
-accessible    method    net/minecraft/recipe/RecipeManager    getAllOfType    (Lnet/minecraft/recipe/RecipeType;)Ljava/util/Collection;
-accessible    field    net/minecraft/screen/ScreenHandler    listeners    Ljava/util/List;
+accessible field net/minecraft/client/gui/screens/Screen narratables Ljava/util/List;
+accessible field net/minecraft/world/level/block/LiquidBlock fluid Lnet/minecraft/world/level/material/FlowingFluid;
+accessible field net/minecraft/world/inventory/AbstractContainerMenu containerListeners Ljava/util/List;
 
-accessible    field    net/minecraft/structure/pool/StructurePool    elements    Lit/unimi/dsi/fastutil/objects/ObjectArrayList;
+accessible field net/minecraft/world/level/levelgen/structure/pools/StructureTemplatePool templates Lit/unimi/dsi/fastutil/objects/ObjectArrayList;
 
-accessible method net/minecraft/block/CropBlock getAgeProperty ()Lnet/minecraft/state/property/IntProperty;
-accessible field net/minecraft/client/render/model/json/JsonUnbakedModel textureMap Ljava/util/Map;
+accessible method net/minecraft/world/level/block/CropBlock getAgeProperty ()Lnet/minecraft/world/level/block/state/properties/IntegerProperty;
+
+extendable method net/minecraft/world/level/ServerExplosion calculateExplodedPositions ()Ljava/util/List;
+extendable method net/minecraft/client/model/Model renderToBuffer (Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;III)V
+
+extendable method net/minecraft/data/recipes/RecipeProvider$Runner run (Lnet/minecraft/data/CachedOutput;)Ljava/util/concurrent/CompletableFuture;
+
+accessible field net/minecraft/world/level/block/state/BlockBehaviour$Properties id Lnet/minecraft/resources/ResourceKey;
+accessible    field    net/minecraft/client/data/models/model/TextureMapping    slots           Ljava/util/Map;
+accessible method net/minecraft/server/level/TicketType register (Ljava/lang/String;JI)Lnet/minecraft/server/level/TicketType;
+accessible field net/minecraft/client/gui/render/pip/PictureInPictureRenderer textureView Lcom/mojang/blaze3d/textures/GpuTextureView;
+
+accessible method net/minecraft/core/cauldron/CauldronInteraction$Dispatcher put (Lnet/minecraft/world/item/Item;Lnet/minecraft/core/cauldron/CauldronInteraction;)V
+
+accessible field net/minecraft/data/worldgen/biome/OverworldBiomes NORMAL_WATER_COLOR I
+
 
 # DO NOT EDIT THIS FILE, edit the RebornCore AW, it will automatically be coped to this one.

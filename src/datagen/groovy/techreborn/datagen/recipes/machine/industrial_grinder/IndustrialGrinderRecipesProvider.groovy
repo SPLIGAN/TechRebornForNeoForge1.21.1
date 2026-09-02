@@ -24,12 +24,12 @@
 
 package techreborn.datagen.recipes.machine.industrial_grinder
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
 import net.fabricmc.fabric.api.resource.conditions.v1.ResourceConditions
-import net.minecraft.fluid.Fluids
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.registry.tag.BlockTags
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
+import net.minecraft.tags.BlockTags
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.compat.Ae2
 import techreborn.datagen.recipes.TechRebornRecipesProvider
@@ -48,7 +48,7 @@ class IndustrialGrinderRecipesProvider extends TechRebornRecipesProvider {
 	public final long TOOL_FLUID_AMOUNT = 500L // in millibuckets
 	var dustMap = TRContent.SmallDusts.SD2DMap
 
-	IndustrialGrinderRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	IndustrialGrinderRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -362,7 +362,7 @@ class IndustrialGrinderRecipesProvider extends TechRebornRecipesProvider {
 	}
 
 	void generateTrimTemplates() {
-		var trim = tag("minecraft:trim_templates")
+		var trim = TRContent.ItemTags.TRIM_TEMPLATES
 		offerIndustrialGrinderRecipe {
 			ingredients trim
 			outputs stack(TRContent.Dusts.DIAMOND, 2), stack(TRContent.SmallDusts.DIAMOND, 3)
@@ -799,8 +799,28 @@ class IndustrialGrinderRecipesProvider extends TechRebornRecipesProvider {
 			source "tungsten_ore_with_water"
 			criterion getCriterionName(TRContent.Ores.TUNGSTEN.asTag()), getCriterionConditions(TRContent.Ores.TUNGSTEN.asTag())
 		}
+		offerIndustrialGrinderRecipe {
+			ingredients TRContent.RawMetals.URANIUM.asTag()
+			outputs stack(TRContent.Dusts.URANIUM, 3), TRContent.Nuggets.LEAD
+			power orePower
+			time oreTime
+			fluidAmount oreAmount
+			fluid Fluids.WATER
+			source "raw_uranium_with_water"
+			criterion getCriterionName(TRContent.RawMetals.URANIUM.asTag()), getCriterionConditions(TRContent.RawMetals.URANIUM.asTag())
+		}
+		offerIndustrialGrinderRecipe {
+			ingredients TRContent.RawMetals.URANIUM.asTag()
+			outputs stack(TRContent.Dusts.URANIUM, 5), stack(TRContent.Nuggets.LEAD, 3)
+			power orePower
+			time oreTime
+			fluidAmount oreAmount
+			fluid ModFluids.SODIUM_PERSULFATE.getFluid()
+			source "raw_uranium_with_sodium_persulfate"
+			criterion getCriterionName(TRContent.RawMetals.URANIUM.asTag()), getCriterionConditions(TRContent.RawMetals.URANIUM.asTag())
+		}
 	}
-	void generateMisc(){
+	void generateMisc() {
 		offerIndustrialGrinderRecipe {
 			ingredients TRConventionalTags.CERTUS_QUARTZ_ORES
 			outputs stack(Ae2.certusQuartzCrystal, 2), stack(Ae2.certusQuartzDust, 5)

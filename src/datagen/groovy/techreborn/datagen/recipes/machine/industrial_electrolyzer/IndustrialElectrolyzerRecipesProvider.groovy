@@ -24,10 +24,10 @@
 
 package techreborn.datagen.recipes.machine.industrial_electrolyzer
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.fluid.Fluids
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.ModFluids
 import techreborn.init.TRContent
@@ -35,12 +35,17 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class IndustrialElectrolyzerRecipesProvider extends TechRebornRecipesProvider {
-	IndustrialElectrolyzerRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	IndustrialElectrolyzerRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
 	@Override
 	void generateRecipes() {
+		generateMisc()
+		generateCopper()
+	}
+
+	void generateMisc() {
 		offerIndustrialElectrolyzerRecipe {
 			power 50
 			time 1640
@@ -105,7 +110,7 @@ class IndustrialElectrolyzerRecipesProvider extends TechRebornRecipesProvider {
 			power 50
 			time 1400
 			ingredients stack(TRContent.Dusts.COAL), cellStack(Fluids.EMPTY)
-			outputs cellStack(ModFluids.CARBON, 2)
+			outputs cellStack(ModFluids.CARBON)
 		}
 		offerIndustrialElectrolyzerRecipe {
 			power 50
@@ -128,7 +133,7 @@ class IndustrialElectrolyzerRecipesProvider extends TechRebornRecipesProvider {
 		offerIndustrialElectrolyzerRecipe {
 			power 50
 			time 1100
-			ingredients stack(TRContent.Dusts.FLINT, 8), cellStack(Fluids.EMPTY)
+			ingredients stack(TRContent.Dusts.FLINT, 8), cellStack(Fluids.EMPTY, 2)
 			outputs cellStack(ModFluids.SILICON), cellStack(ModFluids.COMPRESSED_AIR)
 		}
 		offerIndustrialElectrolyzerRecipe {
@@ -200,7 +205,7 @@ class IndustrialElectrolyzerRecipesProvider extends TechRebornRecipesProvider {
 		offerIndustrialElectrolyzerRecipe {
 			power 40
 			time 1000
-			ingredients stack(Items.SAND, 16), cellStack(Fluids.EMPTY)
+			ingredients stack(Items.SAND, 16), cellStack(Fluids.EMPTY, 2)
 			outputs cellStack(ModFluids.SILICON), cellStack(ModFluids.COMPRESSED_AIR)
 		}
 		offerIndustrialElectrolyzerRecipe {
@@ -250,6 +255,84 @@ class IndustrialElectrolyzerRecipesProvider extends TechRebornRecipesProvider {
 			time 200
 			ingredients cellStack(Fluids.WATER)
 			outputs cellStack(ModFluids.ELECTROLYZED_WATER)
+		}
+		offerIndustrialElectrolyzerRecipe {
+			power 60
+			time 1400
+			ingredients stack(Items.BONE_MEAL, 6), cellStack(ModFluids.SULFURIC_ACID, 3)
+			outputs cellStack(ModFluids.CALCIUM, 2), cellStack(ModFluids.FLUORINE), stack(TRContent.Dusts.PHOSPHOROUS)
+		}
+		offerIndustrialElectrolyzerRecipe {
+			power 60
+			time 1600
+			ingredients stack(TRContent.Dusts.GRANITE, 29), cellStack(Fluids.EMPTY, 4)
+			outputs stack(Items.SAND, 20), stack(TRContent.Dusts.ALUMINUM, 5), cellStack(ModFluids.POTASSIUM, 3), cellStack(ModFluids.FLUORINE)
+		}
+		offerIndustrialElectrolyzerRecipe {
+			power 60
+			time 1000
+			ingredients stack(TRContent.Dusts.SALTPETER, 10), cellStack(ModFluids.SULFURIC_ACID, 4)
+			outputs cellStack(ModFluids.NITRIC_ACID, 2), cellStack(ModFluids.POTASSIUM, 2), stack(TRContent.Dusts.SULFUR, 4), stack(TRContent.Dusts.DARK_ASHES, 2)
+		}
+	}
+
+	void generateCopper(){
+		[
+			(Items.COPPER_BLOCK) : Items.EXPOSED_COPPER,
+			(Items.CHISELED_COPPER) : Items.EXPOSED_CHISELED_COPPER,
+			(Items.COPPER_GRATE) : Items.EXPOSED_COPPER_GRATE,
+			(Items.CUT_COPPER) : Items.EXPOSED_CUT_COPPER,
+			(Items.CUT_COPPER_STAIRS) : Items.EXPOSED_CUT_COPPER_STAIRS,
+			(Items.CUT_COPPER_SLAB) : Items.EXPOSED_CUT_COPPER_SLAB,
+			(Items.COPPER_DOOR) : Items.EXPOSED_COPPER_DOOR,
+			(Items.COPPER_TRAPDOOR) : Items.EXPOSED_COPPER_TRAPDOOR,
+			(Items.COPPER_BULB) : Items.EXPOSED_COPPER_BULB
+		].each {source, result ->
+			offerIndustrialElectrolyzerRecipe {
+				power 30
+				time 200
+				ingredients source
+				outputs result
+				criterion getCriterionName(source), getCriterionConditions(source)
+			}
+		}
+		[
+			(Items.EXPOSED_COPPER) : Items.WEATHERED_COPPER,
+			(Items.EXPOSED_CHISELED_COPPER) : Items.WEATHERED_CHISELED_COPPER,
+			(Items.EXPOSED_COPPER_GRATE) : Items.WEATHERED_COPPER_GRATE,
+			(Items.EXPOSED_CUT_COPPER) : Items.WEATHERED_CUT_COPPER,
+			(Items.EXPOSED_CUT_COPPER_STAIRS) : Items.WEATHERED_CUT_COPPER_STAIRS,
+			(Items.EXPOSED_CUT_COPPER_SLAB) : Items.WEATHERED_CUT_COPPER_SLAB,
+			(Items.EXPOSED_COPPER_DOOR) : Items.WEATHERED_COPPER_DOOR,
+			(Items.EXPOSED_COPPER_TRAPDOOR) : Items.WEATHERED_COPPER_TRAPDOOR,
+			(Items.EXPOSED_COPPER_BULB) : Items.WEATHERED_COPPER_BULB
+		].each {source, result ->
+			offerIndustrialElectrolyzerRecipe {
+				power 30
+				time 200
+				ingredients source
+				outputs result
+				criterion getCriterionName(source), getCriterionConditions(source)
+			}
+		}
+		[
+			(Items.WEATHERED_COPPER) : Items.OXIDIZED_COPPER,
+			(Items.WEATHERED_CHISELED_COPPER) : Items.OXIDIZED_CHISELED_COPPER,
+			(Items.WEATHERED_COPPER_GRATE) : Items.OXIDIZED_COPPER_GRATE,
+			(Items.WEATHERED_CUT_COPPER) : Items.OXIDIZED_CUT_COPPER,
+			(Items.WEATHERED_CUT_COPPER_STAIRS) : Items.OXIDIZED_CUT_COPPER_STAIRS,
+			(Items.WEATHERED_CUT_COPPER_SLAB) : Items.OXIDIZED_CUT_COPPER_SLAB,
+			(Items.WEATHERED_COPPER_DOOR) : Items.OXIDIZED_COPPER_DOOR,
+			(Items.WEATHERED_COPPER_TRAPDOOR) : Items.OXIDIZED_COPPER_TRAPDOOR,
+			(Items.WEATHERED_COPPER_BULB) : Items.OXIDIZED_COPPER_BULB
+		].each {source, result ->
+			offerIndustrialElectrolyzerRecipe {
+				power 30
+				time 200
+				ingredients source
+				outputs result
+				criterion getCriterionName(source), getCriterionConditions(source)
+			}
 		}
 	}
 }

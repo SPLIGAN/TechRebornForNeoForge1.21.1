@@ -18,9 +18,5 @@
   "techreborn.jei.recipe.heat": "Lämpö",
   "techreborn.jei.recipe.generator.total": "E yhteensä: %s",
   "techreborn.tooltip.tier": "Taso",
-  "techreborn.tooltip.inventory": "inventaario",
-  "entity.minecraft.villager.techreborn.metallurgist": "Metallurgisti",
-  "entity.minecraft.villager.metallurgist": "Metallurgisti",
-  "entity.minecraft.villager.techreborn.electrician": "Sähköasentaja",
-  "entity.minecraft.villager.electrician": "Sähköasentaja"
+  "techreborn.tooltip.inventory": "inventaario"
 }

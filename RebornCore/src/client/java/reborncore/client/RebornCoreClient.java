@@ -1,0 +1,85 @@
+/*
+ * This file is part of RebornCore, licensed under the MIT License (MIT).
+ *
+ * Copyright (c) 2021 TeamReborn
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+package reborncore.client;
+
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientBlockEntityEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.PictureInPictureRendererRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
+import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
+import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.resources.Identifier;
+import net.minecraft.server.packs.PackType;
+import reborncore.RebornCore;
+import reborncore.api.blockentity.UnloadHandler;
+import reborncore.client.gui.ThemeManager;
+import reborncore.client.gui.element.MachineFaceElementRenderer;
+
+import java.util.Locale;
+
+public class RebornCoreClient implements ClientModInitializer {
+
+	@Override
+	public void onInitializeClient() {
+		RebornFluidRenderManager.setupClient();
+		ClientBoundPacketHandlers.init();
+		HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("reborncore", "item_stack_renderer"), new ItemStackRenderer());
+		ItemTooltipCallback.EVENT.register(new StackToolTipHandler());
+		BlockOutlineRenderer outline = new BlockOutlineRenderer();
+		LevelRenderEvents.AFTER_BLOCK_OUTLINE_EXTRACTION.register(outline);
+		LevelRenderEvents.BEFORE_BLOCK_OUTLINE.register(outline);
+		PictureInPictureRendererRegistry.register(MachineFaceElementRenderer::new);
+
+		/* register UnloadHandler */
+		ClientBlockEntityEvents.BLOCK_ENTITY_UNLOAD.register((blockEntity, world) -> {
+			if (blockEntity instanceof UnloadHandler) ((UnloadHandler) blockEntity).onUnload();
+		});
+
+		ClientLifecycleEvents.CLIENT_STARTED.register(client -> {
+			String strangeMcLang = client.getLanguageManager().getSelected();
+			RebornCore.locale = Locale.forLanguageTag(strangeMcLang.substring(0, 2));
+		});
+
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (client.options.keyJump.isDown()) {
+				ClientJumpEvent.EVENT.invoker().jump();
+			}
+		});
+
+		ResourceManagerHelper.get(PackType.CLIENT_RESOURCES)
+			.registerReloadListener(new ThemeManager());
+
+		ResourceManagerHelper.registerBuiltinResourcePack(
+			Identifier.fromNamespaceAndPath("reborncore", "reborncore_darkmode"),
+			FabricLoader.getInstance().getModContainer("reborncore").get(),
+			ResourcePackActivationType.NORMAL
+		);
+	}
+}

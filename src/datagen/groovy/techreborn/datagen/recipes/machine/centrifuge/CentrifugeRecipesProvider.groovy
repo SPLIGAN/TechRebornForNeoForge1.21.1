@@ -24,11 +24,11 @@
 
 package techreborn.datagen.recipes.machine.centrifuge
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.fluid.Fluids
-import net.minecraft.item.Items
-import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.item.Items
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.ModFluids
@@ -38,7 +38,7 @@ import java.util.concurrent.CompletableFuture
 
 class CentrifugeRecipesProvider extends TechRebornRecipesProvider {
 
-	CentrifugeRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	CentrifugeRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -74,7 +74,7 @@ class CentrifugeRecipesProvider extends TechRebornRecipesProvider {
 			offerCentrifugeRecipe {
 				ingredients stack(item, count), TRContent.CELL
 				outputs cellStack(ModFluids.METHANE)
-				id("centrifuge/methan_cell_from_" + Registries.ITEM.getId(item).path)
+				id("centrifuge/methan_cell_from_" + BuiltInRegistries.ITEM.getKey(item).path)
 				power 5
 				time 100
 				criterion getCriterionName(item), getCriterionConditions(item)
@@ -88,7 +88,7 @@ class CentrifugeRecipesProvider extends TechRebornRecipesProvider {
 			offerCentrifugeRecipe {
 				ingredients stack(item, count), TRContent.CELL
 				outputs cellStack(ModFluids.METHANE), TRContent.Dusts.CALCITE
-				id("centrifuge/methan_cell_from_" + Registries.ITEM.getId(item).path)
+				id("centrifuge/methan_cell_from_" + BuiltInRegistries.ITEM.getKey(item).path)
 				power 5
 				time 500
 				criterion getCriterionName(item), getCriterionConditions(item)
@@ -509,7 +509,9 @@ class CentrifugeRecipesProvider extends TechRebornRecipesProvider {
 		offerCentrifugeRecipe {
 			power 5
 			time 2500
-			ingredients stack(Items.TUFF, 16)
+			ingredient {
+				tag(TRConventionalTags.TUFF, 16)
+			}
 			outputs stack(TRContent.Dusts.DARK_ASHES, 18), stack(TRContent.Dusts.ASHES, 12)
 			id("centrifuge/tuff")
 		}
@@ -542,6 +544,13 @@ class CentrifugeRecipesProvider extends TechRebornRecipesProvider {
 			}
 			outputs stack(TRContent.Nuggets.TIN, 3)
 			id("centrifuge/zinc_dust")
+		}
+		offerCentrifugeRecipe {
+			power 10
+			time 1600
+			ingredients cellStack(ModFluids.URANIUM_HEXAFLUORIDE)
+			outputs stack(TRContent.Dusts.URANIUM_238, 8), TRContent.SmallDusts.URANIUM_235, cellStack(ModFluids.COMPRESSED_AIR)
+			id("centrifuge/uranium_hexafluoride_cell")
 		}
 	}
 }

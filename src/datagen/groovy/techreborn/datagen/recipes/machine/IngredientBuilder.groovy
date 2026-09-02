@@ -24,36 +24,38 @@
 
 package techreborn.datagen.recipes.machine
 
-import net.fabricmc.fabric.impl.recipe.ingredient.builtin.ComponentsIngredient
-import net.minecraft.component.ComponentChanges
-import net.minecraft.item.Item
-import net.minecraft.item.ItemConvertible
-import net.minecraft.item.ItemStack
-import net.minecraft.recipe.Ingredient
-import net.minecraft.registry.Registries
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.util.Identifier
+import net.fabricmc.fabric.api.recipe.v1.ingredient.DefaultCustomIngredients
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.ItemStackTemplate
+import net.minecraft.world.level.ItemLike
+import net.minecraft.world.item.ItemStack
+import net.minecraft.world.item.crafting.Ingredient
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.HolderGetter
+import net.minecraft.core.HolderSet
+import net.minecraft.tags.TagKey
+import net.minecraft.resources.Identifier
 import reborncore.common.crafting.SizedIngredient
-import techreborn.component.TRDataComponentTypes
-import techreborn.init.TRContent
 
 class IngredientBuilder {
+	public HolderGetter<Item> itemLookup
 	private TagKey<Item> tag
 	private Integer tagCount = -1
-	private List<ItemStack> stacks = []
+	private List<ItemStackTemplate> stacks = []
 
-	private IngredientBuilder() {
+	private IngredientBuilder(HolderGetter<Item> itemLookup) {
+		this.itemLookup = itemLookup;
 	}
 
-	static IngredientBuilder create() {
-		return new IngredientBuilder()
+	static IngredientBuilder create(HolderGetter<Item> itemLookup) {
+		return new IngredientBuilder(itemLookup)
 	}
 
 	SizedIngredient build() {
 		checkHasSingleInputType()
 
 		if (tag != null) {
-			return new SizedIngredient(tagCount == -1 ? 1 : tagCount, Ingredient.fromTag(tag))
+			return new SizedIngredient(tagCount == -1 ? 1 : tagCount, Ingredient.of(itemLookup.getOrThrow(tag)))
 		}
 
 		if (!stacks.isEmpty()) {
@@ -62,22 +64,15 @@ class IngredientBuilder {
 			}
 
 			def stack = stacks[0]
-			def components = stack.getComponentChanges()
+			def components = stack.components()
 
-			// A bit of a hack to force the component changes to require the specified fluid, especially if empty
-			if (stack.item == TRContent.CELL) {
-				def builder = ComponentChanges.builder()
-				builder.add(TRDataComponentTypes.FLUID, stack.get(TRDataComponentTypes.FLUID))
-				components = builder.build()
-			}
-
-			Ingredient ingredient = Ingredient.ofStacks(stack)
+			Ingredient ingredient = Ingredient.of(HolderSet.direct(stack.item()))
 
 			if (!components.isEmpty()) {
-				ingredient = new ComponentsIngredient(ingredient, components).toVanilla()
+				ingredient = DefaultCustomIngredients.components(ingredient, components)
 			}
 
-			return new SizedIngredient(stack.getCount(), ingredient)
+			return new SizedIngredient(stack.count(), ingredient)
 		}
 
 		throw new IllegalStateException("No input")
@@ -89,18 +84,18 @@ class IngredientBuilder {
 		return this
 	}
 
-	def item(ItemConvertible itemConvertible) {
-		return stack(new ItemStack(itemConvertible.asItem()))
+	def item(ItemLike itemConvertible) {
+		return stack(new ItemStackTemplate(itemConvertible.asItem()))
 	}
 
-	def stack(ItemStack itemStack) {
+	def stack(ItemStackTemplate itemStack) {
 		stacks.add(itemStack)
 		return this
 	}
 
 	@Deprecated
 	def ident(Identifier identifier) {
-		return item(Registries.ITEM.get(identifier))
+		return item(BuiltInRegistries.ITEM.getValue(identifier))
 	}
 
 	def checkHasSingleInputType() {

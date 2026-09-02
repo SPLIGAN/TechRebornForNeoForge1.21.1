@@ -24,9 +24,9 @@
 
 package techreborn.datagen.recipes.machine.implosion_compressor
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.TRContent
@@ -34,7 +34,7 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class ImplosionCompressorRecipesProvider extends TechRebornRecipesProvider {
-	ImplosionCompressorRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	ImplosionCompressorRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -159,6 +159,20 @@ class ImplosionCompressorRecipesProvider extends TechRebornRecipesProvider {
 			ingredients stack(Items.SCULK, 64), stack(Items.END_CRYSTAL, 2)
 			outputs Items.SCULK_CATALYST, stack(TRContent.SmallDusts.ENDER_EYE, 2)
 			criterion getCriterionName(Items.SCULK), getCriterionConditions(Items.SCULK)
+		}
+		offerImplosionCompressorRecipe {
+			power 30
+			time 2000
+			ingredients TRContent.Ingots.INDUSTRIAL_ALLOY,  stack(Items.TNT, 8)
+			outputs TRContent.Plates.INDUSTRIAL_ALLOY, stack(TRContent.Dusts.DARK_ASHES, 4)
+			criterion getCriterionName(TRContent.Ingots.INDUSTRIAL_ALLOY), getCriterionConditions(TRContent.Ingots.INDUSTRIAL_ALLOY)
+		}
+		offerImplosionCompressorRecipe {
+			power 30
+			time 2000
+			ingredients TRContent.Ingots.INDUSTRIAL_ALLOY,  stack(Items.END_CRYSTAL, 2)
+			outputs TRContent.Plates.INDUSTRIAL_ALLOY, stack(TRContent.SmallDusts.ENDER_EYE, 2)
+			criterion getCriterionName(TRContent.Ingots.INDUSTRIAL_ALLOY), getCriterionConditions(TRContent.Ingots.INDUSTRIAL_ALLOY)
 		}
 	}
 }

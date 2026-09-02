@@ -24,9 +24,9 @@
 
 package techreborn.datagen.recipes.machine.blast_furnace
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.ModFluids
@@ -43,7 +43,7 @@ class BlastFurnaceRecipesProvider extends TechRebornRecipesProvider {
 	public final int TOOL_TIME = ARMOR_TIME
 	public final int TOOL_HEAT = ARMOR_HEAT
 
-	BlastFurnaceRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	BlastFurnaceRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -518,7 +518,7 @@ class BlastFurnaceRecipesProvider extends TechRebornRecipesProvider {
 			ingredient {
 				stack cellStack(ModFluids.CARBON, 5)
 			}
-			outputs stack(Items.SOUL_SAND, 8)
+			outputs stack(Items.SOUL_SAND, 8), stack(TRContent.CELL, 5)
 		}
 		offerBlastFurnaceRecipe {
 			power 128
@@ -541,6 +541,22 @@ class BlastFurnaceRecipesProvider extends TechRebornRecipesProvider {
 			}
 			outputs TRContent.Ingots.STEEL, stack(TRContent.CELL, 2)
 			source("refined_iron_and_carbon")
+		}
+		offerBlastFurnaceRecipe {
+			power 128
+			time 1200
+			heat 2000
+			ingredients stack(TRContent.Dusts.URANIUM_238, 8), TRContent.Dusts.URANIUM_235
+			outputs TRContent.NuclearReactorComponents.URANIUM_FUEL_PELLET
+			id "blast_furnace/uranium_fuel_pellet"
+		}
+		offerBlastFurnaceRecipe {
+			power 128
+			time 1200
+			heat 2000
+			ingredients stack(TRContent.Dusts.URANIUM_238, 8), stack(TRContent.SmallDusts.URANIUM_235, 4)
+			outputs TRContent.NuclearReactorComponents.URANIUM_FUEL_PELLET
+			id "blast_furnace/uranium_fuel_pellet_small_dusts"
 		}
 	}
 }

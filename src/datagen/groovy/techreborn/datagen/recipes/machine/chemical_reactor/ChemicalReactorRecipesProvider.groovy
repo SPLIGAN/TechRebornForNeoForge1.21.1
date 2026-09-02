@@ -24,12 +24,12 @@
 
 package techreborn.datagen.recipes.machine.chemical_reactor
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.fluid.Fluids
-import net.minecraft.item.Item
-import net.minecraft.item.Items
-import net.minecraft.registry.Registries
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.world.item.Item
+import net.minecraft.world.item.Items
+import net.minecraft.core.registries.BuiltInRegistries
+import net.minecraft.core.HolderLookup
 import reborncore.common.util.ColoredItem
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
@@ -43,7 +43,7 @@ class ChemicalReactorRecipesProvider extends TechRebornRecipesProvider {
 	public final int DYE_POWER = 25
 	public final int DYE_TIME = 250
 
-	ChemicalReactorRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	ChemicalReactorRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -169,7 +169,7 @@ class ChemicalReactorRecipesProvider extends TechRebornRecipesProvider {
 	}
 
 	static def getColorSource(Item item, ColoredItem color) {
-		return Registries.ITEM.getId(item).path + "_with_" + Registries.ITEM.getId(color.getDye()).path
+		return BuiltInRegistries.ITEM.getKey(item).path + "_with_" + BuiltInRegistries.ITEM.getKey(color.getDye()).path
 	}
 
 	// no recipes for beds and banners since the chemical reactor cannot color partially
@@ -544,8 +544,49 @@ class ChemicalReactorRecipesProvider extends TechRebornRecipesProvider {
 			criterion getCriterionName(Items.WITHER_ROSE), getCriterionConditions(Items.WITHER_ROSE)
 			criterion getCriterionName(Items.SKELETON_SKULL), getCriterionConditions(Items.SKELETON_SKULL)
 		}
-
+		offerChemicalReactorRecipe {
+			power 40
+			time 600
+			ingredient {
+				stack cellStack(ModFluids.NITROGEN_DIOXIDE)
+			}
+			ingredient {
+				stack cellStack(Fluids.WATER)
+			}
+			outputs cellStack(ModFluids.NITRIC_ACID, 2)
+			id("chemical_reactor/nitric_acid")
+			criterion "has_nitrogen_dioxide_cell", getCriterionConditions(getCellItemPredicate(ModFluids.NITROGEN_DIOXIDE))
+		}
+		offerChemicalReactorRecipe {
+			power 30
+			time 1000
+			ingredient {
+				stack cellStack(ModFluids.GLYCERYL)
+			}
+			ingredient {
+				stack cellStack(ModFluids.NITRIC_ACID)
+			}
+			outputs cellStack(ModFluids.NITROFUEL, 2)
+			id("chemical_reactor/nitrofuel_nitration")
+			criterion "has_glyceryl_cell", getCriterionConditions(getCellItemPredicate(ModFluids.GLYCERYL))
+			criterion "has_nitric_acid_cell", getCriterionConditions(getCellItemPredicate(ModFluids.NITRIC_ACID))
+		}
+		offerChemicalReactorRecipe {
+			power 60
+			time 1200
+			ingredient {
+				tag(TRConventionalTags.URANIUM_DUSTS)
+			}
+			ingredient {
+				stack cellStack(ModFluids.FLUORINE)
+			}
+			outputs cellStack(ModFluids.URANIUM_HEXAFLUORIDE)
+			id("chemical_reactor/uranium_hexafluoride")
+			criterion "has_uranium_dust", getCriterionConditions(TRConventionalTags.URANIUM_DUSTS)
+			criterion "has_fluorine_cell", getCriterionConditions(getCellItemPredicate(ModFluids.FLUORINE))
+		}
 	}
+
 	void generateWarped(){
 		[
 			(Items.CRIMSON_BUTTON) : Items.WARPED_BUTTON,

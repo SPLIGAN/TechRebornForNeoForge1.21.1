@@ -24,9 +24,9 @@
 
 package techreborn.datagen.recipes.machine.wire_mill
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.item.Items
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.item.Items
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.TRContent
@@ -34,7 +34,7 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class WireMillRecipesProvider extends TechRebornRecipesProvider {
-	WireMillRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	WireMillRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

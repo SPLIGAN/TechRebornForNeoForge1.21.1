@@ -24,42 +24,44 @@
 
 package techreborn.datagen.advancement
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider
-import net.minecraft.advancement.Advancement
-import net.minecraft.advancement.AdvancementCriterion
-import net.minecraft.advancement.AdvancementEntry
-import net.minecraft.advancement.AdvancementFrame
-import net.minecraft.advancement.criterion.CriterionConditions
-import net.minecraft.advancement.criterion.InventoryChangedCriterion
-import net.minecraft.advancement.criterion.ItemCriterion
-import net.minecraft.block.Block
-import net.minecraft.item.Item
-import net.minecraft.item.ItemConvertible
-import net.minecraft.predicate.item.ItemPredicate
-import net.minecraft.registry.RegistryWrapper
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.util.Identifier
+import net.minecraft.advancements.Criterion
+import net.minecraft.advancements.AdvancementHolder
+import net.minecraft.advancements.AdvancementType
+import net.minecraft.advancements.criterion.InventoryChangeTrigger
+import net.minecraft.advancements.criterion.ItemUsedOnLocationTrigger
+import net.minecraft.world.level.block.Block
+import net.minecraft.world.item.Item
+import net.minecraft.world.level.ItemLike
+import net.minecraft.advancements.criterion.ItemPredicate
+import net.minecraft.core.HolderGetter
+import net.minecraft.core.registries.Registries
+import net.minecraft.core.HolderLookup
+import net.minecraft.tags.TagKey
+import net.minecraft.resources.Identifier
 import techreborn.init.TRContent
 
 import java.util.concurrent.CompletableFuture
 import java.util.function.Consumer
 
 class TRAdvancementProvider extends FabricAdvancementProvider {
-	private Consumer<AdvancementEntry> consumer
+	public HolderGetter<Item> itemLookup
+	private Consumer<AdvancementHolder> consumer
 
-	public TRAdvancementProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	public TRAdvancementProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
 	@Override
-	void generateAdvancement(RegistryWrapper.WrapperLookup registryLookup, Consumer<AdvancementEntry> consumer) {
+	void generateAdvancement(HolderLookup.Provider registryLookup, Consumer<AdvancementHolder> consumer) {
+		this.itemLookup = registryLookup.lookupOrThrow(Registries.ITEM)
 		this.consumer = consumer
 
 		def root = create {
 			name "root"
 			icon TRContent.MANUAL
-			background Identifier.of("techreborn:textures/block/storage/steel_storage_block.png")
+			background Identifier.parse("techreborn:block/storage/steel_storage_block")
 			condition inventoryChanged(TRContent.ItemTags.ORES)
 			condition inventoryChanged(TRContent.ItemTags.RAW_METALS)
 			condition inventoryChanged(TRContent.ItemTags.GEMS)
@@ -69,7 +71,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		treeTapTree(root)
 	}
 
-	private void refinedIronTree(AdvancementEntry root) {
+	private void refinedIronTree(AdvancementHolder root) {
 		def refinediron = create {
 			parent root
 			name "refinediron"
@@ -117,7 +119,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		def windmill = create {
 			parent generator
 			name "windmill"
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			icon TRContent.Machine.WIND_MILL
 			condition placedBlock(TRContent.Machine.WIND_MILL.block)
 		}
@@ -125,7 +127,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		def watermill = create {
 			parent windmill
 			name "watermill"
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			icon TRContent.Machine.WATER_MILL
 			condition placedBlock(TRContent.Machine.WATER_MILL.block)
 		}
@@ -133,7 +135,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		def thermalGenerator = create {
 			parent watermill
 			name "thermalgenerator"
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			icon TRContent.Machine.THERMAL_GENERATOR
 			condition placedBlock(TRContent.Machine.THERMAL_GENERATOR.block)
 		}
@@ -141,7 +143,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		solarTree(machineBlock)
 	}
 
-	private void solarTree(AdvancementEntry root) {
+	private void solarTree(AdvancementHolder root) {
 		def basicSolar = create {
 			parent root
 			name "basicsolar"
@@ -160,7 +162,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent advancedSolar
 			name "industrialsolar"
 			icon TRContent.SolarPanels.INDUSTRIAL
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.SolarPanels.INDUSTRIAL.block)
 		}
 
@@ -168,7 +170,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent industrialSolar
 			name "ultimatesolar"
 			icon TRContent.SolarPanels.ULTIMATE
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.SolarPanels.ULTIMATE.block)
 		}
 
@@ -176,12 +178,12 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent industrialSolar
 			name "quantumsolar"
 			icon TRContent.SolarPanels.QUANTUM
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.SolarPanels.QUANTUM.block)
 		}
 	}
 
-	private void treeTapTree(AdvancementEntry root) {
+	private void treeTapTree(AdvancementHolder root) {
 		def treeTap = create {
 			parent root
 			name "treetap"
@@ -238,7 +240,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent batBox
 			name "mfe"
 			icon TRContent.Machine.MEDIUM_VOLTAGE_SU
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.Machine.MEDIUM_VOLTAGE_SU.block)
 		}
 
@@ -262,7 +264,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent mfe
 			name "mfsu"
 			icon TRContent.Machine.HIGH_VOLTAGE_SU
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.Machine.HIGH_VOLTAGE_SU.block)
 		}
 
@@ -270,12 +272,12 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent mfsu
 			name "interdimensionalsu"
 			icon TRContent.Machine.INTERDIMENSIONAL_SU
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.Machine.INTERDIMENSIONAL_SU.block)
 		}
 	}
 
-	private void machineTree(AdvancementEntry root) {
+	private void machineTree(AdvancementHolder root) {
 		def ironFurnace = create {
 			parent root
 			name "ironfurnace"
@@ -349,7 +351,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		advancedMachineTreeTree(ironFurnace)
 	}
 
-	private void advancedMachineTreeTree(AdvancementEntry root) {
+	private void advancedMachineTreeTree(AdvancementHolder root) {
 		def advancedMachineBlock = create {
 			parent root
 			name "advancedmachineblock"
@@ -360,7 +362,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 		def lightningRod = create {
 			parent advancedMachineBlock
 			name "lightningrod"
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			icon TRContent.Machine.LIGHTNING_ROD
 			condition placedBlock(TRContent.Machine.LIGHTNING_ROD.block)
 		}
@@ -376,7 +378,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent fusionCoil
 			name "fusioncomputer"
 			icon TRContent.Machine.FUSION_CONTROL_COMPUTER
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.Machine.FUSION_CONTROL_COMPUTER.block)
 		}
 
@@ -392,7 +394,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent advancedMachineBlock
 			name "industrialcentrifuge"
 			icon TRContent.Machine.INDUSTRIAL_CENTRIFUGE
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.Machine.INDUSTRIAL_CENTRIFUGE.block)
 		}
 
@@ -407,7 +409,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent nickelNugget
 			name "blastfurnace"
 			icon TRContent.Machine.INDUSTRIAL_BLAST_FURNACE
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.Machine.INDUSTRIAL_BLAST_FURNACE.block)
 		}
 
@@ -415,7 +417,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent blastFurnace
 			name "industrialgrinder"
 			icon TRContent.Machine.INDUSTRIAL_GRINDER
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.Machine.INDUSTRIAL_GRINDER.block)
 		}
 
@@ -423,7 +425,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent industrialGrinder
 			name "implosion"
 			icon TRContent.Machine.IMPLOSION_COMPRESSOR
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition placedBlock(TRContent.Machine.IMPLOSION_COMPRESSOR.block)
 		}
 
@@ -431,7 +433,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent implosion
 			name "quantumarmor"
 			icon TRContent.QUANTUM_CHESTPLATE
-			frame AdvancementFrame.GOAL
+			frame AdvancementType.GOAL
 			condition inventoryChanged(TRContent.QUANTUM_HELMET)
 			condition inventoryChanged(TRContent.QUANTUM_CHESTPLATE)
 			condition inventoryChanged(TRContent.QUANTUM_LEGGINGS)
@@ -449,7 +451,7 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent industrialMachineBlock
 			name "matterfabricator"
 			icon TRContent.Machine.MATTER_FABRICATOR
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.Machine.MATTER_FABRICATOR.block)
 		}
 
@@ -457,24 +459,24 @@ class TRAdvancementProvider extends FabricAdvancementProvider {
 			parent industrialMachineBlock
 			name "quantumtank"
 			icon TRContent.TankUnit.QUANTUM
-			frame AdvancementFrame.CHALLENGE
+			frame AdvancementType.CHALLENGE
 			condition placedBlock(TRContent.TankUnit.QUANTUM.block)
 		}
 	}
 
-	private static AdvancementCriterion<ItemCriterion.Conditions> placedBlock(Block block) {
-		return ItemCriterion.Conditions.createPlacedBlock(block)
+	private static Criterion<ItemUsedOnLocationTrigger.TriggerInstance> placedBlock(Block block) {
+		return ItemUsedOnLocationTrigger.TriggerInstance.placedBlock(block)
 	}
 
-	private static AdvancementCriterion<InventoryChangedCriterion.Conditions> inventoryChanged(ItemConvertible... items) {
-		return InventoryChangedCriterion.Conditions.items(items)
+	private static Criterion<InventoryChangeTrigger.TriggerInstance> inventoryChanged(ItemLike... items) {
+		return InventoryChangeTrigger.TriggerInstance.hasItems(items)
 	}
 
-	private static AdvancementCriterion<InventoryChangedCriterion.Conditions> inventoryChanged(TagKey<Item> tag) {
-		return InventoryChangedCriterion.Conditions.items(ItemPredicate.Builder.create().tag(tag))
+	private Criterion<InventoryChangeTrigger.TriggerInstance> inventoryChanged(TagKey<Item> tag) {
+		return InventoryChangeTrigger.TriggerInstance.hasItems(ItemPredicate.Builder.item().of(itemLookup, tag))
 	}
 
-	private AdvancementEntry create(@DelegatesTo(value = AdvancementFactory.class) Closure closure) {
+	private AdvancementHolder create(@DelegatesTo(value = AdvancementFactory.class) Closure closure) {
 		def factory = new AdvancementFactory()
 		closure.setDelegate(factory)
 		closure.call(factory)

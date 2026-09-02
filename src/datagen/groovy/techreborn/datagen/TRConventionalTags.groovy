@@ -24,11 +24,11 @@
 
 package techreborn.datagen
 
-import net.minecraft.item.Item
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.tag.BlockTags
-import net.minecraft.registry.tag.TagKey
-import net.minecraft.util.Identifier
+import net.minecraft.world.item.Item
+import net.minecraft.core.registries.Registries
+import net.minecraft.tags.BlockTags
+import net.minecraft.tags.TagKey
+import net.minecraft.resources.Identifier
 
 class TRConventionalTags {
 	public static final TagKey<Item> ADVANCED_ALLOY_BLOCKS = register("storage_blocks/advanced_alloy")
@@ -143,11 +143,17 @@ class TRConventionalTags {
 	public static final TagKey<Item> TITANIUM_BLOCKS = register("storage_blocks/titanium")
 	public static final TagKey<Item> TITANIUM_DUSTS = register("dusts/titanium")
 	public static final TagKey<Item> TITANIUM_INGOTS = register("ingots/titanium")
+	public static final TagKey<Item> TUFF = register("tuff")
 	public static final TagKey<Item> TUNGSTEN_BLOCKS = register("storage_blocks/tungsten")
 	public static final TagKey<Item> TUNGSTEN_INGOTS = register("ingots/tungsten")
 	public static final TagKey<Item> TUNGSTEN_ORES = register("ores/tungsten")
 	public static final TagKey<Item> TUNGSTENSTEEL_BLOCKS = register("storage_blocks/tungstensteel")
 	public static final TagKey<Item> TUNGSTENSTEEL_INGOTS = register("ingots/tungstensteel")
+	public static final TagKey<Item> URANIUM_ORES = register("ores/uranium")
+	public static final TagKey<Item> RAW_URANIUM_ORES = register("raw_materials/uranium")
+	public static final TagKey<Item> URANIUM_DUSTS = register("dusts/uranium")
+	public static final TagKey<Item> URANIUM_235_DUSTS = register("dusts/uranium_235")
+	public static final TagKey<Item> URANIUM_238_DUSTS = register("dusts/uranium_238")
 	public static final TagKey<Item> YELLOW_GARNET_BLOCKS = register("storage_blocks/yellow_garnet")
 	public static final TagKey<Item> YELLOW_GARNET_DUSTS = register("dusts/yellow_garnet")
 	public static final TagKey<Item> YELLOW_GARNET_GEMS = register("gems/yellow_garnet")
@@ -159,6 +165,6 @@ class TRConventionalTags {
 	public static final TagKey<Item> SULFURS = register("sulfurs")
 
 	private static TagKey<Item> register(String name) {
-		return TagKey.of(RegistryKeys.ITEM, Identifier.of("c", name))
+		return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", name))
 	}
 }

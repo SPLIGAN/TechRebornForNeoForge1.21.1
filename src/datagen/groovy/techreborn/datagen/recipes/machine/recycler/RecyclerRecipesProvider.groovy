@@ -24,15 +24,15 @@
 
 package techreborn.datagen.recipes.machine.recycler
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.TRContent
 
 import java.util.concurrent.CompletableFuture
 
 class RecyclerRecipesProvider extends TechRebornRecipesProvider{
-	RecyclerRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	RecyclerRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 

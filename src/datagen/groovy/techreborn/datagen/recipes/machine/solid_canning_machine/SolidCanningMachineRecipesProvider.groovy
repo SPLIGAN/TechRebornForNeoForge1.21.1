@@ -24,9 +24,9 @@
 
 package techreborn.datagen.recipes.machine.solid_canning_machine
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
-import net.minecraft.fluid.Fluids
-import net.minecraft.registry.RegistryWrapper
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
+import net.minecraft.world.level.material.Fluids
+import net.minecraft.core.HolderLookup
 import techreborn.datagen.TRConventionalTags
 import techreborn.datagen.recipes.TechRebornRecipesProvider
 import techreborn.init.ModFluids
@@ -35,7 +35,7 @@ import techreborn.init.TRContent
 import java.util.concurrent.CompletableFuture
 
 class SolidCanningMachineRecipesProvider extends TechRebornRecipesProvider {
-	SolidCanningMachineRecipesProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	SolidCanningMachineRecipesProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
@@ -54,7 +54,7 @@ class SolidCanningMachineRecipesProvider extends TechRebornRecipesProvider {
 			ingredient {
 				tag(TRConventionalTags.TIN_INGOTS, 2)
 			}
-			outputs TRContent.Parts.HELIUM_COOLANT_CELL_60K
+			outputs TRContent.NuclearReactorComponents.HELIUM_COOLANT_CELL_60K
 		}
 		offerSolidCanningMachineRecipe {
 			power 1
@@ -69,7 +69,13 @@ class SolidCanningMachineRecipesProvider extends TechRebornRecipesProvider {
 			ingredient {
 				tag(TRConventionalTags.TIN_INGOTS, 2)
 			}
-			outputs stack(TRContent.Parts.WATER_COOLANT_CELL_10K, 2)
+			outputs stack(TRContent.NuclearReactorComponents.WATER_COOLANT_CELL_10K, 2)
+		}
+		offerSolidCanningMachineRecipe {
+			power 30
+			time 200
+			ingredients TRContent.NuclearReactorComponents.URANIUM_FUEL_PELLET, TRContent.NuclearReactorComponents.EMPTY_FUEL_ROD
+			outputs TRContent.NuclearReactorComponents.URANIUM_FUEL_ROD
 		}
 	}
 }

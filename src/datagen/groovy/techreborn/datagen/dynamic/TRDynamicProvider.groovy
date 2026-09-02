@@ -24,23 +24,23 @@
 
 package techreborn.datagen.dynamic
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricDynamicRegistryProvider
-import net.minecraft.registry.RegistryKeys
-import net.minecraft.registry.RegistryWrapper
+import net.minecraft.core.registries.Registries
+import net.minecraft.core.HolderLookup
 
 import java.util.concurrent.CompletableFuture
 
 class TRDynamicProvider extends FabricDynamicRegistryProvider {
-	TRDynamicProvider(FabricDataOutput output, CompletableFuture<RegistryWrapper.WrapperLookup> registriesFuture) {
+	TRDynamicProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
 		super(output, registriesFuture)
 	}
 
 	@Override
-	protected void configure(RegistryWrapper.WrapperLookup registries, Entries entries) {
-		entries.addAll(registries.getWrapperOrThrow(RegistryKeys.CONFIGURED_FEATURE))
-		entries.addAll(registries.getWrapperOrThrow(RegistryKeys.PLACED_FEATURE))
-		entries.addAll(registries.getWrapperOrThrow(RegistryKeys.DAMAGE_TYPE))
+	protected void configure(HolderLookup.Provider registries, Entries entries) {
+		entries.addAll(registries.lookupOrThrow(Registries.CONFIGURED_FEATURE))
+		entries.addAll(registries.lookupOrThrow(Registries.PLACED_FEATURE))
+		entries.addAll(registries.lookupOrThrow(Registries.DAMAGE_TYPE))
 	}
 
 	@Override

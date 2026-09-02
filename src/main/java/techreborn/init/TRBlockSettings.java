@@ -24,40 +24,49 @@
 
 package techreborn.init;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
+import techreborn.TechReborn;
 
 public class TRBlockSettings {
-	private static BlockBehaviour.Properties metal() {
+	private static BlockBehaviour.Properties metal(String name) {
 		return BlockBehaviour.Properties.of()
 			.sound(SoundType.METAL)
 			.mapColor(MapColor.METAL)
-			.strength(2f, 2f);
+			.strength(2f, 2f)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties machine() {
-		return metal();
+	public static BlockBehaviour.Properties machine(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties nuke() {
+	public static BlockBehaviour.Properties nuke(String name) {
 		return BlockBehaviour.Properties.of()
 			.strength(2F, 2F)
-			.mapColor(MapColor.FIRE);
+			.mapColor(MapColor.FIRE)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties reinforcedGlass() {
+	public static BlockBehaviour.Properties reinforcedGlass(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.GLASS)
 			.strength(4f, 60f)
-			.sound(SoundType.STONE);
+			.sound(SoundType.STONE)
+			.setId(key(name));
 	}
 
-	private static BlockBehaviour.Properties rubber(boolean noCollision, float hardness, float resistance) {
+	private static BlockBehaviour.Properties rubber(boolean noCollision, float hardness, float resistance, String name) {
 		var settings = BlockBehaviour.Properties.of()
 			.mapColor(MapColor.PODZOL)
 			.strength(hardness, resistance)
-			.sound(SoundType.WOOD);
+			.sound(SoundType.WOOD)
+			.setId(key(name));
 
 		if (noCollision) {
 			settings.noCollision();
@@ -66,87 +75,93 @@ public class TRBlockSettings {
 		return settings;
 	}
 
-	private static BlockBehaviour.Properties rubber(float hardness, float resistance) {
-		return rubber(false, hardness, resistance);
+	private static BlockBehaviour.Properties rubber(float hardness, float resistance, String name) {
+		return rubber(false, hardness, resistance, name);
 	}
 
-	public static BlockBehaviour.Properties rubberWood() {
-		return rubber(2f, 2f)
+	public static BlockBehaviour.Properties rubberWood(String name) {
+		return rubber(2f, 2f, name)
 			.ignitedByLava();
 	}
 
-	public static BlockBehaviour.Properties rubberWoodStripped() {
-		return rubberWood()
+	public static BlockBehaviour.Properties rubberWoodStripped(String name) {
+		return rubberWood(name)
 			.strength(2.0F, 15.0F);
 	}
 
-	public static BlockBehaviour.Properties rubberLeaves() {
+	public static BlockBehaviour.Properties rubberLeaves(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LEAVES)
-			.mapColor(MapColor.PODZOL);
+			.mapColor(MapColor.PODZOL)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties rubberSapling() {
+	public static BlockBehaviour.Properties rubberSapling(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_SAPLING)
-			.mapColor(MapColor.PODZOL);
+			.mapColor(MapColor.PODZOL)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties rubberLog() {
+	public static BlockBehaviour.Properties rubberLog(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.SPRUCE_LOG)
 			.randomTicks()
-			.mapColor(MapColor.PODZOL);
+			.mapColor(MapColor.PODZOL)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties rubberLogStripped() {
-		return rubberLog().strength(2.0F, 15.0F);
+	public static BlockBehaviour.Properties rubberLogStripped(String name) {
+		return rubberLog(name).strength(2.0F, 15.0F);
 	}
 
-	public static BlockBehaviour.Properties rubberSlab() {
-		return rubberLog();
+	public static BlockBehaviour.Properties rubberSlab(String name) {
+		return rubberLog(name);
 	}
 
-	public static BlockBehaviour.Properties rubberFence() {
-		return rubberLog();
+	public static BlockBehaviour.Properties rubberFence(String name) {
+		return rubberLog(name);
 	}
 
-	public static BlockBehaviour.Properties rubberFenceGate() {
-		return rubberLog();
+	public static BlockBehaviour.Properties rubberFenceGate(String name) {
+		return rubberLog(name);
 	}
 
-	public static BlockBehaviour.Properties pottedRubberSapling() {
-		return BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_SPRUCE_SAPLING);
+	public static BlockBehaviour.Properties pottedRubberSapling(String name) {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.POTTED_SPRUCE_SAPLING)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties copperWall() {
+	public static BlockBehaviour.Properties copperWall(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.COPPER_BLOCK)
-			.strength(2f, 2f);
+			.strength(2f, 2f)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties rubberTrapdoor() {
-		return rubber(3.0F, 3.0F);
+	public static BlockBehaviour.Properties rubberTrapdoor(String name) {
+		return rubber(3.0F, 3.0F, name);
 	}
 
-	public static BlockBehaviour.Properties rubberDoor() {
-		return rubber(3.0F, 3.0F);
+	public static BlockBehaviour.Properties rubberDoor(String name) {
+		return rubber(3.0F, 3.0F, name);
 	}
 
-	public static BlockBehaviour.Properties rubberButton() {
-		return rubber(true, 0.5F, 0.5F);
+	public static BlockBehaviour.Properties rubberButton(String name) {
+		return rubber(true, 0.5F, 0.5F, name);
 	}
 
-	public static BlockBehaviour.Properties rubberPressurePlate() {
-		return rubber(true, 0.5F, 0.5F);
+	public static BlockBehaviour.Properties rubberPressurePlate(String name) {
+		return rubber(true, 0.5F, 0.5F, name);
 	}
 
-	public static BlockBehaviour.Properties refinedIronFence() {
-		return metal()
+	public static BlockBehaviour.Properties refinedIronFence(String name) {
+		return metal(name)
 			.strength(2.0F, 3.0F);
 	}
 
-	public static BlockBehaviour.Properties storageBlock(boolean isHot, float hardness, float resistance) {
+	public static BlockBehaviour.Properties storageBlock(boolean isHot, float hardness, float resistance, String name) {
 		BlockBehaviour.Properties settings = BlockBehaviour.Properties.of()
 			.strength(hardness, resistance)
 			.mapColor(MapColor.METAL) // TODO 1.20 maybe set the color based off the block?
-			.sound(SoundType.METAL);
+			.sound(SoundType.METAL)
+			.setId(key(name));
 
 		if (isHot) {
 			settings = settings.lightLevel(state -> 15)
@@ -156,105 +171,114 @@ public class TRBlockSettings {
 		return settings;
 	}
 
-	public static BlockBehaviour.Properties ore(boolean deepslate) {
+	public static BlockBehaviour.Properties ore(boolean deepslate, String name) {
 		return BlockBehaviour.Properties.of()
 			.requiresCorrectToolForDrops()
 			.sound(deepslate ? SoundType.DEEPSLATE : SoundType.STONE)
 			.destroyTime(deepslate ? 4.5f : 3f)
-			.explosionResistance(3f);
+			.explosionResistance(3f)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties machineFrame() {
-		return metal()
+	public static BlockBehaviour.Properties machineFrame(String name) {
+		return metal(name)
 			.strength(1f, 1f);
 	}
 
-	public static BlockBehaviour.Properties machineCasing() {
-		return metal()
+	public static BlockBehaviour.Properties machineCasing(String name) {
+		return metal(name)
 			.strength(2f, 2f)
 			.requiresCorrectToolForDrops();
 	}
 
-	public static BlockBehaviour.Properties energyStorage() {
-		return metal();
+	public static BlockBehaviour.Properties energyStorage(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties lsuStorage() {
-		return metal();
+	public static BlockBehaviour.Properties lsuStorage(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties storageUnit(boolean wooden) {
+	public static BlockBehaviour.Properties storageUnit(boolean wooden, String name) {
 		if (!wooden) {
-			return metal();
+			return metal(name);
 		}
 
 		return BlockBehaviour.Properties.of()
 			.sound(SoundType.WOOD)
 			.mapColor(MapColor.WOOD)
-			.strength(2f, 2f);
+			.strength(2f, 2f)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties fusionCoil() {
-		return metal();
+	public static BlockBehaviour.Properties fusionCoil(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties transformer() {
-		return metal();
+	public static BlockBehaviour.Properties transformer(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties playerDetector() {
-		return metal();
+	public static BlockBehaviour.Properties playerDetector(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties fluid() {
-		return BlockBehaviour.Properties.ofFullCopy(Blocks.WATER);
+	public static BlockBehaviour.Properties fluid(String name) {
+		return BlockBehaviour.Properties.ofFullCopy(Blocks.WATER)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties computerCube() {
-		return metal();
+	public static BlockBehaviour.Properties computerCube(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties alarm() {
-		return metal();
+	public static BlockBehaviour.Properties alarm(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties genericMachine() {
-		return metal();
+	public static BlockBehaviour.Properties genericMachine(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties tankUnit() {
-		return metal();
+	public static BlockBehaviour.Properties tankUnit(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties fusionControlComputer() {
-		return metal();
+	public static BlockBehaviour.Properties fusionControlComputer(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties solarPanel() {
-		return metal();
+	public static BlockBehaviour.Properties solarPanel(String name) {
+		return metal(name);
 	}
 
-	public static BlockBehaviour.Properties cable() {
-		return metal().strength(1f, 8f);
+	public static BlockBehaviour.Properties cable(String name) {
+		return metal(name).strength(1f, 8f);
 	}
 
-	public static BlockBehaviour.Properties resinBasin() {
+	public static BlockBehaviour.Properties resinBasin(String name) {
 		return BlockBehaviour.Properties.of()
 			.mapColor(MapColor.WOOD)
 			.sound(SoundType.WOOD)
-			.strength(2F, 2F);
+			.strength(2F, 2F)
+			.setId(key(name));
 	}
 
-	public static BlockBehaviour.Properties lightBlock() {
+	public static BlockBehaviour.Properties lightBlock(String name) {
 		return BlockBehaviour.Properties.ofFullCopy(Blocks.REDSTONE_BLOCK)
-			.strength(2f, 2f);
+			.strength(2f, 2f)
+			.setId(key(name));
 	}
 
 	public static BlockBehaviour.Properties nuclearReactor(String name) {
-		return metal();
+		return metal(name);
 	}
 
 	public static BlockBehaviour.Properties reactorChamber(String name) {
-		return metal();
+		return metal(name);
+	}
+
+	public static ResourceKey<Block> key(String name) {
+		return ResourceKey.create(BuiltInRegistries.BLOCK.key(), Identifier.fromNamespaceAndPath(TechReborn.MOD_ID, name));
 	}
 }
