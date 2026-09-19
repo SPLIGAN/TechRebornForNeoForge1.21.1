@@ -43,11 +43,19 @@ import java.util.Objects;
 
 public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 	final IronFurnaceBlockEntity blockEntity;
-	private static final ItemStack EXP_BUTTON_STACK = new ItemStack(Items.EXPERIENCE_BOTTLE);
+	// Lazy: ItemStack requires data components bound (not available during RegisterMenuScreensEvent).
+	private ItemStack expButtonStack;
 
 	public GuiIronFurnace(int syncID, Player player, IronFurnaceBlockEntity furnace) {
 		super(player, furnace, furnace.createScreenHandler(syncID, player));
 		this.blockEntity = furnace;
+	}
+
+	private ItemStack expButtonStack() {
+		if (expButtonStack == null) {
+			expButtonStack = new ItemStack(Items.EXPERIENCE_BOTTLE);
+		}
+		return expButtonStack;
 	}
 
 	public void onClick(Button buttonWidget) {
@@ -73,7 +81,7 @@ public class GuiIronFurnace extends GuiBase<BuiltScreenHandler> {
 
 		@Override
 		public void extractContents(GuiGraphicsExtractor context, int mouseX, int mouseY, float delta) {
-			context.item(EXP_BUTTON_STACK, getX(), getY());
+			context.item(expButtonStack(), getX(), getY());
 
 			if (isHovered) {
 				context.setTooltipForNextFrame(getFont(), getTooltipText(), mouseX, mouseY);

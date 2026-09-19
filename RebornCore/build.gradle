@@ -17,7 +17,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 sourceSets.named('main').configure {
 	java.srcDirs = ['src/main/java', 'src/client/java']
-	resources.srcDirs = ['src/main/resources', 'src/main/generated']
+	resources.srcDirs = ['src/main/resources', 'src/main/generated', 'src/client/resources']
 }
 
 tasks.named('processResources', ProcessResources).configure {

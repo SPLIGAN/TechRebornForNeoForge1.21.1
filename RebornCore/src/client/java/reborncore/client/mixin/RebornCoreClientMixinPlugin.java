@@ -22,30 +22,49 @@
  * SOFTWARE.
  */
 
-package reborncore.mixin.common;
+package reborncore.client.mixin;
 
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import reborncore.common.powerSystem.RcFabricEnergyItem;
-import reborncore.common.util.ItemUtils;
+import net.neoforged.fml.loading.FMLEnvironment;
+import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
+import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
+
+import java.util.List;
+import java.util.Set;
 
 /**
- * Mirrors Fabric {@code FabricItem#allowContinuingBlockBreaking} via NeoForge {@code IItemExtension#canContinueUsing}:
- * energy changes on the same item must not cancel block breaking / tool use.
+ * Client-only mixins must not apply on dedicated server (Arclight / NeoForge).
  */
-@Mixin(Item.class)
-public abstract class MixinItemRcEnergyContinueUsing {
+public final class RebornCoreClientMixinPlugin implements IMixinConfigPlugin {
 
-	@Inject(method = "canContinueUsing", at = @At("HEAD"), cancellable = true)
-	private void rc$energyCanContinueUsing(ItemStack oldStack, ItemStack newStack, CallbackInfoReturnable<Boolean> cir) {
-		Item self = (Item) (Object) this;
-		if (self instanceof RcFabricEnergyItem) {
-			cir.setReturnValue(ItemUtils.isEqualIgnoreEnergy(oldStack, newStack));
-			cir.cancel();
-		}
+	@Override
+	public void onLoad(String mixinPackage) {
+	}
+
+	@Override
+	public String getRefMapperConfig() {
+		return null;
+	}
+
+	@Override
+	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+		return FMLEnvironment.getDist().isClient();
+	}
+
+	@Override
+	public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
+	}
+
+	@Override
+	public List<String> getMixins() {
+		return null;
+	}
+
+	@Override
+	public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+	}
+
+	@Override
+	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
 	}
 }

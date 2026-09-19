@@ -1,11 +1,9 @@
 {
-  "required": true,
+  "required": false,
   "package": "techreborn.client.mixin",
   "compatibilityLevel": "JAVA_25",
-  "client": [
-    "MixinModelLocationUtils",
-    "MixinTextureMapping"
-  ],
+  "plugin": "techreborn.client.mixin.TechRebornClientMixinPlugin",
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

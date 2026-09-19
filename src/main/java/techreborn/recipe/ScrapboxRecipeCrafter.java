@@ -37,7 +37,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
  * @author drcrazy
  */
 public class ScrapboxRecipeCrafter extends RecipeCrafter {
-	private static List<RebornRecipe> RecipeListCache = null;
+	private static List<? extends RebornRecipe> RecipeListCache = null;
 
 	/**
 	 * @param parent      {@link BlockEntity} Tile having this crafter
@@ -54,7 +54,7 @@ public class ScrapboxRecipeCrafter extends RecipeCrafter {
 		if(RecipeListCache == null){
 			RecipeListCache = RecipeUtils.getRecipes(blockEntity.getLevel(), ModRecipes.SCRAPBOX);
 		}
-		List<RebornRecipe> scrapboxRecipeList = RecipeListCache;
+		List<? extends RebornRecipe> scrapboxRecipeList = RecipeListCache;
 		if (scrapboxRecipeList.isEmpty()) {
 			setCurrentRecipe(null);
 			return;

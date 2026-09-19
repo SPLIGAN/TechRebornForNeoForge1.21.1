@@ -59,7 +59,7 @@ public class TRDispenserBehavior {
 		if (TechRebornConfig.dispenseScrapboxes) {
 			DispenserBlock.registerBehavior(TRContent.SCRAP_BOX, new DefaultDispenseItemBehavior() {
 				public ItemStack execute(BlockSource pointer, ItemStack stack) {
-					List<RebornRecipe> scrapboxRecipeList = RecipeUtils.getRecipes(pointer.level(), ModRecipes.SCRAPBOX);
+					List<? extends RebornRecipe> scrapboxRecipeList = RecipeUtils.getRecipes(pointer.level(), ModRecipes.SCRAPBOX);
 					int random = RandomSource.create().nextInt(scrapboxRecipeList.size());
 					ItemStack out = scrapboxRecipeList.get(random).outputs().getFirst().create();
 					stack.split(1);

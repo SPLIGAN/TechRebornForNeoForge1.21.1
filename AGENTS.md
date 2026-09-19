@@ -27,7 +27,7 @@ Recipe JSON under `src/main/generated/data/techreborn/recipe/**` is produced by 
 | Item | Value |
 |------|-------|
 | Minecraft | `26.1.2` |
-| NeoForge | `26.1.2.73` |
+| NeoForge | `26.1.2.103` |
 | Java toolchain | **25** |
 | Gradle | **9.2.1** (wrapper) |
 | Mod version | `6.0.5` (fork line; clean re-port baseline is upstream **`6.0.2`**) |

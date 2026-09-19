@@ -27,26 +27,31 @@ package reborncore.common.powerSystem;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.neoforge.common.extensions.IItemExtension;
 import reborncore.common.energy.api.EnergyStorage;
 import reborncore.common.energy.api.base.SimpleEnergyItem;
+import reborncore.common.util.ItemUtils;
 
 
 /**
  * Implement on simple energy-containing items and (on top of what {@link SimpleEnergyItem} does).
- * Tech Reborn gameplay items should implement {@link RcFabricEnergyItem} for energy-tool swing / re-equip parity on NeoForge.
  * <ul>
  *     <li>A tooltip will be added for the item, indicating the stored power,
  *     the max power and the extraction rates.</li>
  *     <li>Any {@link RcEnergyItem} input in a crafting recipe input will automatically
  *     give its energy to the output if the output implements {@link RcEnergyItem}.</li>
+ *     <li>NeoForge {@link IItemExtension} defaults ignore energy-NBT/component churn so mining
+ *     and re-equip animations match former Fabric {@code FabricItem} mixin behavior.</li>
  * </ul>
  * TODO: consider moving this functionality to the energy API?
  */
-public interface RcEnergyItem extends SimpleEnergyItem {
+public interface RcEnergyItem extends SimpleEnergyItem, IItemExtension {
 	long getEnergyCapacity(ItemStack stack);
 
 	/**
@@ -90,5 +95,30 @@ public interface RcEnergyItem extends SimpleEnergyItem {
 			}
 		}
 		return 0;
+	}
+
+	@Override
+	default boolean canContinueUsing(ItemStack oldStack, ItemStack newStack) {
+		return ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
+	}
+
+	@Override
+	default boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
+		return !ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
+	}
+
+	@Override
+	default boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+		return !ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
+	}
+
+	/** Fabric {@code FabricItem#allowComponentsUpdateAnimation} parity helper for callers/events. */
+	default boolean allowComponentsUpdateAnimation(Player player, InteractionHand hand, ItemStack oldStack, ItemStack newStack) {
+		return !ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
+	}
+
+	/** Fabric {@code FabricItem#allowContinuingBlockBreaking} parity helper for callers/events. */
+	default boolean allowContinuingBlockBreaking(Player player, ItemStack oldStack, ItemStack newStack) {
+		return ItemUtils.isEqualIgnoreEnergy(oldStack, newStack);
 	}
 }

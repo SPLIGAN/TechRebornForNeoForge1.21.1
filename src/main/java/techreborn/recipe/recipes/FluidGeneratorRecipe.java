@@ -41,7 +41,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -81,21 +80,21 @@ public record FluidGeneratorRecipe(RecipeType<? extends FluidGeneratorRecipe> ty
 	@Override
 	public List<RecipeDisplay> display() {
 		final RecipeType<?> type = getType();
-		ItemStack stack = null;
+		ItemStackTemplate template = null;
 
 		if (type == ModRecipes.THERMAL_GENERATOR) {
-			stack = new ItemStack(TRContent.Machine.THERMAL_GENERATOR);
+			template = new ItemStackTemplate(TRContent.Machine.THERMAL_GENERATOR.asItem());
 		} else if (type == ModRecipes.GAS_GENERATOR) {
-			stack = new ItemStack(TRContent.Machine.GAS_TURBINE);
+			template = new ItemStackTemplate(TRContent.Machine.GAS_TURBINE.asItem());
 		} else if (type == ModRecipes.DIESEL_GENERATOR) {
-			stack = new ItemStack(TRContent.Machine.DIESEL_GENERATOR);
+			template = new ItemStackTemplate(TRContent.Machine.DIESEL_GENERATOR.asItem());
 		} else if (type == ModRecipes.SEMI_FLUID_GENERATOR) {
-			stack = new ItemStack(TRContent.Machine.SEMI_FLUID_GENERATOR);
+			template = new ItemStackTemplate(TRContent.Machine.SEMI_FLUID_GENERATOR.asItem());
 		} else if (type == ModRecipes.PLASMA_GENERATOR) {
-			stack = new ItemStack(TRContent.Machine.PLASMA_GENERATOR);
+			template = new ItemStackTemplate(TRContent.Machine.PLASMA_GENERATOR.asItem());
 		}
-		if (stack != null) {
-			return List.of(new RebornRecipeDisplay(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(stack))));
+		if (template != null) {
+			return List.of(new RebornRecipeDisplay(new SlotDisplay.ItemStackSlotDisplay(template)));
 		}
 
 		return RebornRecipe.super.display();

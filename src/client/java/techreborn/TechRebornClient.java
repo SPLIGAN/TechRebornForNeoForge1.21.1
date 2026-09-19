@@ -5,7 +5,6 @@
 package techreborn;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import reborncore.client.ClientJumpEvent;
@@ -29,7 +28,7 @@ public class TechRebornClient {
 		TechRebornClientActions.openManual = (payload, context) -> Minecraft.getInstance().setScreen(new techreborn.client.gui.GuiManual());
 		ClientboundPacketHandlers.init();
 
-		GuiBase.wrenchStack = ItemStackTemplate.fromNonEmptyStack(new ItemStack(TRContent.WRENCH));
+		GuiBase.wrenchStack = new ItemStackTemplate(TRContent.WRENCH);
 		GuiBase.fluidCellProvider = DynamicCellItem::getCellWithFluid;
 
 		// TODO CLI-03: 26.1 item model definitions replace ItemProperties/ClampedItemPropertyFunction.

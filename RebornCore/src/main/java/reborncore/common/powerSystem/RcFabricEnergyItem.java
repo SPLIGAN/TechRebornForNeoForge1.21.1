@@ -24,15 +24,11 @@
 
 package reborncore.common.powerSystem;
 
-import reborncore.common.compat.RcEnergyItemSwingHooks;
-
 /**
- * Tech Reborn energy items that use {@link RcEnergyItemSwingHooks} defaults, with NeoForge
- * {@code Item#canContinueUsing} via {@link reborncore.mixin.common.MixinItemRcEnergyContinueUsing},
- * {@code Item#shouldCauseBlockBreakReset} via {@link reborncore.mixin.common.MixinItemRcEnergyBlockBreakReset},
- * and {@code Item#shouldCauseReequipAnimation} via {@link reborncore.mixin.common.MixinItemRcEnergyReequipAnimation}.
+ * Compatibility alias: NeoForge energy-item / FabricItem parity lives on {@link RcEnergyItem}.
  *
- * <p>Split from {@link RcEnergyItem} so it stays {@link reborncore.common.energy.api.base.SimpleEnergyItem}-only.
+ * @deprecated Use {@link RcEnergyItem}; kept so older implementors keep compiling.
  */
-public interface RcFabricEnergyItem extends RcEnergyItem, RcEnergyItemSwingHooks {
+@Deprecated
+public interface RcFabricEnergyItem extends RcEnergyItem {
 }

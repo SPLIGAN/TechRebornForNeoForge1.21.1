@@ -36,12 +36,15 @@ import reborncore.api.events.ApplyArmorToDamageCallback;
 @Mixin(LivingEntity.class)
 abstract class MixinLivingEntity {
 
-	@Inject(method = "applyArmorToDamage", at = @At("RETURN"), cancellable = true)
-	public void onApplyArmorToDamage(DamageSource source, float amount, CallbackInfoReturnable<Float> cir){
+	// MC 26.1 renamed applyArmorToDamage -> getDamageAfterArmorAbsorb
+	@Inject(method = "getDamageAfterArmorAbsorb", at = @At("RETURN"), cancellable = true)
+	public void onApplyArmorToDamage(DamageSource source, float amount, CallbackInfoReturnable<Float> cir) {
 
 		LivingEntity entity = (LivingEntity) (Object) this;
-		if (! (entity instanceof Player)) { return; }
+		if (!(entity instanceof Player)) {
+			return;
+		}
 
-		cir.setReturnValue(ApplyArmorToDamageCallback.EVENT.invoker().applyArmorToDamage((Player) entity, source, amount));
+		cir.setReturnValue(ApplyArmorToDamageCallback.EVENT.invoker().applyArmorToDamage((Player) entity, source, cir.getReturnValue()));
 	}
 }

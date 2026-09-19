@@ -25,7 +25,6 @@
 package reborncore.mixin.common;
 
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -37,22 +36,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.common.misc.RebornCoreTags;
 
 @Mixin(ItemEntity.class)
-public abstract class MixinItemEntity extends Entity {
+public abstract class MixinItemEntity {
 	@Shadow
-	public abstract ItemStack getStack();
-
-	public MixinItemEntity(EntityType<?> type, Level world) {
-		super(type, world);
-	}
+	public abstract ItemStack getItem();
 
 	@Inject(method = "tick", at = @At("RETURN"))
 	public void tick(CallbackInfo info) {
-		if (!level().isClientSide() && isInWater() && !getStack().isEmpty()) {
-			if (getStack().is(RebornCoreTags.WATER_EXPLOSION_ITEM)) {
-				level().explode(this, getX(), getY(), getZ(), 2F, Level.ExplosionInteraction.NONE);
-				this.remove(RemovalReason.KILLED);
+		ItemEntity self = (ItemEntity) (Object) this;
+		if (!self.level().isClientSide() && self.isInWater() && !getItem().isEmpty()) {
+			if (getItem().is(RebornCoreTags.WATER_EXPLOSION_ITEM)) {
+				self.level().explode(self, self.getX(), self.getY(), self.getZ(), 2F, Level.ExplosionInteraction.NONE);
+				self.remove(Entity.RemovalReason.KILLED);
 			}
 		}
 	}
-
 }

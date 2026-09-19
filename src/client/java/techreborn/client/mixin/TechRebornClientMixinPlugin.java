@@ -1,7 +1,7 @@
 /*
  * This file is part of TechReborn, licensed under the MIT License (MIT).
  *
- * Copyright (c) 2020 TechReborn
+ * Copyright (c) 2026 TechReborn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,38 +22,47 @@
  * SOFTWARE.
  */
 
-package techreborn.items;
+package techreborn.client.mixin;
 
-import reborncore.common.crafting.RebornRecipe;
-import reborncore.common.crafting.RecipeUtils;
-import reborncore.common.util.WorldUtils;
-import techreborn.init.ModRecipes;
-import techreborn.init.TRItemSettings;
+import net.neoforged.fml.loading.FMLEnvironment;
+import org.objectweb.asm.tree.ClassNode;
+import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
+import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
 
 import java.util.List;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import java.util.Set;
 
-public class ScrapBoxItem extends Item {
+/** Datagen/client model mixins must not apply on dedicated server. */
+public final class TechRebornClientMixinPlugin implements IMixinConfigPlugin {
 
-	public ScrapBoxItem(String name) {
-		super(TRItemSettings.item(name));
+	@Override
+	public void onLoad(String mixinPackage) {
 	}
 
 	@Override
-	public InteractionResult use(Level world, Player player, InteractionHand hand) {
-		ItemStack stack = player.getItemInHand(hand);
-		if (!world.isClientSide()) {
-			List<? extends RebornRecipe> scrapboxRecipeList = RecipeUtils.getRecipes(world, ModRecipes.SCRAPBOX);
-			int random = world.getRandom().nextInt(scrapboxRecipeList.size());
-			ItemStack out = scrapboxRecipeList.get(random).outputs().getFirst().create();
-			WorldUtils.dropItem(out, world, player.blockPosition());
-			stack.shrink(1);
-		}
-		return InteractionResult.SUCCESS;
+	public String getRefMapperConfig() {
+		return null;
+	}
+
+	@Override
+	public boolean shouldApplyMixin(String targetClassName, String mixinClassName) {
+		return FMLEnvironment.getDist().isClient();
+	}
+
+	@Override
+	public void acceptTargets(Set<String> myTargets, Set<String> otherTargets) {
+	}
+
+	@Override
+	public List<String> getMixins() {
+		return null;
+	}
+
+	@Override
+	public void preApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
+	}
+
+	@Override
+	public void postApply(String targetClassName, ClassNode targetClass, String mixinClassName, IMixinInfo mixinInfo) {
 	}
 }

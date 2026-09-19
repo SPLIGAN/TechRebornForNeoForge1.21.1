@@ -26,3 +26,9 @@ versionRange = "[26.1.2,26.2)"
 ordering = "NONE"
 side = "BOTH"
 
+[[mixins]]
+config = "reborncore.common.mixins.json"
+
+[[mixins]]
+config = "reborncore.client.mixins.json"
+

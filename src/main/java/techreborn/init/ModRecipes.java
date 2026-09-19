@@ -44,6 +44,7 @@ import techreborn.recipe.recipes.FusionReactorRecipe;
 import techreborn.recipe.recipes.IndustrialGrinderRecipe;
 import techreborn.recipe.recipes.IndustrialSawmillRecipe;
 import techreborn.recipe.recipes.RollingMachineRecipe;
+import techreborn.recipe.recipes.ScrapBoxRecipe;
 
 public class ModRecipes {
 
@@ -65,7 +66,7 @@ public class ModRecipes {
 	public static RecipeType<IndustrialGrinderRecipe> INDUSTRIAL_GRINDER;
 	public static RecipeType<IndustrialSawmillRecipe> INDUSTRIAL_SAWMILL;
 	public static RecipeType<RebornRecipe> RECYCLER;
-	public static RecipeType<RebornRecipe> SCRAPBOX;
+	public static RecipeType<ScrapBoxRecipe> SCRAPBOX;
 	public static RecipeType<RebornRecipe> VACUUM_FREEZER;
 	public static RecipeType<FluidReplicatorRecipe> FLUID_REPLICATOR;
 	public static RecipeType<FusionReactorRecipe> FUSION_REACTOR;
@@ -122,7 +123,7 @@ public class ModRecipes {
 			id = Identifier.parse("techreborn:recycler");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> RECYCLER = t);
 			id = Identifier.parse("techreborn:scrapbox");
-			add(id, RecipeManager.createRecipeRegistration(id), t -> SCRAPBOX = t);
+			add(id, RecipeManager.createRecipeRegistration(id, ScrapBoxRecipe.CODEC, ScrapBoxRecipe.PACKET_CODEC), t -> SCRAPBOX = t);
 			id = Identifier.parse("techreborn:vacuum_freezer");
 			add(id, RecipeManager.createRecipeRegistration(id), t -> VACUUM_FREEZER = t);
 			id = Identifier.parse("techreborn:fluid_replicator");

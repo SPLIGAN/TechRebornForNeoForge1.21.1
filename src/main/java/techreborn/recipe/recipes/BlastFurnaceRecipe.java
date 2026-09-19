@@ -39,7 +39,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
@@ -65,8 +64,7 @@ public record BlastFurnaceRecipe(RecipeType<? extends BlastFurnaceRecipe> type, 
 
 	@Override
 	public List<RecipeDisplay> display() {
-		ItemStack stack = new ItemStack(TRContent.Machine.INDUSTRIAL_BLAST_FURNACE);
-		return List.of(new RebornRecipeDisplay(new SlotDisplay.ItemStackSlotDisplay(ItemStackTemplate.fromNonEmptyStack(stack))));
+		return List.of(new RebornRecipeDisplay(new SlotDisplay.ItemStackSlotDisplay(new ItemStackTemplate(TRContent.Machine.INDUSTRIAL_BLAST_FURNACE.asItem()))));
 	}
 
 	public int getHeat() {

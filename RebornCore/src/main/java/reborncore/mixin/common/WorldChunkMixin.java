@@ -25,13 +25,9 @@
 package reborncore.mixin.common;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.*;
-import net.minecraft.world.level.levelgen.blending.BlendingData;
-import org.jspecify.annotations.Nullable;
+import net.minecraft.world.level.chunk.LevelChunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -40,23 +36,23 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import reborncore.common.misc.world.ChunkEventListeners;
 
+/**
+ * Avoid {@code extends ChunkAccess} and avoid {@code @Shadow}ing parent fields
+ * ({@code chunkPos} lives on {@link net.minecraft.world.level.chunk.ChunkAccess},
+ * which fails with "No refMap loaded" under NeoForge/Arclight named apply).
+ */
 @Mixin(LevelChunk.class)
-public abstract class WorldChunkMixin extends ChunkAccess {
-	public WorldChunkMixin(ChunkPos pos, UpgradeData upgradeData, LevelHeightAccessor heightLimitView, PalettedContainerFactory palettedContainerFactory, long inhabitedTime,
-						@Nullable LevelChunkSection[] sectionArrayInitializer, @Nullable BlendingData blendingData) {
-		super(pos, upgradeData, heightLimitView, palettedContainerFactory, inhabitedTime, sectionArrayInitializer, blendingData);
-		throw new AssertionError();
-	}
+public abstract class WorldChunkMixin {
 
 	@Shadow
 	@Final
 	Level level;
 
-	@SuppressWarnings("rawtypes")
 	@Inject(method = "setBlockState", at = @At("HEAD"))
-	private void onSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable cir) {
+	private void onSetBlockState(BlockPos pos, BlockState state, int flags, CallbackInfoReturnable<BlockState> cir) {
 		if (!level.isClientSide()) {
-			ChunkEventListeners.onBlockStateChange(level, this.chunkPos, pos);
+			LevelChunk self = (LevelChunk) (Object) this;
+			ChunkEventListeners.onBlockStateChange(level, self.getPos(), pos);
 		}
 	}
 }

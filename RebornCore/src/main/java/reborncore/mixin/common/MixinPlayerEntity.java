@@ -25,29 +25,24 @@
 package reborncore.mixin.common;
 
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import reborncore.api.items.ArmorBlockEntityTicker;
 import reborncore.common.powerSystem.RcEnergyItem;
 
+/**
+ * Do not declare a Java superclass here: in 26.1 {@code Player} extends {@code Avatar},
+ * not {@code LivingEntity} directly. A wrong mixin hierarchy fails at first {@code Player} load (login).
+ */
 @Mixin(Player.class)
-public abstract class MixinPlayerEntity extends LivingEntity {
-
-	@Shadow
-	public abstract Iterable<ItemStack> getArmorSlots();
-
-	protected MixinPlayerEntity(EntityType<? extends LivingEntity> type, Level world) {
-		super(type, world);
-	}
+public abstract class MixinPlayerEntity {
 
 	@Inject(method = "tick", at = @At("HEAD"))
 	public void tick(CallbackInfo info) {
@@ -64,7 +59,8 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 
 		Class<?> suit = null;
 		int count = 0;
-		for (ItemStack stack : getArmorSlots()) {
+		for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+			ItemStack stack = player.getItemBySlot(slot);
 			if (!(stack.getItem() instanceof RcEnergyItem item)) {
 				break;
 			}
@@ -79,7 +75,8 @@ public abstract class MixinPlayerEntity extends LivingEntity {
 			count++;
 		}
 
-		for (ItemStack stack : getArmorSlots()) {
+		for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+			ItemStack stack = player.getItemBySlot(slot);
 			if (!stack.isEmpty() && stack.getItem() instanceof ArmorBlockEntityTicker) {
 				// mark tick
 				if (!stack.has(DataComponents.CUSTOM_DATA)) {
