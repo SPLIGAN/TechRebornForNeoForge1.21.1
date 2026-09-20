@@ -43,7 +43,6 @@ import techreborn.init.ModRecipes;
 import techreborn.recipe.recipes.RollingMachineRecipe;
 
 import java.text.DecimalFormat;
-import java.util.List;
 
 public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<RollingMachineRecipe>> {
 	private static final DecimalFormat TIME_FMT = new DecimalFormat("###.##");
@@ -94,16 +93,23 @@ public class RollingMachineJeiCategory implements IRecipeCategory<RecipeHolder<R
 	public void setRecipe(IRecipeLayoutBuilder builder, RecipeHolder<RollingMachineRecipe> holder, IFocusGroup focuses) {
 		RollingMachineRecipe recipe = holder.value();
 		ShapedRecipe shaped = recipe.getShapedRecipe();
-		List<Ingredient> ingredients = recipe.placementInfo().ingredients();
 		int w = shaped.getWidth();
 		int h = shaped.getHeight();
 		int sx = 12;
 		int sy = 10;
+		var ingredients = shaped.getIngredients();
 		for (int row = 0; row < h; row++) {
 			for (int col = 0; col < w; col++) {
 				int index = row * w + col;
-				Ingredient ing = ingredients.get(index);
-				if (ing == null || ing.isEmpty()) {
+				if (index >= ingredients.size()) {
+					continue;
+				}
+				var optionalIng = ingredients.get(index);
+				if (optionalIng.isEmpty()) {
+					continue;
+				}
+				Ingredient ing = optionalIng.get();
+				if (ing.isEmpty()) {
 					continue;
 				}
 				builder.addInputSlot(sx + col * 18, sy + row * 18)

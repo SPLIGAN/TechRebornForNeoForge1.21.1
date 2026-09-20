@@ -9,7 +9,7 @@
 |------|------|
 | ビルド・エントリポイント | **完了**: RebornCore / TechReborn は `neoforge.mods.toml` + `@Mod`（`RebornCoreNeoForge` / `TechRebornNeoForge`）。ルート／RebornCore の **`fabric.mod.json` と Fabric `*Entrypoint` ソースは削除済み**（`net.fabricmc.*` の Java 参照なし）。`migration-tool` サブプロジェクトのみ従来どおり Fabric Loom。 |
 | 共通ロジックのローダー非依存化 | **ほぼ完了**: `LoaderBridge`（FML/ModList）、各種 `*Bridge`（ネットワーク・イベント・レジストリ等）。 |
-| **Forgified Fabric API** | **完了（本ブランチ）**: Gradle / `mods.toml` から **`fabric_api` / forgified-fabric-api** を外し、NeoForge 単体で解決。流体見た目は **`FluidRenderRegistryBridge` → `NeoForgeFluidRenderAppearanceAdapter`（`IClientFluidTypeExtensions`）** のみ。セル・バケツ等の動的アイテムモデルは **`IDynamicBakedModel` + `getRenderPasses(ItemStack)`**（`techreborn.client.render.DynamicFluidItemModelBase`）。エネルギーアイテムのホットバー挙動は **`RcEnergyItemSwingHooks` + `MixinItemRcEnergy*`**。アイテム／流体の搬送は **`TransferApiBridge`** が **`Capabilities.ItemHandler` / `IFluidHandler`** のみを使用（Fabric Transfer API の型・依存なし）。 |
+| **Forgified Fabric API** | **完了（本ブランチ）**: Gradle / `mods.toml` から **`fabric_api` / forgified-fabric-api** を外し、NeoForge 単体で解決。流体見た目は **`FluidRenderRegistryBridge` → `NeoForgeFluidRenderAppearanceAdapter`（`IClientFluidTypeExtensions`）** のみ。セル・バケツ等の動的アイテムモデルは **`IDynamicBakedModel` + `getRenderPasses(ItemStack)`**（`techreborn.client.render.DynamicFluidItemModelBase`）。エネルギーアイテムの再装備／採掘継続は **`RcEnergyItem` の default メソッド**（旧 `RcEnergyItemSwingHooks` / `MixinItemRcEnergy*` は削除済み）。アイテム／流体の外向き Capability は **`Capabilities.Item.BLOCK` / `Capabilities.Fluid.BLOCK`**（`ResourceHandler` + `Legacy*ResourceHandler` 経由。Fabric Transfer API の型・依存なし）。 |
 | **キーバインド** | **NeoForge 化済**: `RegisterKeyMappingsEvent` + `ClientInputBridge`（Fabric `KeyBindingHelper` は削除）。 |
 | **機械筐体ブロックモデル** | **NeoForge 化済**: `ModelEvent.ModifyBakingResult`（`NeoForgeMachineCasingModelBridge`）。Fabric `ModelLoadingPlugin` / `MachineCasingModelLoadingBridge` は削除。 |
 | クリエイティブタブ改変 | **更新済（本ブランチ）**: `ItemGroupApiBridge` は NeoForge の `BuildCreativeModeTabContentsEvent` のみ（Fabric `ItemGroupEvents` は撤去）。 |
@@ -20,28 +20,26 @@
 Target runtime (this branch):
 
 - Minecraft **26.1.2**
-- NeoForge **26.1.2.73** (`gradle.properties`: `neo_version` / `neoforge_version`). **`mods.toml`** requires **`[26.1.0,)`** for **`neoforge`** and **`[26.1.2,26.2)`** for **`minecraft`**. Arclight: **`arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`**.
+- NeoForge **26.1.2.103** (`gradle.properties`: `neo_version` / `neoforge_version`). **`mods.toml`** requires **`[26.1.0,)`** for **`neoforge`** and **`[26.1.2,26.2)`** for **`minecraft`**. Arclight: **`arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`**.
 - Java **25** toolchain; Gradle **9.2.1**; NeoGradle **7.1.36**
+- Mod version **6.0.5**（本家 Fabric `6.0.5` / `upstream/26.1` 同期。ケーブル／バッテリ転送レート設定は #3514 取り込み済み）
 
 ### ① Arclight / dedicated server smoke
 
-- **NeoForge dev (RebornCore only)**: `.\gradlew.bat :RebornCore:runServer` — expect **`Done (...)! For help, type "help"`** in `RebornCore/run/server/logs/latest.log` when the dedicated server is healthy.
+- **NeoForge dev (TechReborn + RebornCore)**: `.\gradlew.bat :RebornCore:runServer` / `runClient` — `RebornCore/build.gradle` の run に `rootProject.sourceSets.main` を載せてある。ログで `Tech Reborn` / `Reborn Core` と **`TechReborn setup done!`**、専用鯖は **`Done (...)! For help, type "help"`** を確認。
 - **GameTest run target**: `runGameTestServer` fails with *No test functions were given!* until GameTests exist; use **`runServer`** for boot-only smoke.
-- **Stage jars for a real Arclight tree**: `.\gradlew.bat prepareNeoForgeSmokeMods` (outputs under `build/smoke-neoforge/mods/`) or `.\scripts\smoke-arclight.ps1` (optional `-ArclightJar` path). Then follow [Arclight](https://github.com/IzzelAliz/Arclight) install docs: copy staged mods、`eula=true`、ハイブリッド鯖 jar を起動（**FFAPI は不要**）。
-- **Gradle**: `RebornCore` / ルートの **`build.gradle` から Su5ed（`org.sinytra`）リポジトリは削除済み**（forgified-fabric-api 非依存のため）。`migration-tool` サブプロジェクトの Loom は従来どおり Fabric Maven を `settings.gradle` の `pluginManagement` で参照。
+- **Stage jars for a real Arclight tree**: `.\gradlew.bat prepareNeoForgeSmokeMods`（`build/smoke-neoforge/mods/` に **TechReborn 単一 JAR** のみ）または `.\scripts\smoke-arclight.ps1`（optional `-ArclightJar`）。**別途 `reborncore.jar` は不要**（Jar-in-Jar）。
+- **Arclight smoke (2026-09-19)**: `arclight-neoforge-26.1.2-1.0.2-SNAPSHOT` + `techreborn-6.0.5+local.jar` → `reborncore` JiJ 解決、`TechReborn setup done!`、`Done (4.948s)!`（A-01 合格）。
 - Arclight **`arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`** (`gradle.properties`: `arclight_version`). Prefer an Arclight build whose bundled NeoForge is **≥ `neo_version`**.
 
-## 26.1.2 migration status (2026-06-15)
+## 26.1.2 migration status (2026-09-19)
 
-- **Build**: `./gradlew build` **SUCCESS** — RebornCore + TechReborn `src/` compile on Java 25 / NeoForge 26.1.2.73.
-- **Runtime fix**: `ChunkLoaderManager` — `TicketType` registered via `RegisterEvent` (not `FMLCommonSetup`); fixes `Registry is already frozen`.
-- **Villager trades (VIL-01/02)**: Metallurgist + Electrician trades in `data/techreborn/villager_trade/` + `trade_set/`; professions wired via `tradeSetsByLevel`. Wandering trader rubber sapling appended to `minecraft:wandering_trader/common` tag.
-- **Recycler (UP-11)**: `RecyclerRecipeCrafter` respects `canRecycle` blacklist/upgrades; fixes infinite processing loop.
-- **UP-12 partial**: Matter Fabricator active state (#3470); greenhouse melon harvest already present (#3472); `setHasChanged` typo fixed (#3490).
-- **UP-13 partial**: `data/c/tags/item/dusts/coal.json` — coal/charcoal dust interchangeable (#3494).
-- **Smoke**: `:RebornCore:runServer` → `Done (0.325s)!` in `RebornCore/run/server/logs/latest.log` (2026-06-15).
-- **JAR**: `build/libs/techreborn-6.0.5+local.jar` (RebornCore Jar-in-Jar embedded).
-- **Next**: Arclight hybrid server (A-01〜A-05), upstream cherry-picks (UP-03, UP-09, UP-10).
+- **Build**: `./gradlew build` **SUCCESS** — Java 25 / NeoForge **26.1.2.103** / mod **6.0.5**.
+- **Upstream sync**: 本家 `6.0.5` + `upstream/26.1` の #3514（ケーブル／BatBox・MFE・MFSU／バッテリ I/O 設定化）。`CableTickManager` も `getTransferRate()` に追随。
+- **Energy items**: `RcEnergyItem` default メソッドへ集約（mixin 削除）。
+- **Smoke**: NeoForge `runServer` / `runClient` で TR ロード確認。Arclight 隔離ディレクトリで A-01 合格。
+- **JAR**: `build/libs/techreborn-6.0.5+local.jar`（RebornCore Jar-in-Jar）。
+- **Next**: 実機プレイでの A-02〜A-04（設置・流体・ケーブル）、JEI subtype（UP-04）。
 
 See [`docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md`](docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md) §8 for task IDs.
 
@@ -83,9 +81,7 @@ See [`docs/NEOFORGE_26.1.2_MIGRATION_SPEC.md`](docs/NEOFORGE_26.1.2_MIGRATION_SP
 - Moved template-pool dynamic registry callback wiring out of `techreborn.init.VillagerBridge` into `reborncore.common.event.EventBridge.onTemplatePoolAdded(...)`.
 - Cable cover rendering reads attach data via `techreborn.blocks.cable.RenderDataBridge#getRenderAttachment`: resolve `CableBlockEntity` with `BlockAndTintGetter#getBlockEntity` and call `CableBlockEntity#getRenderAttachmentData()` (no Fabric `RenderAttachedBlockView` / attachment helpers).
 - `FluidRenderRegistryBridge#getFluidRenderAppearanceHandler`: **`NeoForgeFluidRenderAppearanceAdapter` のみ**（`IClientFluidTypeExtensions` の色・静止/流動テクスチャ、`ClientHooks#getBlockMaterial`）。
-- `reborncore.mixin.common.MixinItemRcEnergyContinueUsing`: `RcFabricEnergyItem` に対し NeoForge `Item#canContinueUsing` を `ItemUtils.isEqualIgnoreEnergy` で上書き（エネルギー変化のみではブロック破壊を中断しない）。
-- `reborncore.mixin.common.MixinItemRcEnergyBlockBreakReset`: `RcFabricEnergyItem` に対し `Item#shouldCauseBlockBreakReset` を `!ItemUtils.isEqualIgnoreEnergy` で上書き（EU 同期で採掘リセットしない）。
-- `reborncore.mixin.common.MixinItemRcEnergyReequipAnimation`: `RcFabricEnergyItem` に対し `Item#shouldCauseReequipAnimation` を `!ItemUtils.isEqualIgnoreEnergy` で上書き（エネルギー同期だけで手の再装備アニメを出さない）。`RcEnergyItemSwingHooks` が旧 FabricItem 相当のデフォルトを提供。
+- Energy item parity (`canContinueUsing` / `shouldCauseBlockBreakReset` / `shouldCauseReequipAnimation`) lives on **`RcEnergyItem` default methods** (`ItemUtils.isEqualIgnoreEnergy`). Old `MixinItemRcEnergy*` / `RcEnergyItemSwingHooks` were removed.
 - `reborncore.common.screen.ScreenHandlerBridge` / `NeoForgeExtendedScreenHandlerBridge`: extended block menus use NeoForge `IMenuTypeExtension` + `ServerPlayer.openMenu(..., StreamCodec)`; `techreborn.blockentity.GuiType` no longer uses Fabric extended screen handlers.
 - Refactored `techreborn.world` types to depend on loader-agnostic worldgen bridge types:
   - `TargetDimension` and `TROreFeatureConfig` now use `WorldgenBridge.BiomeSelector`

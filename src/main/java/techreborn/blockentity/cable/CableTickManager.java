@@ -113,7 +113,7 @@ class CableTickManager {
 			CableBlockEntity current = bfsQueue.removeFirst();
 
 			for (Direction direction : Direction.values()) {
-				if (current.getAdjacentBlockEntity(direction) instanceof CableBlockEntity adjCable && current.getCableType().transferRate == adjCable.getCableType().transferRate) {
+				if (current.getAdjacentBlockEntity(direction) instanceof CableBlockEntity adjCable && current.getCableType().getTransferRate() == adjCable.getCableType().getTransferRate()) {
 					if (shouldTickCable(adjCable)) {
 						bfsQueue.add(adjCable);
 						adjCable.lastTick = tickCounter;
@@ -140,7 +140,7 @@ class CableTickManager {
 				SortableStorage target = sortedTargets.get(i);
 				int remainingTargets = sortedTargets.size() - i;
 				long remainingAmount = maxAmount - transferredAmount;
-				long targetMaxAmount = Math.min(remainingAmount / remainingTargets, cableType.transferRate);
+				long targetMaxAmount = Math.min(remainingAmount / remainingTargets, cableType.getTransferRate());
 
 				long localTransferred = operation.transfer(target.storage.storage(), targetMaxAmount, transaction);
 				if (localTransferred > 0) {

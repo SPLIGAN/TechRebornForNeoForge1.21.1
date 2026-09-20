@@ -58,6 +58,7 @@ import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.common.powerSystem.RcEnergyTier;
 import techreborn.TechReborn;
 import techreborn.blockentity.GuiType;
+import techreborn.config.TechRebornConfig;
 import techreborn.blockentity.generator.LightningRodBlockEntity;
 import techreborn.blockentity.generator.PlasmaGeneratorBlockEntity;
 import techreborn.blockentity.generator.advanced.*;
@@ -500,6 +501,10 @@ public class TRContent {
 		public final String name;
 		public final CableBlock block;
 
+		/**
+		 * @deprecated Use {@link #getTransferRate()} instead to respect the config dynamically.
+		 */
+		@Deprecated
 		public final int transferRate;
 		public final int defaultTransferRate;
 		public final double cableThickness;
@@ -518,6 +523,20 @@ public class TRContent {
 			this.tier = tier;
 			this.block = new CableBlock(this, name + "_cable");
 			InitUtils.setup(block, name + "_cable");
+		}
+
+		public int getTransferRate() {
+			return switch (this) {
+				case COPPER -> TechRebornConfig.copperCableTransferRate;
+				case TIN -> TechRebornConfig.tinCableTransferRate;
+				case GOLD -> TechRebornConfig.goldCableTransferRate;
+				case HV -> TechRebornConfig.hvCableTransferRate;
+				case GLASSFIBER -> TechRebornConfig.glassfiberCableTransferRate;
+				case INSULATED_COPPER -> TechRebornConfig.insulatedCopperCableTransferRate;
+				case INSULATED_GOLD -> TechRebornConfig.insulatedGoldCableTransferRate;
+				case INSULATED_HV -> TechRebornConfig.insulatedHvCableTransferRate;
+				case SUPERCONDUCTOR -> TechRebornConfig.superconductorCableTransferRate;
+			};
 		}
 
 		public ItemStack getStack() {

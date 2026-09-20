@@ -19,7 +19,7 @@
 | ベースライン | 1.21.1 仕様書 §9.1 の完了項目（Data Components、RegisterEvent、FluidType、Payload 等）を **維持・再検証** |
 | 26.1.2 の本質的変更 | **難読化廃止**（公式パラメータ名）、**Java 25**、**`ResourceLocation` → `Identifier`**、**`ItemStackTemplate` / `FluidStackTemplate`**、**GUI `extract*` リネーム**、**村人取引データパック化**、NeoForge **Transfer API（`ResourceHandler`）** |
 | Data Components | 1.21.1 で導入済みの方針は **継続有効**。26.1.2 では `DataComponentGetter` / `ItemStackTemplate` 連携が強化 |
-| 現状（2026-06-17 実装） | **Phase 1 完了** + **VIL-01/02 完了** + **UP-03 完了** + **UP-11 完了** + **UP-12 完了** + **UP-13 完了** + **UP-06 完了** + **UP-10 完了** + **UP-04 部分完了**（JEI コンパイル有効化・26.1 API 追随）。`./gradlew build` 成功。次: Arclight 実機（A-01〜A-05）、JEI 実機確認・subtype/transfer 拡張 |
+| 現状（2026-09-19 実装） | **Phase 1 完了** + upstream **6.0.5** / #3514 同期 + NeoForge **26.1.2.103**。`./gradlew build` 成功。NeoForge `runServer`/`runClient` と Arclight **A-01 完了**。次: 実機 A-02〜A-04、JEI subtype/transfer（UP-04） |
 | 配布 | **単一 JAR**（RebornCore Jar-in-Jar 同梱）。Arclight `mods/` には TR JAR のみ |
 | 参考 | Arclight 26.1.2 仕様書、NeoForge 26.1 Primer / Release Notes、**[公式 TechReborn `26.1`](https://github.com/TechReborn/TechReborn/tree/26.1)**（`upstream/26.1`）、Thermal 系 1.21.1 NeoForge ポート |
 | upstream 取り込み | 公式は **Fabric 26.1.2**（mod **6.0.5**）。本フォークは **API パターンとコンテンツ差分を cherry-pick** し、NeoForge ブリッジ層は維持 |
@@ -414,10 +414,10 @@ Minecraft は **26.1** から calver 体系（`year.release.patch`）。NeoForge
 
 | ID | 検証項目 | 手順 | 状態 |
 |----|----------|------|------|
-| A-01 | mod ロード | RebornCore dev server `Done (0.325s)` 確認（2026-06-15）。Arclight 実機は未 | **部分完了** |
-| A-02 | ブロック設置・破壊 | 機械・蓄電・タンク — BE → Item `BLOCK_ENTITY_DATA` | **未実施** |
-| A-03 | 流体・レシピ | 動的セル、産業レシピ、JEI/REI | **未実施** |
-| A-04 | エネルギー・ケーブル | 充放電・ケーブル接続 | **未実施** |
+| A-01 | mod ロード | NeoForge `runServer`/`runClient` で TR+RC ロード（2026-09-19）。Arclight `26.1.2.103` + `techreborn-6.0.5+local.jar` → `TechReborn setup done!` / `Done (4.948s)!` | **完了** |
+| A-02 | ブロック設置・破壊 | 機械・蓄電・タンク — BE → Item `BLOCK_ENTITY_DATA` | **未実施（実機プレイ）** |
+| A-03 | 流体・レシピ | 動的セル、産業レシピ、JEI/REI | **未実施（実機プレイ）** |
+| A-04 | エネルギー・ケーブル | 充放電・ケーブル接続（#3514 設定化はソース取り込み済） | **未実施（実機プレイ）** |
 | A-05 | 村人 | 冶金・電気職業・放浪商人（VIL-xx 完了後） | **未実施** |
 | A-06 | ワールド生成 | オーラ鉱石・ゴム | **未実施** |
 | A-07 | チャンクローダー | `ChunkLoaderManager` + 新 `ChunkPos` API | **未実施** |
@@ -496,6 +496,7 @@ Minecraft は **26.1** から calver 体系（`year.release.patch`）。NeoForge
 
 | 日付 | 内容 |
 |------|------|
+| 2026-09-19 | **第13版** — 本家 **6.0.5** / #3514（ケーブル・蓄電・バッテリ I/O 設定化）取り込み。NeoForge **26.1.2.103**。`runServer`/`runClient` に TR modSource。Arclight **A-01 完了**。 |
 | 2026-06-17 | **第12版** — **UP-04 部分完了**: JEI コンパイル除外解除。`IRecipeHolderType` / `add()` / `addCraftingStation` / `ItemStackTemplate.create()` へ 26.1 JEI API 追随。クライアントレシピ同期: `OnDatapackSyncEvent.sendRecipes` + `RecipesReceivedEvent` + `IRecipeManager.addRecipes`。`./gradlew build` 成功。次: Arclight 実機、JEI subtype/transfer |
 | 2026-06-17 | **第11版** — **UP-13 完了**: upstream `536ef5b36` の流体クラフトレシピ 7 件を取り込み。**UP-03 強化**: NeoForge `FluidContainerIngredient`（`ICustomIngredient`）登録、`RecipeIngredientCompat` が `reborncore:fluid_container` をデコード、`MixinIngredientCodec` / `MixinCraftingResultSlot`（26.1.2 API + 空容器返却）。`./gradlew build` 成功。次: Arclight 実機、UP-04 JEI |
 | 2026-06-17 | **第10版** — **UP-10 完了**: upstream から核反応炉一式を NeoForge 層へ移植（`NuclearReactorBlockEntity`/`ReactorChamberBlockEntity`、部品アイテム、`NuclearReactorComponents` enum、`GuiNuclearReactor`、`stored_heat`/`fuel_remaining` Data Components、部品レシピ 28 件）。**UP-06** 完了扱いに更新。`./gradlew build` 再確認。次: Arclight 実機、UP-04 JEI、UP-13 流体レシピ残り |

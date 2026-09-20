@@ -30,28 +30,15 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.common.util.MutableHashedLinkedMap;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import reborncore.common.compat.ItemGroupApiBridge;
 
-import java.lang.reflect.Field;
 import java.util.function.Consumer;
 
 public final class NeoForgeItemGroupBridge {
 	private static final CreativeModeTab.TabVisibility DEFAULT_VISIBILITY = CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS;
 
 	private NeoForgeItemGroupBridge() {
-	}
-
-	@SuppressWarnings("unchecked")
-	private static MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> mutableEntries(BuildCreativeModeTabContentsEvent event) {
-		try {
-			Field f = BuildCreativeModeTabContentsEvent.class.getDeclaredField("entries");
-			f.setAccessible(true);
-			return (MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility>) f.get(event);
-		} catch (ReflectiveOperationException e) {
-			throw new IllegalStateException("BuildCreativeModeTabContentsEvent.entries", e);
-		}
 	}
 
 	public static void onBuildCreativeTab(BuildCreativeModeTabContentsEvent event) {
@@ -75,10 +62,9 @@ public final class NeoForgeItemGroupBridge {
 		@Override
 		public void addAfter(ItemLike after, ItemLike... items) {
 			ItemStack anchor = new ItemStack(after.asItem());
-			MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = mutableEntries(event);
 			for (ItemLike item : items) {
 				ItemStack stack = new ItemStack(item.asItem());
-				entries.putAfter(anchor, stack, DEFAULT_VISIBILITY);
+				event.insertAfter(anchor, stack, DEFAULT_VISIBILITY);
 				anchor = stack;
 			}
 		}
@@ -86,10 +72,9 @@ public final class NeoForgeItemGroupBridge {
 		@Override
 		public void addBefore(ItemLike before, ItemLike... items) {
 			ItemStack anchor = new ItemStack(before.asItem());
-			MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = mutableEntries(event);
 			for (ItemLike item : items) {
 				ItemStack stack = new ItemStack(item.asItem());
-				entries.putBefore(anchor, stack, DEFAULT_VISIBILITY);
+				event.insertBefore(anchor, stack, DEFAULT_VISIBILITY);
 				anchor = stack;
 			}
 		}
@@ -97,9 +82,8 @@ public final class NeoForgeItemGroupBridge {
 		@Override
 		public void addBefore(ItemLike before, ItemStack... stacks) {
 			ItemStack anchor = new ItemStack(before.asItem());
-			MutableHashedLinkedMap<ItemStack, CreativeModeTab.TabVisibility> entries = mutableEntries(event);
 			for (ItemStack stack : stacks) {
-				entries.putBefore(anchor, stack, DEFAULT_VISIBILITY);
+				event.insertBefore(anchor, stack, DEFAULT_VISIBILITY);
 				anchor = stack;
 			}
 		}

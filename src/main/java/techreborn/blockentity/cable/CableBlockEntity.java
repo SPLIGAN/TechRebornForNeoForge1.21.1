@@ -64,18 +64,18 @@ public class CableBlockEntity extends BlockEntity
 	final SimpleSidedEnergyContainer energyContainer = new SimpleSidedEnergyContainer() {
 		@Override
 		public long getCapacity() {
-			return getCableType().transferRate * 4L;
+			return getCableType().getTransferRate() * 4L;
 		}
 
 		@Override
 		public long getMaxInsert(Direction side) {
-			if (allowTransfer(side)) return getCableType().transferRate;
+			if (allowTransfer(side)) return getCableType().getTransferRate();
 			else return 0;
 		}
 
 		@Override
 		public long getMaxExtract(Direction side) {
-			if (allowTransfer(side)) return getCableType().transferRate;
+			if (allowTransfer(side)) return getCableType().getTransferRate();
 			else return 0;
 		}
 	};
@@ -184,7 +184,7 @@ public class CableBlockEntity extends BlockEntity
 				EnergyLookupBridge.AdjacentEnergyAccess adjCache = getAdjacentCache(direction);
 
 				if (adjCache.getBlockEntity() instanceof CableBlockEntity adjCable) {
-					if (adjCable.getCableType().transferRate == getCableType().transferRate) {
+					if (adjCable.getCableType().getTransferRate() == getCableType().getTransferRate()) {
 						// Make sure cables are not used as regular targets.
 						foundSomething = true;
 					}
@@ -266,7 +266,7 @@ public class CableBlockEntity extends BlockEntity
 			Component.translatable("techreborn.tooltip.transferRate")
 				.withStyle(ChatFormatting.GRAY)
 				.append(": ")
-				.append(PowerSystem.getLocalizedPower(getCableType().transferRate))
+				.append(PowerSystem.getLocalizedPower(getCableType().getTransferRate()))
 				.withStyle(ChatFormatting.GOLD)
 				.append("/t")
 		);

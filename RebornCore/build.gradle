@@ -68,11 +68,13 @@ runs {
 
 	client {
 		systemProperty 'neoforge.enabledGameTestNamespaces', 'techreborn'
+		modSource rootProject.sourceSets.main
 	}
 
 	server {
 		systemProperty 'neoforge.enabledGameTestNamespaces', 'techreborn'
 		argument '--nogui'
+		modSource rootProject.sourceSets.main
 	}
 
 	gameTestServer {

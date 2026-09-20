@@ -1,6 +1,6 @@
 # Fabric → NeoForge 26.1.2 差分移植マニュアル
 
-本書は **本家 Fabric TechReborn `6.0.2`（Minecraft 26.1.2）** を **NeoForge 26.1.2** へ移植するための差分マニュアルである。  
+本書は **本家 Fabric TechReborn `6.0.5`（Minecraft 26.1.2）** を **NeoForge 26.1.2** へ移植するための差分マニュアルである。  
 やり直し時は本家ソースでツリーを全置換し、本書の対応表に従って Fabric API を NeoForge / Bridge 層へ置換する。
 
 | 項目 | 内容 |
@@ -10,8 +10,8 @@
 | 作業ブランチ想定 | `26.1.2` |
 | 実装方針 | **ゲームロジックは本家 Fabric を正**、ローダ差分は **compat Bridge** に閉じ込める |
 
-> **注:** 現行フォークの `gradle.properties` が `mod_version=6.0.5` でも、**やり直しのベースラインは本家タグ `6.0.2`** とする。  
-> リポジトリ直下 `AGENTS.md` に Java 21 と書いてあっても、**26.1.2 の正は Java 25**（後続で AGENTS を更新する）。
+> **注:** 現行フォークの正は **`mod_version=6.0.5`**（本家タグ `6.0.5` / `upstream/26.1`）。初期やり直し実験のベースは `6.0.2` だったが、26.1.2 向け最新本家は **6.0.5**。  
+> **26.1.2 の正は Java 25**。
 
 ---
 
@@ -19,16 +19,16 @@
 
 | 項目 | 値 |
 |------|-----|
-| 本家ソース | [TechReborn/TechReborn `6.0.2`](https://github.com/TechReborn/TechReborn/releases/tag/6.0.2)（changelog に `26.1.2`） |
+| 本家ソース | [TechReborn/TechReborn `6.0.5`](https://github.com/TechReborn/TechReborn/releases/tag/6.0.5)（MC `26.1.2`） |
 | Minecraft | `26.1.2` |
 | Fabric Loader | `0.18.6` |
 | Fabric API | `0.145.4+26.1.2` |
-| NeoForge | `26.1.2.73`（本フォーク `gradle.properties` の `neo_version` / `neoforge_version`） |
+| NeoForge | `26.1.2.103`（本フォーク `gradle.properties` の `neo_version` / `neoforge_version`） |
 | Loader 範囲（NeoForge） | `[11,)`（`neoforge.mods.toml` / `loader_version_range`） |
 | Java | **25** |
-| Gradle | **9.1.0+** |
+| Gradle | **9.2.1** |
 | Energy | `teamreborn:energy` **`5.0.0`**（両ローダで維持。Capability 橋渡し必須） |
-| 検証ターゲット | NeoForge `runClient` / `runServer`、Arclight `arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`（Bukkit + NeoForge マルチ） |
+| 検証ターゲット | NeoForge `runClient` / `runServer`、Arclight `arclight-neoforge-26.1.2-1.0.2-SNAPSHOT`（Bukkit + NeoForge） |
 
 本家 `gradle.properties`（タグ `6.0.2`）抜粋:
 
@@ -168,7 +168,7 @@ Fabric Transfer API は **classpath に残さない**。意味論（トランザ
 |-------------|---------------|---------------|------|
 | Team Reborn Energy API（`team.reborn.energy`） | 同ライブラリ + NeoForge Capability 公開 | `EnergyStorageBridge`, `EnergyLookupBridge`, `TeamRebornEnergyCapabilities` | **jar 依存 `5.0.0` は維持** |
 | Block energy lookup | Sided block capability | `TechRebornCapabilities.register` | `PowerAcceptorBlockEntity` 等 |
-| Item energy | Item capability | `EnergyStorageUtil`, `RcEnergyItemSwingHooks` | |
+| Item energy | Item capability | `EnergyStorageUtil`, `RcEnergyItem` defaults | |
 
 ### 4.6 Screen / Menu
 
@@ -351,7 +351,7 @@ Fabric API 側の大規模リネーム一覧は [Porting to Fabric API 26.1](htt
 | 項目 | 値 |
 |------|-----|
 | 実ターゲット MC | **26.1.2**（ブランチ名 `26.1.1_migration` でも中身は 26.1.2） |
-| NeoForge | **26.1.2.73**（TechReborn と一致させる） |
+| NeoForge | **26.1.2.73**（本フォーク例。正は `gradle.properties` の **26.1.2.103**） |
 | Bukkit / Spigot | `v26_1_R1` / `26.1.2-R0.1-SNAPSHOT` |
 | 成果物名の目安 | `arclight-neoforge-26.1.2-1.0.2-SNAPSHOT(+gitHash).jar` |
 | 推奨作業ブランチ | 起動まわりの追加修正込みなら `26.1.2_A4rclight`、そうでなければ `26.1.1_migration` |
@@ -367,7 +367,7 @@ Fabric API 側の大規模リネーム一覧は [Porting to Fabric API 26.1](htt
 
 ### 7.4 マルチサーバ
 
-同一 Arclight ビルド（同一 NeoForge **26.1.2.73**）を複数インスタンス用意し、少なくとも次を確認する。
+同一 Arclight ビルド（同一 NeoForge **26.1.2.103**）を複数インスタンス用意し、少なくとも次を確認する。
 
 | 確認 | 内容 |
 |------|------|
@@ -427,4 +427,12 @@ Fabric API 側の大規模リネーム一覧は [Porting to Fabric API 26.1](htt
 4. Fabric 由来 `compat/jei/recipe/**` は `build.gradle` でコンパイル除外（NeoForge は `TechRebornJeiPlugin` 系統を使用）。
 5. `mod_version=6.0.2`。検証は WSL Java 25 で `:RebornCore:compileJava compileJava` = **SUCCESS**。
 6. 次: 本家 6.0.2 固有のゲーム差分の cherry-pick、`./gradlew build`、NeoForge client/server、Arclight マルチ。
+
+## 11. 6.0.5 同期メモ（2026-09-19）
+
+1. `mod_version=6.0.5`。本家 `upstream/26.1` #3514（ケーブル／バッテリ／BatBox・MFE・MFSU 設定）を Bridge 維持のまま取り込み。`CableTickManager` も `getTransferRate()` 化。
+2. `RebornCore` の `runClient` / `runServer` に `rootProject.sourceSets.main` を追加（TR+RC 同時ロード）。
+3. `./gradlew build` SUCCESS。NeoForge dedicated / client で `TechReborn setup done!`。
+4. Arclight `26.1.2.103` + 単一 TR JAR（JiJ）で A-01: `Done (4.948s)!`。
+5. 残: 実機 A-02〜A-04、JEI 拡張（UP-04）。
 
