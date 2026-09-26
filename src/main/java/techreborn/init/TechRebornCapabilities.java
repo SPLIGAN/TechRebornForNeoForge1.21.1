@@ -23,8 +23,6 @@ import reborncore.common.energy.capability.EnergyStorageEnergyHandler;
 import reborncore.common.energy.capability.SimpleEnergyItemEnergyHandler;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.common.transfer.LegacyFluidHandlerResourceHandler;
-import reborncore.common.transfer.LegacyItemHandlerResourceHandler;
-import reborncore.common.transfer.RcStorageItemHandler;
 import reborncore.common.transfer.TankFluidHandler;
 import reborncore.common.util.Tank;
 import reborncore.common.energy.api.EnergyStorage;
@@ -49,7 +47,7 @@ public final class TechRebornCapabilities {
 
 		event.registerBlockEntity(Capabilities.Item.BLOCK, TRBlockEntities.STORAGE_UNIT, (be, side) -> {
 			if (be instanceof StorageUnitBaseBlockEntity storageUnit) {
-				return new LegacyItemHandlerResourceHandler(new RcStorageItemHandler(storageUnit.getExposedStorage(side)));
+				return storageUnit.getItemHandler(side);
 			}
 			return null;
 		});

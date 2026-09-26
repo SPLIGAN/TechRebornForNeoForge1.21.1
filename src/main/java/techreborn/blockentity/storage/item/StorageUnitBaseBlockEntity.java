@@ -24,8 +24,6 @@
 
 package techreborn.blockentity.storage.item;
 
-import reborncore.common.transfer.RcItemVariant;
-import reborncore.common.transfer.RcStorage;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -49,13 +47,19 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.neoforged.neoforge.transfer.CombinedResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
+import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import org.jetbrains.annotations.Nullable;
 import reborncore.api.IListInfoProvider;
 import reborncore.api.IToolDrop;
 import reborncore.api.blockentity.InventoryProvider;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.SlotConfiguration;
-import reborncore.common.compat.TransferApiBridge;
 import reborncore.common.screen.BuiltScreenHandler;
 import reborncore.common.screen.BuiltScreenHandlerProvider;
 import reborncore.common.screen.builder.ScreenHandlerBuilder;
@@ -68,6 +72,7 @@ import techreborn.init.TRContent;
 import static techreborn.TechReborn.LOGGER;
 
 import java.util.List;
+import java.util.Objects;
 
 public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implements InventoryProvider, SlotConfiguration.SlotFilter, IToolDrop, IListInfoProvider, BuiltScreenHandlerProvider {
 
@@ -83,8 +88,8 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 	private int serverCapacity = -1;
 
 	private ItemStack storeItemStack;
-	// Fabric transfer API support for the internal stack (one per direction);
-	private final TransferApiBridge.SingleStackStorageHandle[] internalStoreStorage = new TransferApiBridge.SingleStackStorageHandle[6];
+	// Single journal for the internal stack, shared by all sides so nested/aborted NeoForge transactions revert in order.
+	private final StoreJournal storeJournal = new StoreJournal();
 
 	private TRContent.StorageUnit type;
 
@@ -559,55 +564,136 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		storeItemStack.setCount(tag.getInt("count").orElse(0));
 	}
 
-	private TransferApiBridge.SingleStackStorageHandle getInternalStoreStorage(@Nullable Direction direction) {
-		// Quick fix to handle null sides. https://github.com/TechReborn/TechReborn/issues/3175
-		final Direction side = direction != null ? direction : Direction.DOWN;
-
-		if (internalStoreStorage[side.get3DDataValue()] == null) {
-			final Direction boundSide = side;
-			internalStoreStorage[side.get3DDataValue()] = TransferApiBridge.createSingleStackStorage(new TransferApiBridge.SingleStackHooks() {
-				@Override
-				public ItemStack getStack() {
-					return storeItemStack;
-				}
-
-				@Override
-				public void setStack(ItemStack stack) {
-					if (stack.isEmpty()) {
-						storeItemStack = ItemStack.EMPTY;
-					} else {
-						storeItemStack = stack;
-					}
-				}
-
-				@Override
-				public int getCapacity(RcItemVariant itemVariant) {
-					return maxCapacity - TransferApiBridge.itemVariantMaxStackSize(itemVariant);
-				}
-
-				@Override
-				public boolean canInsert(RcItemVariant itemVariant) {
-					return StorageUnitBaseBlockEntity.this.canPlaceItemThroughFace(INPUT_SLOT, itemVariant.toStack(1), boundSide);
-				}
-
-				@Override
-				public boolean canExtract(RcItemVariant itemVariant) {
-					return StorageUnitBaseBlockEntity.this.canTakeItemThroughFace(OUTPUT_SLOT, itemVariant.toStack(1), boundSide);
-				}
-
-				@Override
-				public void onFinalCommit() {
-					inventory.setHasChanged();
-				}
-			});
-		}
-		return internalStoreStorage[side.get3DDataValue()];
+	/**
+	 * Automation view: the internal stack (inserted through the input slot's side configuration, extracted through the
+	 * output slot's) followed by the input/output slots themselves. All parts are transactional. A {@code null} side is
+	 * treated as {@link Direction#DOWN} (https://github.com/TechReborn/TechReborn/issues/3175).
+	 */
+	public ResourceHandler<ItemResource> getItemHandler(@Nullable Direction direction) {
+		Direction side = direction != null ? direction : Direction.DOWN;
+		return new CombinedResourceHandler<>(new StoreHandler(side), new WorldlyContainerWrapper(this, side));
 	}
 
-	public RcStorage<RcItemVariant> getExposedStorage(Direction side) {
-		return TransferApiBridge.combineSlottedItemStorages(List.of(
-				getInternalStoreStorage(side),
-				TransferApiBridge.inventoryStorageOf(this, side)
-		));
+	private final class StoreJournal extends SnapshotJournal<ItemStack> {
+		@Override
+		protected ItemStack createSnapshot() {
+			return storeItemStack.copy();
+		}
+
+		@Override
+		protected void revertToSnapshot(ItemStack snapshot) {
+			storeItemStack = snapshot.isEmpty() ? ItemStack.EMPTY : snapshot;
+		}
+
+		@Override
+		protected void onRootCommit(ItemStack originalState) {
+			inventory.setHasChanged();
+			setChanged();
+		}
+	}
+
+	private final class StoreHandler implements ResourceHandler<ItemResource> {
+		private final Direction side;
+
+		private StoreHandler(Direction side) {
+			this.side = side;
+		}
+
+		@Override
+		public int size() {
+			return 1;
+		}
+
+		@Override
+		public ItemResource getResource(int index) {
+			Objects.checkIndex(index, 1);
+			return ItemResource.of(storeItemStack);
+		}
+
+		@Override
+		public long getAmountAsLong(int index) {
+			Objects.checkIndex(index, 1);
+			return storeItemStack.getCount();
+		}
+
+		@Override
+		public long getCapacityAsLong(int index, ItemResource resource) {
+			Objects.checkIndex(index, 1);
+			if (resource.isEmpty()) {
+				return Math.max(0, maxCapacity - getStoredStack().getMaxStackSize());
+			}
+			return canInsert(resource) ? storeCapacity(resource) : 0;
+		}
+
+		@Override
+		public boolean isValid(int index, ItemResource resource) {
+			Objects.checkIndex(index, 1);
+			return canInsert(resource);
+		}
+
+		/** The output slot holds up to one stack; the internal stack holds the rest of {@link #maxCapacity}. */
+		private int storeCapacity(ItemResource resource) {
+			return Math.max(0, maxCapacity - resource.getMaxStackSize());
+		}
+
+		private boolean canInsert(ItemResource resource) {
+			if (resource.isEmpty()) {
+				return false;
+			}
+			ItemStack stack = resource.toStack(1);
+			if (!canPlaceItemThroughFace(INPUT_SLOT, stack, side)) {
+				return false;
+			}
+			// Shulker unpacking (allowed for locked units) is only done by processInput, never for the internal stack.
+			ItemStack reference = isLocked() ? lockedItemStack : getStoredStack();
+			return reference.isEmpty() || ItemUtils.isItemEqual(reference, stack, true, true);
+		}
+
+		@Override
+		public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
+			Objects.checkIndex(index, 1);
+			TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+			if (!canInsert(resource)) {
+				return 0;
+			}
+			int inserted;
+			if (storeItemStack.isEmpty()) {
+				inserted = Math.min(amount, storeCapacity(resource));
+			} else if (resource.matches(storeItemStack)) {
+				inserted = Math.min(amount, storeCapacity(resource) - storeItemStack.getCount());
+			} else {
+				return 0;
+			}
+			if (inserted <= 0) {
+				return 0;
+			}
+			storeJournal.updateSnapshots(transaction);
+			if (storeItemStack.isEmpty()) {
+				storeItemStack = resource.toStack(inserted);
+			} else {
+				storeItemStack.grow(inserted);
+			}
+			return inserted;
+		}
+
+		@Override
+		public int extract(int index, ItemResource resource, int amount, TransactionContext transaction) {
+			Objects.checkIndex(index, 1);
+			TransferPreconditions.checkNonEmptyNonNegative(resource, amount);
+			if (storeItemStack.isEmpty() || !resource.matches(storeItemStack)
+				|| !canTakeItemThroughFace(OUTPUT_SLOT, resource.toStack(1), side)) {
+				return 0;
+			}
+			int extracted = Math.min(amount, storeItemStack.getCount());
+			if (extracted <= 0) {
+				return 0;
+			}
+			storeJournal.updateSnapshots(transaction);
+			storeItemStack.shrink(extracted);
+			if (storeItemStack.isEmpty()) {
+				storeItemStack = ItemStack.EMPTY;
+			}
+			return extracted;
+		}
 	}
 }
