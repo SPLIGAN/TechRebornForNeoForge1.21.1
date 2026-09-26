@@ -774,6 +774,9 @@ public class TechRebornConfig {
 	@Config(config = "misc", category = "general", key = "creativeUnitsOpOnly", comment = "Only operators (permission level 2) may place, use, dismantle, break or take items from creative storage and tank units")
 	public static boolean creativeUnitsOpOnly = true;
 
+	@Config(config = "misc", category = "general", key = "creativeUnitsBlockAutomation", comment = "Block pipes, hoppers and other automation from inserting into or extracting from creative storage and tank units")
+	public static boolean creativeUnitsBlockAutomation = true;
+
 	@Config(config = "misc", category = "general", key = "vanillaUnlockRecipes", comment = "Enable recipe unlocks only with vanilla mechanic, instead of getting all of them at once")
 	public static boolean vanillaUnlockRecipes = true;
 

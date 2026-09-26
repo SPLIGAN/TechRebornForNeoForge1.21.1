@@ -302,10 +302,10 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 		if (crafter != null && isActive(RedstoneConfiguration.Element.RECIPE_PROCESSING)) {
 			crafter.updateEntity();
 		}
-		if (slotConfiguration != null && isActive(RedstoneConfiguration.Element.ITEM_IO)) {
+		if (slotConfiguration != null && isActive(RedstoneConfiguration.Element.ITEM_IO) && allowsAutomation()) {
 			slotConfiguration.update(this);
 		}
-		if (fluidConfiguration != null && isActive(RedstoneConfiguration.Element.FLUID_IO)) {
+		if (fluidConfiguration != null && isActive(RedstoneConfiguration.Element.FLUID_IO) && allowsAutomation()) {
 			fluidConfiguration.update(this);
 		}
 		syncIfNecessary();
@@ -605,9 +605,17 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 		return slotConfiguration;
 	}
 
+	/**
+	 * Whether automation may access this machine: neighbour capabilities, vanilla hoppers (via
+	 * {@link WorldlyContainer}) and the machine's own slot/fluid auto I/O.
+	 */
+	public boolean allowsAutomation() {
+		return true;
+	}
+
 	@Override
 	public int[] getSlotsForFace(Direction side) {
-		if(slotConfiguration == null){
+		if(slotConfiguration == null || !allowsAutomation()){
 			return new int[]{}; // I think should be ok, if needed this can return all the slots
 		}
 		return slotConfiguration.getSlotsForSide(side).stream()
@@ -618,7 +626,7 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 
 	@Override
 	public boolean canPlaceItemThroughFace(int index, ItemStack stack, @Nullable Direction direction) {
-		if(direction == null || slotConfiguration == null){
+		if(direction == null || slotConfiguration == null || !allowsAutomation()){
 			return false;
 		}
 		SlotConfiguration.SlotConfigHolder slotConfigHolder = slotConfiguration.getSlotDetails(index);
@@ -635,7 +643,7 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 
 	@Override
 	public boolean canTakeItemThroughFace(int index, ItemStack stack, Direction direction) {
-		if (slotConfiguration == null) {
+		if (slotConfiguration == null || !allowsAutomation()) {
 			return false;
 		}
 		SlotConfiguration.SlotConfigHolder slotConfigHolder = slotConfiguration.getSlotDetails(index);

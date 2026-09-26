@@ -67,6 +67,7 @@ import reborncore.common.util.ItemUtils;
 import reborncore.common.util.RebornInventory;
 import reborncore.common.util.WorldUtils;
 import techreborn.init.TRBlockEntities;
+import techreborn.config.TechRebornConfig;
 import techreborn.init.TRContent;
 
 import static techreborn.TechReborn.LOGGER;
@@ -434,6 +435,11 @@ public class StorageUnitBaseBlockEntity extends MachineBaseBlockEntity implement
 		}
 
 		return ItemUtils.isItemEqual(getStoredStack(), inputStack, true, true);
+	}
+
+	@Override
+	public boolean allowsAutomation() {
+		return !(type == TRContent.StorageUnit.CREATIVE && TechRebornConfig.creativeUnitsBlockAutomation);
 	}
 
 	@Override

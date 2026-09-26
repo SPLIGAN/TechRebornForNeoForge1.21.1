@@ -45,7 +45,7 @@ public final class TechRebornCapabilities {
 		}
 
 		event.registerBlockEntity(Capabilities.Item.BLOCK, TRBlockEntities.STORAGE_UNIT, (be, side) -> {
-			if (be instanceof StorageUnitBaseBlockEntity storageUnit) {
+			if (be instanceof StorageUnitBaseBlockEntity storageUnit && storageUnit.allowsAutomation()) {
 				return storageUnit.getItemHandler(side);
 			}
 			return null;
@@ -100,14 +100,14 @@ public final class TechRebornCapabilities {
 	 * configuration has no notion of it.
 	 */
 	private static @Nullable ResourceHandler<ItemResource> itemHandlerForBlockEntity(BlockEntity be, @Nullable Direction side) {
-		if (side == null || !(be instanceof MachineBaseBlockEntity machine) || machine.getOptionalInventory().isEmpty()) {
+		if (side == null || !(be instanceof MachineBaseBlockEntity machine) || machine.getOptionalInventory().isEmpty() || !machine.allowsAutomation()) {
 			return null;
 		}
 		return new WorldlyContainerWrapper(machine, side);
 	}
 
 	private static @Nullable ResourceHandler<FluidResource> fluidHandlerForBlockEntity(BlockEntity be, @SuppressWarnings("unused") @Nullable Direction face) {
-		if (be instanceof MachineBaseBlockEntity machine && machine.getTank() != null) {
+		if (be instanceof MachineBaseBlockEntity machine && machine.getTank() != null && machine.allowsAutomation()) {
 			return new RcTankResourceHandler(machine::getTank);
 		}
 		return null;

@@ -41,6 +41,7 @@ import reborncore.common.screen.builder.ScreenHandlerBuilder;
 import reborncore.common.util.RebornInventory;
 import reborncore.common.util.Tank;
 import techreborn.init.TRBlockEntities;
+import techreborn.config.TechRebornConfig;
 import techreborn.init.TRContent;
 
 import java.util.List;
@@ -126,6 +127,11 @@ public class TankUnitBaseBlockEntity extends MachineBaseBlockEntity implements I
 		if (type == TRContent.TankUnit.CREATIVE && tank.isFull()) {
 			FluidUtils.drainContainers(tank, inventory, 0, 1, true);
 		}
+	}
+
+	@Override
+	public boolean allowsAutomation() {
+		return !(type == TRContent.TankUnit.CREATIVE && TechRebornConfig.creativeUnitsBlockAutomation);
 	}
 
 	@Override
