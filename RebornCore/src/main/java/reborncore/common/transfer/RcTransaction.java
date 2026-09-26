@@ -79,6 +79,12 @@ public final class RcTransaction implements RcTransactionContext, AutoCloseable 
 		}
 		closed = true;
 		boolean wasCommitted = committed;
+		if (wasCommitted && parent != null && !parent.closed) {
+			// A nested commit only becomes final (or is reverted) together with its parent.
+			parent.closeCallbacks.addAll(closeCallbacks);
+			closeCallbacks.clear();
+			return;
+		}
 		for (int i = closeCallbacks.size() - 1; i >= 0; i--) {
 			closeCallbacks.get(i).accept(wasCommitted);
 		}
