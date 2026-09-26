@@ -15,6 +15,7 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.energy.api.base.SimpleEnergyItem;
@@ -41,6 +42,9 @@ public final class TechRebornCapabilities {
 		for (BlockEntityType<?> type : TRBlockEntities.allRegisteredTypes()) {
 			registerSidedEnergy(event, type);
 			registerFluidTank(event, type);
+			if (type != TRBlockEntities.STORAGE_UNIT) {
+				registerMachineItemHandler(event, type);
+			}
 		}
 
 		event.registerBlockEntity(Capabilities.Item.BLOCK, TRBlockEntities.STORAGE_UNIT, (be, side) -> {
@@ -60,6 +64,10 @@ public final class TechRebornCapabilities {
 
 	private static <T extends BlockEntity> void registerFluidTank(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
 		event.registerBlockEntity(Capabilities.Fluid.BLOCK, type, TechRebornCapabilities::fluidHandlerForBlockEntity);
+	}
+
+	private static <T extends BlockEntity> void registerMachineItemHandler(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
+		event.registerBlockEntity(Capabilities.Item.BLOCK, type, TechRebornCapabilities::itemHandlerForBlockEntity);
 	}
 
 	private static void registerItemEnergy(RegisterCapabilitiesEvent event) {
@@ -86,6 +94,18 @@ public final class TechRebornCapabilities {
 	private static @Nullable EnergyHandler forgeEnergyForBlockEntity(BlockEntity be, @Nullable Direction face) {
 		EnergyStorage storage = sidedEnergyForBlockEntity(be, face);
 		return storage == null ? null : new EnergyStorageEnergyHandler(storage);
+	}
+
+	/**
+	 * Automation access (hoppers, pipes) goes through the machine's {@link net.minecraft.world.WorldlyContainer}
+	 * implementation, i.e. the per-side slot configuration. The {@code null} side is not exposed because slot
+	 * configuration has no notion of it.
+	 */
+	private static @Nullable ResourceHandler<ItemResource> itemHandlerForBlockEntity(BlockEntity be, @Nullable Direction side) {
+		if (side == null || !(be instanceof MachineBaseBlockEntity machine) || machine.getOptionalInventory().isEmpty()) {
+			return null;
+		}
+		return new WorldlyContainerWrapper(machine, side);
 	}
 
 	private static @Nullable ResourceHandler<FluidResource> fluidHandlerForBlockEntity(BlockEntity be, @SuppressWarnings("unused") @Nullable Direction face) {
