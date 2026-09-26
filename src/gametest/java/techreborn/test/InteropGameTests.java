@@ -30,7 +30,21 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import reborncore.common.fluid.FluidValue;
+import reborncore.common.fluid.container.FluidInstance;
+import techreborn.config.TechRebornConfig;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
@@ -39,6 +53,7 @@ import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
 import reborncore.common.blockentity.SlotConfiguration;
@@ -333,6 +348,176 @@ public final class InteropGameTests {
 			}
 			check(helper, handler.getAmountAsLong(0) == 600 && unit.getTank().getAmount() == 600 * 81, "Committed fluid extract: " + unit.getTank().getAmount());
 			helper.succeed();
+		});
+	}
+
+	/** Non-operators cannot place, open or break creative units unless the config allows it. */
+	public static void creativeUnitsOpOnly(GameTestHelper helper) {
+		BlockPos unitPos = MACHINE;
+		helper.setBlock(unitPos, TRContent.StorageUnit.CREATIVE.block);
+		Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+		BlockPos abs = helper.absolutePos(unitPos);
+		BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false);
+		boolean previous = TechRebornConfig.creativeUnitsOpOnly;
+		try {
+			for (Block block : new Block[] {TRContent.StorageUnit.CREATIVE.block, TRContent.TankUnit.CREATIVE.block}) {
+				BlockPlaceContext context = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, new ItemStack(block), hit);
+				TechRebornConfig.creativeUnitsOpOnly = true;
+				check(helper, block.getStateForPlacement(context) == null, "Non-op could place " + block);
+				TechRebornConfig.creativeUnitsOpOnly = false;
+				check(helper, block.getStateForPlacement(context) != null, "Placement blocked with the restriction disabled: " + block);
+			}
+			BlockPlaceContext normal = new BlockPlaceContext(player, InteractionHand.MAIN_HAND, new ItemStack(TRContent.StorageUnit.BASIC.block), hit);
+			TechRebornConfig.creativeUnitsOpOnly = true;
+			check(helper, TRContent.StorageUnit.BASIC.block.getStateForPlacement(normal) != null, "Non-creative unit placement blocked");
+
+			BlockState state = helper.getBlockState(unitPos);
+			check(helper, state.useWithoutItem(helper.getLevel(), player, hit) == InteractionResult.FAIL, "Non-op could use a creative unit");
+			check(helper, state.getDestroyProgress(player, helper.getLevel(), abs) == 0, "Non-op could break a creative unit");
+		} finally {
+			TechRebornConfig.creativeUnitsOpOnly = previous;
+		}
+		helper.succeed();
+	}
+
+	/** Auto-input pulls from a neighbour without losing items, also when the target slot is almost full. */
+	public static void autoSlotInputConservesItems(GameTestHelper helper) {
+		BlockPos chestPos = MACHINE.above();
+		helper.setBlock(MACHINE, TRContent.Machine.ELECTRIC_FURNACE.block);
+		helper.setBlock(chestPos, Blocks.CHEST);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity furnace = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
+			chest.setItem(0, new ItemStack(Items.RAW_IRON, 10));
+			furnace.setItem(0, new ItemStack(Items.RAW_IRON, 62));
+			setSlotIo(furnace, 0, Direction.UP, SlotConfiguration.ExtractConfig.INPUT);
+			furnace.getSlotConfiguration().getSlotDetails(0).setInput(true);
+			helper.succeedWhen(() -> {
+				int total = chest.getItem(0).getCount() + furnace.getItem(0).getCount() + furnace.getItem(1).getCount();
+				check(helper, total == 72, "Items lost or duplicated by auto-input: " + total);
+				check(helper, furnace.getItem(0).getCount() == 64, "Auto-input has not filled the slot yet: " + furnace.getItem(0));
+			});
+		});
+	}
+
+	/** Auto-output pushes into a neighbour without losing or duplicating items. */
+	public static void autoSlotOutputConservesItems(GameTestHelper helper) {
+		BlockPos chestPos = MACHINE.below();
+		helper.setBlock(chestPos, Blocks.CHEST);
+		helper.setBlock(MACHINE, TRContent.Machine.ELECTRIC_FURNACE.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity furnace = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
+			for (int i = 1; i < chest.getContainerSize(); i++) {
+				chest.setItem(i, new ItemStack(Items.DIRT, 64));
+			}
+			chest.setItem(0, new ItemStack(Items.IRON_INGOT, 50));
+			furnace.setItem(1, new ItemStack(Items.IRON_INGOT, 20));
+			setSlotIo(furnace, 1, Direction.DOWN, SlotConfiguration.ExtractConfig.OUTPUT);
+			furnace.getSlotConfiguration().getSlotDetails(1).setOutput(true);
+			helper.succeedWhen(() -> {
+				int total = chest.getItem(0).getCount() + furnace.getItem(1).getCount();
+				check(helper, total == 70, "Items lost or duplicated by auto-output: " + total);
+				check(helper, chest.getItem(0).getCount() == 64 && furnace.getItem(1).getCount() == 6, "Auto-output has not finished: " + furnace.getItem(1));
+			});
+		});
+	}
+
+	/** Cells expose Capabilities.Fluid.ITEM and are only filled or emptied a whole bucket at a time. */
+	public static void fluidCellCapability(GameTestHelper helper) {
+		// Container-backed access: a plain stack access cannot change the item type.
+		ItemAccess emptyAccess = ItemAccess.forHandlerIndex(VanillaContainerWrapper.of(new SimpleContainer(new ItemStack(TRContent.Cells.EMPTY, 4))), 0);
+		ResourceHandler<FluidResource> emptyHandler = emptyAccess.getCapability(Capabilities.Fluid.ITEM);
+		check(helper, emptyHandler != null, "Fluid item capability missing on empty cell");
+		FluidResource water = FluidResource.of(Fluids.WATER);
+		try (Transaction tx = Transaction.openRoot()) {
+			check(helper, emptyHandler.insert(water, 3500, tx) == 0, "Partial cell fill accepted");
+			check(helper, emptyHandler.insert(water, 4000, tx) == 4000, "Cells not filled");
+		}
+		check(helper, emptyAccess.getResource().is(TRContent.Cells.EMPTY.asItem()), "Aborted fill changed the cells");
+
+		ItemAccess fullAccess = ItemAccess.forHandlerIndex(VanillaContainerWrapper.of(new SimpleContainer(new ItemStack(TRContent.Cells.WATER, 2))), 0);
+		ResourceHandler<FluidResource> fullHandler = fullAccess.getCapability(Capabilities.Fluid.ITEM);
+		check(helper, fullHandler != null && fullHandler.getAmountAsLong(0) == 2000, "Water cells do not report 2000 mB");
+		try (Transaction tx = Transaction.openRoot()) {
+			check(helper, fullHandler.extract(FluidResource.of(Fluids.LAVA), 2000, tx) == 0, "Wrong fluid extracted");
+			check(helper, fullHandler.extract(water, 2000, tx) == 2000, "Water not extracted");
+			tx.commit();
+		}
+		check(helper, fullAccess.getResource().is(TRContent.Cells.EMPTY.asItem()) && fullAccess.getAmount() == 2, "Emptied cells not returned: " + fullAccess.getResource());
+		helper.succeed();
+	}
+
+	/** A tank unit fills a stack of empty cells one at a time into its output slot; fluid and cells are conserved. */
+	public static void tankUnitFillsCells(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.TankUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity unit = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			unit.getTank().setFluidInstance(new FluidInstance(Fluids.WATER, FluidValue.BUCKET.multiply(3)));
+			unit.setItem(0, new ItemStack(TRContent.Cells.EMPTY, 16));
+			helper.succeedWhen(() -> {
+				ItemStack input = unit.getItem(0);
+				ItemStack output = unit.getItem(1);
+				long tankMb = unit.getTank().getAmount() / 81;
+				check(helper, input.getCount() + output.getCount() == 16, "Cells lost or duplicated: " + input + " / " + output);
+				check(helper, tankMb + 1000L * (output.is(TRContent.Cells.WATER.asItem()) ? output.getCount() : 0) == 3000, "Fluid not conserved: tank=" + tankMb + " output=" + output);
+				check(helper, output.is(TRContent.Cells.WATER.asItem()) && output.getCount() == 3 && input.getCount() == 13, "Tank has not filled 3 cells yet: " + output);
+			});
+		});
+	}
+
+	/** A tank unit drains a stack of filled cells into its tank and puts the empty cells into its output slot. */
+	public static void tankUnitDrainsCells(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.TankUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity unit = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			unit.setItem(0, new ItemStack(TRContent.Cells.LAVA, 5));
+			helper.succeedWhen(() -> {
+				ItemStack input = unit.getItem(0);
+				ItemStack output = unit.getItem(1);
+				long tankMb = unit.getTank().getAmount() / 81;
+				int full = input.is(TRContent.Cells.LAVA.asItem()) ? input.getCount() : 0;
+				check(helper, input.getCount() + output.getCount() == 5, "Cells lost or duplicated: " + input + " / " + output);
+				check(helper, tankMb + 1000L * full == 5000, "Fluid not conserved: tank=" + tankMb + " cells=" + full);
+				check(helper, tankMb == 5000 && output.is(TRContent.Cells.EMPTY.asItem()), "Tank has not drained all cells yet: " + tankMb);
+			});
+		});
+	}
+
+	/** Emptying cells into a non-empty tank unit by hand adds to the stored fluid. */
+	public static void tankUnitHandFillAdds(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.TankUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity unit = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			unit.getTank().setFluidInstance(new FluidInstance(Fluids.WATER, FluidValue.BUCKET.multiply(2)));
+			Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+			player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(TRContent.Cells.WATER, 2));
+			BlockPos abs = helper.absolutePos(MACHINE);
+			helper.getBlockState(MACHINE).useWithoutItem(helper.getLevel(), player, new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false));
+			check(helper, unit.getTank().getAmount() == FluidValue.BUCKET.multiply(4).getRawValue(), "Tank amount after hand fill: " + unit.getTank().getAmount());
+			ItemStack returned = player.getMainHandItem();
+			check(helper, returned.is(TRContent.Cells.EMPTY.asItem()) && returned.getCount() == 2, "Empty cells not returned: " + returned);
+			helper.succeed();
+		});
+	}
+
+	/** Charging a machine from a battery in its slot moves energy without losing or creating any. */
+	public static void batteryChargeConservesEnergy(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.Machine.LOW_VOLTAGE_SU.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			EnergyStorageBlockEntity su = helper.getBlockEntity(MACHINE, EnergyStorageBlockEntity.class);
+			ItemStack battery = new ItemStack(TRContent.RED_CELL_BATTERY);
+			SimpleEnergyItem item = (SimpleEnergyItem) battery.getItem();
+			long initial = item.getEnergyCapacity(battery);
+			item.setStoredEnergy(battery, initial);
+			su.setItem(1, battery);
+			helper.succeedWhen(() -> {
+				ItemStack inSlot = su.getItem(1);
+				check(helper, inSlot.is(TRContent.RED_CELL_BATTERY), "Battery disappeared from its slot: " + inSlot);
+				long total = su.getStored() + item.getStoredEnergy(inSlot);
+				check(helper, total == initial, "Energy not conserved: SU=" + su.getStored() + " battery=" + item.getStoredEnergy(inSlot));
+				check(helper, su.getStored() >= 100, "SU has not been charged yet: " + su.getStored());
+			});
 		});
 	}
 

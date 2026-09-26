@@ -69,6 +69,14 @@ final class TRGameTestRegistration {
 		registerOne(event, environment, "storage_unit_transactions", 100) { helper -> InteropGameTests.storageUnitTransactions(helper) }
 		registerOne(event, environment, "storage_unit_hopper_conservation", 300) { helper -> InteropGameTests.storageUnitHopperConservation(helper) }
 		registerOne(event, environment, "tank_unit_fluid_transactions", 100) { helper -> InteropGameTests.tankUnitFluidTransactions(helper) }
+		registerOne(event, environment, "creative_units_op_only", 100) { helper -> InteropGameTests.creativeUnitsOpOnly(helper) }
+		registerOne(event, environment, "auto_slot_input_conserves_items", 200) { helper -> InteropGameTests.autoSlotInputConservesItems(helper) }
+		registerOne(event, environment, "auto_slot_output_conserves_items", 200) { helper -> InteropGameTests.autoSlotOutputConservesItems(helper) }
+		registerOne(event, environment, "fluid_cell_capability", 100) { helper -> InteropGameTests.fluidCellCapability(helper) }
+		registerOne(event, environment, "tank_unit_fills_cells", 200) { helper -> InteropGameTests.tankUnitFillsCells(helper) }
+		registerOne(event, environment, "tank_unit_drains_cells", 200) { helper -> InteropGameTests.tankUnitDrainsCells(helper) }
+		registerOne(event, environment, "tank_unit_hand_fill_adds", 100) { helper -> InteropGameTests.tankUnitHandFillAdds(helper) }
+		registerOne(event, environment, "battery_charge_conserves_energy", 200) { helper -> InteropGameTests.batteryChargeConservesEnergy(helper) }
 	}
 
 	private static void registerOne(
