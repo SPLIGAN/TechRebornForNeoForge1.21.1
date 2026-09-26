@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_fern": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:fern"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/wheat_seeds_from_fern"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_fern",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/wheat_seeds_from_fern"
+    ]
+  },
+  "sends_telemetry_event": true
+}

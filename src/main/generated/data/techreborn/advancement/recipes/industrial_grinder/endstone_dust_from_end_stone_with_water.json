@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_end_stone": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:end_stone"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/endstone_dust_from_end_stone_with_water"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_end_stone",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/endstone_dust_from_end_stone_with_water"
+    ]
+  },
+  "sends_telemetry_event": true
+}

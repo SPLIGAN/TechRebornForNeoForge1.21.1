@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_minecraft_coal_ores": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#minecraft:coal_ores"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/coal_from_coal_ore_with_water"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_minecraft_coal_ores",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/coal_from_coal_ore_with_water"
+    ]
+  },
+  "sends_telemetry_event": true
+}

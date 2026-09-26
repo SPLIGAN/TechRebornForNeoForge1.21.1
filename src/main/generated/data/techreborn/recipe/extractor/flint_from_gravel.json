@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:gravel"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:flint"
+    }
+  ],
+  "power": 2,
+  "time": 200
+}

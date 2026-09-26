@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot",
+    "techreborn:chrome_ingot"
+  ],
+  "result": {
+    "id": "techreborn:chrome_storage_block"
+  }
+}

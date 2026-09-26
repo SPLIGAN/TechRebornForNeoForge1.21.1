@@ -1,0 +1,25 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:sodium_persulfate"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/tin"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:raw_tin"
+    },
+    {
+      "id": "minecraft:raw_iron"
+    },
+    {
+      "id": "techreborn:zinc_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

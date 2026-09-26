@@ -1,0 +1,33 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 10,
+      "ingredient": "techreborn:saltpeter_dust"
+    },
+    {
+      "count": 4,
+      "ingredient": "techreborn:sulfuric_acid_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:nitric_acid_cell"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:potassium_cell"
+    },
+    {
+      "count": 4,
+      "id": "techreborn:sulfur_dust"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:dark_ashes_dust"
+    }
+  ],
+  "power": 60,
+  "time": 1000
+}

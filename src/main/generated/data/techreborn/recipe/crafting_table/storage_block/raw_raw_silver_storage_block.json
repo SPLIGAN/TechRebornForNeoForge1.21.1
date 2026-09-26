@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver",
+    "techreborn:raw_silver"
+  ],
+  "result": {
+    "id": "techreborn:raw_silver_storage_block"
+  }
+}

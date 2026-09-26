@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "#c:dusts/uranium"
+    },
+    {
+      "ingredient": "techreborn:fluorine_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:uranium_hexafluoride_cell"
+    }
+  ],
+  "power": 60,
+  "time": 1200
+}

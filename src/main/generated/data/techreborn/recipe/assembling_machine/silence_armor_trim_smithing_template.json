@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:assembling_machine",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "minecraft:sculk_shrieker"
+    },
+    {
+      "ingredient": "techreborn:template_template"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:silence_armor_trim_smithing_template"
+    }
+  ],
+  "power": 40,
+  "time": 1500
+}

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/raw_uranium",
+  "result": {
+    "id": "techreborn:raw_uranium_storage_block_wall"
+  }
+}

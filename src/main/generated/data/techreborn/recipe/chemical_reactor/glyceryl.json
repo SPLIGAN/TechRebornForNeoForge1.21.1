@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:nitro_carbon_cell"
+    },
+    {
+      "ingredient": "techreborn:water_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:glyceryl_cell"
+    }
+  ],
+  "power": 30,
+  "time": 600
+}

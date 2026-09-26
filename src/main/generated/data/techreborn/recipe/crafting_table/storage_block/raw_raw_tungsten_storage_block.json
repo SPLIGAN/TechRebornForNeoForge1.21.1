@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten",
+    "techreborn:raw_tungsten"
+  ],
+  "result": {
+    "id": "techreborn:raw_tungsten_storage_block"
+  }
+}

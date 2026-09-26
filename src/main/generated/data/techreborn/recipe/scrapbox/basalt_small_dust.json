@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:scrapbox",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:scrap_box"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:basalt_small_dust"
+    }
+  ],
+  "power": 10,
+  "time": 20
+}

@@ -1,0 +1,38 @@
+{
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ae2"
+    }
+  ],
+  "criteria": {
+    "has_tag_c_ores_certus_quartz": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ores/certus_quartz"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/certus_quartz_crystal_from_certus_quartz_ore_with_water"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ores_certus_quartz",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/certus_quartz_crystal_from_certus_quartz_ore_with_water"
+    ]
+  },
+  "sends_telemetry_event": true
+}

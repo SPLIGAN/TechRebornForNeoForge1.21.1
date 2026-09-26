@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_short_grass": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:short_grass"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/wheat_seeds_from_short_grass"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_short_grass",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/wheat_seeds_from_short_grass"
+    ]
+  },
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,9 @@
+{
+  "values": [
+    {
+      "id": "#ae2:whitelisted/facades",
+      "required": false
+    },
+    "#c:glass_blocks"
+  ]
+}

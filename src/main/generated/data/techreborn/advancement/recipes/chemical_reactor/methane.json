@@ -1,0 +1,43 @@
+{
+  "criteria": {
+    "has_carbon_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:carbon_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_hydrogen_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:hydrogen_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:chemical_reactor/methane"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_carbon_cell",
+      "has_hydrogen_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:chemical_reactor/methane"
+    ]
+  },
+  "sends_telemetry_event": true
+}

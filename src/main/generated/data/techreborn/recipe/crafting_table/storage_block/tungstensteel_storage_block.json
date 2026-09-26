@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot",
+    "techreborn:tungstensteel_ingot"
+  ],
+  "result": {
+    "id": "techreborn:tungstensteel_storage_block"
+  }
+}

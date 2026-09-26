@@ -1,0 +1,60 @@
+{
+  "parent": "techreborn:lvtransformer",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:mv_transformer",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "crit_1": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:hv_transformer",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    },
+    "crit_2": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:ev_transformer",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.futuretransformer.desc"
+    },
+    "icon": {
+      "id": "techreborn:mv_transformer"
+    },
+    "title": {
+      "translate": "advancements.techreborn.futuretransformer"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ],
+    [
+      "crit_1"
+    ],
+    [
+      "crit_2"
+    ]
+  ]
+}

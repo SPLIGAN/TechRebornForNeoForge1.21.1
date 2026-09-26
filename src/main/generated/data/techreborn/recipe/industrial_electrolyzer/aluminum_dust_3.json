@@ -1,0 +1,33 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 29,
+      "ingredient": "techreborn:lazurite_dust"
+    },
+    {
+      "count": 10,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 3,
+      "id": "techreborn:aluminum_dust"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:silicon_cell"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:calcium_cell"
+    },
+    {
+      "count": 4,
+      "id": "techreborn:sodium_cell"
+    }
+  ],
+  "power": 60,
+  "time": 1460
+}

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/platinum",
+  "result": {
+    "id": "techreborn:platinum_storage_block_wall"
+  }
+}

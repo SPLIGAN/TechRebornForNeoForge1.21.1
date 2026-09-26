@@ -1,0 +1,16 @@
+{
+  "type": "techreborn:rolling_machine",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "A A",
+    "AAA"
+  ],
+  "power": 5,
+  "result": {
+    "id": "minecraft:minecart"
+  },
+  "time": 250
+}

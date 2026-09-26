@@ -1,0 +1,43 @@
+{
+  "criteria": {
+    "has_calcite_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:calcite_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_slime_ball": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:slime_ball"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:chemical_reactor/pointed_dripstone"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_calcite_dust",
+      "has_slime_ball",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:chemical_reactor/pointed_dripstone"
+    ]
+  },
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/electrum"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:electrum_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

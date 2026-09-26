@@ -1,0 +1,20 @@
+{
+  "type": "techreborn:fusion_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:helium3_cell"
+    },
+    {
+      "ingredient": "techreborn:deuterium_cell"
+    }
+  ],
+  "minSize": 1,
+  "outputs": [
+    {
+      "id": "techreborn:heliumplasma_cell"
+    }
+  ],
+  "power": 16384,
+  "startEnergy": 40000000,
+  "time": 2048
+}

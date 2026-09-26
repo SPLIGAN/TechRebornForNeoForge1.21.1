@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:industrialcentrifuge",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:nickel_nugget"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.nickelnugget.desc"
+    },
+    "icon": {
+      "id": "techreborn:nickel_nugget"
+    },
+    "title": {
+      "translate": "advancements.techreborn.nickelnugget"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

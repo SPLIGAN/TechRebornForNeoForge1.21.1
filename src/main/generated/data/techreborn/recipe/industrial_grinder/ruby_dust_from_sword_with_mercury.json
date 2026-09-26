@@ -1,0 +1,27 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "amount": {
+      "value": 40500
+    },
+    "fluid": "techreborn:mercury"
+  },
+  "ingredients": [
+    {
+      "ingredient": "techreborn:ruby_sword"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:ruby_dust"
+    },
+    {
+      "id": "techreborn:ruby_small_dust"
+    },
+    {
+      "id": "techreborn:saw_small_dust"
+    }
+  ],
+  "power": 128,
+  "time": 140
+}

@@ -1,0 +1,22 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:uranium_hexafluoride_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 8,
+      "id": "techreborn:uranium_238_dust"
+    },
+    {
+      "id": "techreborn:uranium_235_small_dust"
+    },
+    {
+      "id": "techreborn:compressed_air_cell"
+    }
+  ],
+  "power": 10,
+  "time": 1600
+}

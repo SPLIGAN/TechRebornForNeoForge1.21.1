@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_minecraft_beds": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#minecraft:beds"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/string_from_bed"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_minecraft_beds",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/string_from_bed"
+    ]
+  },
+  "sends_telemetry_event": true
+}

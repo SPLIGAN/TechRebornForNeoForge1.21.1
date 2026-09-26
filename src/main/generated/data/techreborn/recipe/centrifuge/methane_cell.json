@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:cell"
+    },
+    {
+      "count": 16,
+      "ingredient": "#c:foods/cooked_meats"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:methane_cell"
+    }
+  ],
+  "power": 5,
+  "time": 100
+}

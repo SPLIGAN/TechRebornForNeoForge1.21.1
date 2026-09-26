@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#minecraft:planks"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:wood_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

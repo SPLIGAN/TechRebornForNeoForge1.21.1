@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/cell_from_wolframium_cell"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_wolframium_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:wolframium_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_wolframium_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/cell_from_wolframium_cell"
+    ]
+  },
+  "sends_telemetry_event": true
+}

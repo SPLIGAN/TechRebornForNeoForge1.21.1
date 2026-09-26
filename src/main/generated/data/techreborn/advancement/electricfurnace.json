@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:ironfurnace",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:electric_furnace",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.electricfurnace.desc"
+    },
+    "icon": {
+      "id": "techreborn:electric_furnace"
+    },
+    "title": {
+      "translate": "advancements.techreborn.electricfurnace"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

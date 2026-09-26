@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:grinder",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:cyan_concrete"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:cyan_concrete_powder"
+    }
+  ],
+  "power": 4,
+  "time": 200
+}

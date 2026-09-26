@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:sodium_persulfate"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:raw_materials/uranium"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 5,
+      "id": "techreborn:uranium_dust"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:lead_nugget"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

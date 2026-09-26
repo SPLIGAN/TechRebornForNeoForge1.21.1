@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:prismarine_crystals"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:prismarine_shard"
+    }
+  ],
+  "power": 10,
+  "time": 180
+}

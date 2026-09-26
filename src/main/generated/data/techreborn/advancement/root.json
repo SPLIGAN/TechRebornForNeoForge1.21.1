@@ -1,0 +1,57 @@
+{
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#techreborn:ores"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "crit_1": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#techreborn:raw_metals"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "crit_2": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#techreborn:gems"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "techreborn:block/storage/steel_storage_block",
+    "description": {
+      "translate": "advancements.techreborn.root.desc"
+    },
+    "icon": {
+      "id": "techreborn:manual"
+    },
+    "title": {
+      "translate": "advancements.techreborn.root"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ],
+    [
+      "crit_1"
+    ],
+    [
+      "crit_2"
+    ]
+  ]
+}

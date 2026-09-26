@@ -1,0 +1,20 @@
+{
+  "type": "techreborn:solid_canning_machine",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:water_cell"
+    },
+    {
+      "count": 2,
+      "ingredient": "#c:ingots/tin"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:water_coolant_cell_10k"
+    }
+  ],
+  "power": 1,
+  "time": 60
+}

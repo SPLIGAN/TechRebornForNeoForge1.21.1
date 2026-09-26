@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/red_garnet",
+  "result": {
+    "id": "techreborn:red_garnet_storage_block_wall"
+  }
+}

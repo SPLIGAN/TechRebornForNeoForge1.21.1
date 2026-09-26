@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:endstone_small_dust",
+    "techreborn:endstone_small_dust",
+    "techreborn:endstone_small_dust",
+    "techreborn:endstone_small_dust"
+  ],
+  "result": {
+    "id": "techreborn:endstone_dust"
+  }
+}

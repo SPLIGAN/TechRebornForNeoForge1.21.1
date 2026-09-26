@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:coal_dust"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:carbon_cell"
+    }
+  ],
+  "power": 50,
+  "time": 1400
+}

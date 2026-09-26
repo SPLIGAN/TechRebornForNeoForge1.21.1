@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:assembling_machine",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:electronic_circuit"
+    },
+    {
+      "ingredient": "#c:plates/emerald"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:data_storage_core"
+    }
+  ],
+  "power": 20,
+  "time": 200
+}

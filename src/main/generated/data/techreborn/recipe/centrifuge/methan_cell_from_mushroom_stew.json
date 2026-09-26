@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 16,
+      "ingredient": "minecraft:mushroom_stew"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:methane_cell"
+    }
+  ],
+  "power": 5,
+  "time": 100
+}

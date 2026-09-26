@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/small_dust/uvarovite_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_uvarovite_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:uvarovite_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_uvarovite_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/small_dust/uvarovite_small_dust_from_dust"
+    ]
+  }
+}

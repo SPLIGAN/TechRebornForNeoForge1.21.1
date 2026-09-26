@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:treetap",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:sap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.sap.desc"
+    },
+    "icon": {
+      "id": "techreborn:sap"
+    },
+    "title": {
+      "translate": "advancements.techreborn.sap"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

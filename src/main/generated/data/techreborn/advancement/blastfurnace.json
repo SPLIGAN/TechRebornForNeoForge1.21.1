@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:nickelnugget",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:industrial_blast_furnace",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.blastfurnace.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:industrial_blast_furnace"
+    },
+    "title": {
+      "translate": "advancements.techreborn.blastfurnace"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

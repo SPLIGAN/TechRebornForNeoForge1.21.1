@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/yellow_concrete_powder_from_concrete"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_yellow_concrete": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:yellow_concrete"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_yellow_concrete",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/yellow_concrete_powder_from_concrete"
+    ]
+  },
+  "sends_telemetry_event": true
+}

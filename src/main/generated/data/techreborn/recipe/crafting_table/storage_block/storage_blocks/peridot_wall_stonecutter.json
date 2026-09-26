@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/peridot",
+  "result": {
+    "id": "techreborn:peridot_storage_block_wall"
+  }
+}

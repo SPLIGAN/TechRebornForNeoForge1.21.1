@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_gems_sapphire": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:gems/sapphire"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/sapphire_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_gems_sapphire",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/sapphire_dust"
+    ]
+  },
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:industrialmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:matter_fabricator",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.matterfabricator.desc"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "techreborn:matter_fabricator"
+    },
+    "title": {
+      "translate": "advancements.techreborn.matterfabricator"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

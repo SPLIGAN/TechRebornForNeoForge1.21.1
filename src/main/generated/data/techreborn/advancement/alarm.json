@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:refinediron",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:alarm"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.alarm.desc"
+    },
+    "icon": {
+      "id": "techreborn:alarm"
+    },
+    "title": {
+      "translate": "advancements.techreborn.alarm"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

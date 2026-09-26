@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/raw_iridium",
+  "result": {
+    "id": "techreborn:raw_iridium_storage_block_stairs"
+  }
+}

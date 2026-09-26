@@ -1,0 +1,21 @@
+{
+  "type": "techreborn:blast_furnace",
+  "heat": 2000,
+  "ingredients": [
+    {
+      "count": 8,
+      "ingredient": "techreborn:uranium_238_dust"
+    },
+    {
+      "count": 4,
+      "ingredient": "techreborn:uranium_235_small_dust"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:uranium_fuel_pellet"
+    }
+  ],
+  "power": 128,
+  "time": 1200
+}

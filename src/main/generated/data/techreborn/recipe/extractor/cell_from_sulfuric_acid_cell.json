@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:sulfuric_acid_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:cell"
+    }
+  ],
+  "power": 10,
+  "time": 150
+}

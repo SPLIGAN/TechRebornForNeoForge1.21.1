@@ -1,0 +1,32 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 29,
+      "ingredient": "techreborn:granite_dust"
+    },
+    {
+      "count": 4,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 20,
+      "id": "minecraft:sand"
+    },
+    {
+      "count": 5,
+      "id": "techreborn:aluminum_dust"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:potassium_cell"
+    },
+    {
+      "id": "techreborn:fluorine_cell"
+    }
+  ],
+  "power": 60,
+  "time": 1600
+}

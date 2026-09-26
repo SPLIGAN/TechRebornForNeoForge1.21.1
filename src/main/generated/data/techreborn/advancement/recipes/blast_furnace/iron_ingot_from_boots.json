@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_iron_boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:iron_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:blast_furnace/iron_ingot_from_boots"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_iron_boots",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:blast_furnace/iron_ingot_from_boots"
+    ]
+  },
+  "sends_telemetry_event": true
+}

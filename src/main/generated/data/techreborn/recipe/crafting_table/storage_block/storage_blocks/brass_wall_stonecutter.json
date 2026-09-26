@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/brass",
+  "result": {
+    "id": "techreborn:brass_storage_block_wall"
+  }
+}

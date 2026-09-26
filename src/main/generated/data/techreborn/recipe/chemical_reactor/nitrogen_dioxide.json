@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:compressed_air_cell"
+    },
+    {
+      "ingredient": "techreborn:nitrogen_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:nitrogen_dioxide_cell"
+    }
+  ],
+  "power": 30,
+  "time": 400
+}

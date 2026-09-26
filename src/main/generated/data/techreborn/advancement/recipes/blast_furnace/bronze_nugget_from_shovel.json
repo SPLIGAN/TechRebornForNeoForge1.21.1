@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_bronze_spade": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:bronze_spade"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:blast_furnace/bronze_nugget_from_shovel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_bronze_spade",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:blast_furnace/bronze_nugget_from_shovel"
+    ]
+  },
+  "sends_telemetry_event": true
+}

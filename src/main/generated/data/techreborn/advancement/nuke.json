@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:fusioncoil",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:nuke",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.nuke.desc"
+    },
+    "hidden": true,
+    "icon": {
+      "id": "techreborn:nuke"
+    },
+    "title": {
+      "translate": "advancements.techreborn.nuke"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

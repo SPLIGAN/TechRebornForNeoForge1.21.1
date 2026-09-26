@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:recycler",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:scrapboxinator",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.scrapboxinator.desc"
+    },
+    "icon": {
+      "id": "techreborn:scrapboxinator"
+    },
+    "title": {
+      "translate": "advancements.techreborn.scrapboxinator"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

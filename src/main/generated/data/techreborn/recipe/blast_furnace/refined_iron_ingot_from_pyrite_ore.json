@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:blast_furnace",
+  "heat": 1500,
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/pyrite"
+    },
+    {
+      "ingredient": "techreborn:calcium_carbonate_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:refined_iron_ingot"
+    },
+    {
+      "id": "techreborn:cell"
+    }
+  ],
+  "power": 128,
+  "time": 100
+}

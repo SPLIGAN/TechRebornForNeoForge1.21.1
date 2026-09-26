@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:blastfurnace",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:industrial_grinder",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.industrialgrinder.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:industrial_grinder"
+    },
+    "title": {
+      "translate": "advancements.techreborn.industrialgrinder"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

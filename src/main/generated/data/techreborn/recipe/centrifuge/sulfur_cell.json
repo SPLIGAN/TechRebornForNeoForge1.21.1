@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:sulfur_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:sulfur_dust"
+    },
+    {
+      "id": "techreborn:cell"
+    }
+  ],
+  "power": 10,
+  "time": 4000
+}

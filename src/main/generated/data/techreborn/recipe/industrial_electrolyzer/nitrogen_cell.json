@@ -1,0 +1,32 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 16,
+      "ingredient": "techreborn:ender_pearl_dust"
+    },
+    {
+      "count": 16,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 5,
+      "id": "techreborn:nitrogen_cell"
+    },
+    {
+      "id": "techreborn:beryllium_cell"
+    },
+    {
+      "count": 4,
+      "id": "techreborn:potassium_cell"
+    },
+    {
+      "count": 6,
+      "id": "techreborn:chlorite_cell"
+    }
+  ],
+  "power": 50,
+  "time": 1300
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:exposed_copper_bulb"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:weathered_copper_bulb"
+    }
+  ],
+  "power": 30,
+  "time": 200
+}

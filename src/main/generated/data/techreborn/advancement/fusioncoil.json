@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:advancedmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:fusion_coil",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.fusioncoil.desc"
+    },
+    "icon": {
+      "id": "techreborn:fusion_coil"
+    },
+    "title": {
+      "translate": "advancements.techreborn.fusioncoil"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

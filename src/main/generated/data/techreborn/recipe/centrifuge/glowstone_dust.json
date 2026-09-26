@@ -1,0 +1,27 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 16,
+      "ingredient": "minecraft:glowstone_dust"
+    },
+    {
+      "count": 2,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 8,
+      "id": "minecraft:redstone"
+    },
+    {
+      "id": "techreborn:sulfur_cell"
+    },
+    {
+      "id": "techreborn:helium_cell"
+    }
+  ],
+  "power": 5,
+  "time": 2500
+}

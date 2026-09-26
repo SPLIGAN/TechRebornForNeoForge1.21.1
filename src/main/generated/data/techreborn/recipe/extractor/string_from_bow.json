@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:bow"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:string"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:sculk_catalyst"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:sculk"
+    }
+  ],
+  "power": 10,
+  "time": 200
+}

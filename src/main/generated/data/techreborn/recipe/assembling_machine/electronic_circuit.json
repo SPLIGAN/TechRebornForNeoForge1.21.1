@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:assembling_machine",
+  "ingredients": [
+    {
+      "ingredient": "#c:plates/silicon"
+    },
+    {
+      "count": 2,
+      "ingredient": "#c:plates/copper"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:electronic_circuit"
+    }
+  ],
+  "power": 20,
+  "time": 200
+}

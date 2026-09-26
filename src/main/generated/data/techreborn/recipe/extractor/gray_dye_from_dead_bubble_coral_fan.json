@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:dead_bubble_coral_fan"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:gray_dye"
+    }
+  ],
+  "power": 10,
+  "time": 200
+}

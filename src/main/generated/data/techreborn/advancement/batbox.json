@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:cellbattery",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:low_voltage_su",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.batbox.desc"
+    },
+    "icon": {
+      "id": "techreborn:low_voltage_su"
+    },
+    "title": {
+      "translate": "advancements.techreborn.batbox"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

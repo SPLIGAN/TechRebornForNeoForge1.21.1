@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:redstone_small_dust",
+    "techreborn:redstone_small_dust",
+    "techreborn:redstone_small_dust",
+    "techreborn:redstone_small_dust"
+  ],
+  "result": {
+    "id": "minecraft:redstone"
+  }
+}

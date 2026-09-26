@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:rubber_sapling"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:rubber"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

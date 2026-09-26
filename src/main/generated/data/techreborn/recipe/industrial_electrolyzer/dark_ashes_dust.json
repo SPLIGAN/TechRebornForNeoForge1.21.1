@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "minecraft:blaze_powder"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:dark_ashes_dust"
+    },
+    {
+      "id": "techreborn:sulfur_dust"
+    }
+  ],
+  "power": 50,
+  "time": 1100
+}

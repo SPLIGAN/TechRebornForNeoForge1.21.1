@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_nether_quartz_ore": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:nether_quartz_ore"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/quartz_from_nether_quartz_ore_with_water"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_nether_quartz_ore",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/quartz_from_nether_quartz_ore_with_water"
+    ]
+  },
+  "sends_telemetry_event": true
+}

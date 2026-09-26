@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_sodium_persulfate_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:sodium_persulfate_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/cell_from_sodium_persulfate_cell"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_sodium_persulfate_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/cell_from_sodium_persulfate_cell"
+    ]
+  },
+  "sends_telemetry_event": true
+}

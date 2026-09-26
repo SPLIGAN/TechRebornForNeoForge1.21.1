@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:bubble_coral"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:purple_dye"
+    }
+  ],
+  "power": 10,
+  "time": 200
+}

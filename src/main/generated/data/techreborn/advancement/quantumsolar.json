@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:industrialsolar",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:quantum_solar_panel",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.quantumsolar.desc"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "techreborn:quantum_solar_panel"
+    },
+    "title": {
+      "translate": "advancements.techreborn.quantumsolar"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

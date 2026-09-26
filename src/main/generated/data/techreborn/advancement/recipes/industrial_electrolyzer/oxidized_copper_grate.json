@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_electrolyzer/oxidized_copper_grate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_weathered_copper_grate": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:weathered_copper_grate"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_weathered_copper_grate",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_electrolyzer/oxidized_copper_grate"
+    ]
+  },
+  "sends_telemetry_event": true
+}

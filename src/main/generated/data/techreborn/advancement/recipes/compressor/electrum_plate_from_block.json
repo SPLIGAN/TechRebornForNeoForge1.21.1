@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_storage_blocks_electrum": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:storage_blocks/electrum"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:compressor/electrum_plate_from_block"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_storage_blocks_electrum",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:compressor/electrum_plate_from_block"
+    ]
+  },
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ingots_zinc": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/zinc"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/zinc_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ingots_zinc",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/zinc_dust"
+    ]
+  },
+  "sends_telemetry_event": true
+}

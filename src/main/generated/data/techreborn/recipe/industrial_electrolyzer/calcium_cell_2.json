@@ -1,0 +1,29 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 10,
+      "ingredient": "techreborn:calcite_dust"
+    },
+    {
+      "count": 7,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:calcium_cell"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:carbon_cell"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:compressed_air_cell"
+    }
+  ],
+  "power": 80,
+  "time": 1200
+}

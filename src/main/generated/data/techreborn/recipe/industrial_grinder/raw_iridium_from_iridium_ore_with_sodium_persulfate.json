@@ -1,0 +1,21 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:sodium_persulfate"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/iridium"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:raw_iridium"
+    },
+    {
+      "id": "techreborn:platinum_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

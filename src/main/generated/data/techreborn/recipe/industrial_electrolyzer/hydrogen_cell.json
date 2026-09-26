@@ -1,0 +1,20 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 5,
+      "ingredient": "techreborn:electrolyzed_water_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 4,
+      "id": "techreborn:hydrogen_cell"
+    },
+    {
+      "id": "techreborn:compressed_air_cell"
+    }
+  ],
+  "power": 50,
+  "time": 1000
+}

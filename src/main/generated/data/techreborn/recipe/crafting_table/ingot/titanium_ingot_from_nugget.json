@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget",
+    "techreborn:titanium_nugget"
+  ],
+  "result": {
+    "id": "techreborn:titanium_ingot"
+  }
+}

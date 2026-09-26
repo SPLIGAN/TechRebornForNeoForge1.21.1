@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:batbox",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:lv_transformer",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.lvtransformer.desc"
+    },
+    "icon": {
+      "id": "techreborn:lv_transformer"
+    },
+    "title": {
+      "translate": "advancements.techreborn.lvtransformer"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

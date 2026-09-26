@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_magenta_dye": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:magenta_dye"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:chemical_reactor/pink_candle_from_light_gray_candle_with_magenta_dye"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_magenta_dye",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:chemical_reactor/pink_candle_from_light_gray_candle_with_magenta_dye"
+    ]
+  },
+  "sends_telemetry_event": true
+}

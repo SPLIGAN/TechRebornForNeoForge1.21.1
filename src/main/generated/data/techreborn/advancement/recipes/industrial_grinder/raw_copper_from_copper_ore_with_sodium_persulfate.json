@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_minecraft_copper_ores": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#minecraft:copper_ores"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/raw_copper_from_copper_ore_with_sodium_persulfate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_minecraft_copper_ores",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/raw_copper_from_copper_ore_with_sodium_persulfate"
+    ]
+  },
+  "sends_telemetry_event": true
+}

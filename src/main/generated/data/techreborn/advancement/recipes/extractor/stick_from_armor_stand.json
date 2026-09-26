@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_sap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:sap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/stick_from_armor_stand"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_sap",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/stick_from_armor_stand"
+    ]
+  },
+  "sends_telemetry_event": true
+}

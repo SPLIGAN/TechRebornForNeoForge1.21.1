@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/ruby",
+  "result": {
+    "id": "techreborn:ruby_storage_block_stairs"
+  }
+}

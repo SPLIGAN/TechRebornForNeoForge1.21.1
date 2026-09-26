@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_lilac": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:lilac"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/magenta_dye_from_lilac"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_lilac",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/magenta_dye_from_lilac"
+    ]
+  },
+  "sends_telemetry_event": true
+}

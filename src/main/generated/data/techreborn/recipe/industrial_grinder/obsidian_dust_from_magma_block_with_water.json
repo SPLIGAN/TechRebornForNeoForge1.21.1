@@ -1,0 +1,26 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "amount": {
+      "value": 162000
+    },
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "count": 5,
+      "ingredient": "minecraft:magma_block"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 4,
+      "id": "techreborn:obsidian_dust"
+    },
+    {
+      "id": "minecraft:magma_cream"
+    }
+  ],
+  "power": 64,
+  "time": 250
+}

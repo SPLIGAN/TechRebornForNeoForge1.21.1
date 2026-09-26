@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:solid_canning_machine",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:uranium_fuel_pellet"
+    },
+    {
+      "ingredient": "techreborn:empty_fuel_rod"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:uranium_fuel_rod"
+    }
+  ],
+  "power": 30,
+  "time": 200
+}

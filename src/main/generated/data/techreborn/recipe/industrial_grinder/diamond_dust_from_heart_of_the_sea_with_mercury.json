@@ -1,0 +1,29 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:mercury"
+  },
+  "ingredients": [
+    {
+      "ingredient": "minecraft:heart_of_the_sea"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:diamond_dust"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:titanium_dust"
+    },
+    {
+      "id": "techreborn:platinum_dust"
+    },
+    {
+      "id": "techreborn:raw_iridium"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

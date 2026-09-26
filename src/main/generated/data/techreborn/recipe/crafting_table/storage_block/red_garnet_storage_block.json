@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem",
+    "techreborn:red_garnet_gem"
+  ],
+  "result": {
+    "id": "techreborn:red_garnet_storage_block"
+  }
+}

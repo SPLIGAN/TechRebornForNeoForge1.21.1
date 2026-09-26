@@ -1,0 +1,22 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:mercury"
+  },
+  "ingredients": [
+    {
+      "ingredient": "techreborn:peridot_helmet"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 4,
+      "id": "techreborn:peridot_dust"
+    },
+    {
+      "id": "techreborn:peridot_small_dust"
+    }
+  ],
+  "power": 128,
+  "time": 140
+}

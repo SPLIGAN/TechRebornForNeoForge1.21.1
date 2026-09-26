@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_bronze_pickaxe": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:bronze_pickaxe"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:blast_furnace/bronze_ingot_from_pickaxe"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_bronze_pickaxe",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:blast_furnace/bronze_ingot_from_pickaxe"
+    ]
+  },
+  "sends_telemetry_event": true
+}

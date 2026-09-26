@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/yellow_garnet",
+  "result": {
+    "id": "techreborn:yellow_garnet_storage_block_stairs"
+  }
+}

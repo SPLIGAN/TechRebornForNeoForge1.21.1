@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:assembling_machine",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "minecraft:deepslate"
+    },
+    {
+      "ingredient": "techreborn:template_template"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:ward_armor_trim_smithing_template"
+    }
+  ],
+  "power": 40,
+  "time": 1500
+}

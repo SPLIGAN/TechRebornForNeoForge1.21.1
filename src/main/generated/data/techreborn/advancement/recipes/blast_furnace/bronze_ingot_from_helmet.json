@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_bronze_helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:bronze_helmet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:blast_furnace/bronze_ingot_from_helmet"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_bronze_helmet",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:blast_furnace/bronze_ingot_from_helmet"
+    ]
+  },
+  "sends_telemetry_event": true
+}

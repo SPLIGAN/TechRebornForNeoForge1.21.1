@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_smooth_red_sandstone_stairs": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:smooth_red_sandstone_stairs"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/red_sand_from_smooth_red_sandstone_stairs"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_smooth_red_sandstone_stairs",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/red_sand_from_smooth_red_sandstone_stairs"
+    ]
+  },
+  "sends_telemetry_event": true
+}

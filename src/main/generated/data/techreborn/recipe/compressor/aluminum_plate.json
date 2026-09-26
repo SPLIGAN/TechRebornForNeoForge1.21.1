@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/aluminum"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:aluminum_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

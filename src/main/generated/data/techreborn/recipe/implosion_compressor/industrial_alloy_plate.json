@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:implosion_compressor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:industrial_alloy_ingot"
+    },
+    {
+      "count": 8,
+      "ingredient": "minecraft:tnt"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:industrial_alloy_plate"
+    },
+    {
+      "count": 4,
+      "id": "techreborn:dark_ashes_dust"
+    }
+  ],
+  "power": 30,
+  "time": 2000
+}

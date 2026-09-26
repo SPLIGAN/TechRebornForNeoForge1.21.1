@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        java: [ 21-jdk ]
+        java: [ 25-jdk ]
     runs-on: ubuntu-24.04
     container:
       image: eclipse-temurin:${{ matrix.java }}
@@ -21,6 +21,8 @@ jobs:
       - run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - run: chmod +x gradlew
       - run: ./gradlew :RebornCore:runServerData --stacktrace
+      - name: Check committed datagen output is up to date
+        run: git status --porcelain -- src/main/generated && test -z "$(git status --porcelain -- src/main/generated)"
       - run: ./gradlew build --stacktrace
 
       - name: Upload artifacts

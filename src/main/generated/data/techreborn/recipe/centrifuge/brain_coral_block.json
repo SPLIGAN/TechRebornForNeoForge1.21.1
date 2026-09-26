@@ -1,0 +1,31 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 12,
+      "ingredient": "minecraft:brain_coral_block"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:methane_cell"
+    },
+    {
+      "count": 24,
+      "id": "minecraft:dead_brain_coral"
+    },
+    {
+      "count": 12,
+      "id": "minecraft:dead_brain_coral_fan"
+    },
+    {
+      "count": 16,
+      "id": "minecraft:pink_dye"
+    }
+  ],
+  "power": 5,
+  "time": 500
+}

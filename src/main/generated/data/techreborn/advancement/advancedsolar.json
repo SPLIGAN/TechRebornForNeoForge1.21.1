@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:basicsolar",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:advanced_solar_panel",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.advancedsolar.desc"
+    },
+    "icon": {
+      "id": "techreborn:advanced_solar_panel"
+    },
+    "title": {
+      "translate": "advancements.techreborn.advancedsolar"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

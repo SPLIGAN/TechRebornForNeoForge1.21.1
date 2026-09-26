@@ -1,0 +1,12 @@
+{
+  "values": [
+    {
+      "id": "techreborn:metallurgist",
+      "required": false
+    },
+    {
+      "id": "techreborn:electrician",
+      "required": false
+    }
+  ]
+}

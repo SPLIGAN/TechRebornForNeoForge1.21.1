@@ -1,0 +1,30 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 16,
+      "ingredient": "techreborn:endstone_dust"
+    },
+    {
+      "count": 2,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:helium3_cell"
+    },
+    {
+      "id": "techreborn:helium_cell"
+    },
+    {
+      "id": "techreborn:tungsten_small_dust"
+    },
+    {
+      "count": 12,
+      "id": "minecraft:sand"
+    }
+  ],
+  "power": 5,
+  "time": 4800
+}

@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_dead_tube_coral": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:dead_tube_coral"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/gray_dye_from_dead_tube_coral"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_dead_tube_coral",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/gray_dye_from_dead_tube_coral"
+    ]
+  },
+  "sends_telemetry_event": true
+}

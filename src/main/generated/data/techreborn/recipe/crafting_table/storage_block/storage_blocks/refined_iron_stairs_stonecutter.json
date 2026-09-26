@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/refined_iron",
+  "result": {
+    "id": "techreborn:refined_iron_storage_block_stairs"
+  }
+}

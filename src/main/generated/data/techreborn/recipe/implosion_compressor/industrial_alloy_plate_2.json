@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:implosion_compressor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:industrial_alloy_ingot"
+    },
+    {
+      "count": 2,
+      "ingredient": "minecraft:end_crystal"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:industrial_alloy_plate"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:ender_eye_small_dust"
+    }
+  ],
+  "power": 30,
+  "time": 2000
+}

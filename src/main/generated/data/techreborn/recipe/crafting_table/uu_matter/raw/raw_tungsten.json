@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "U": "techreborn:uu_matter"
+  },
+  "pattern": [
+    "UUU",
+    "UUU",
+    "   "
+  ],
+  "result": {
+    "id": "techreborn:raw_tungsten"
+  }
+}

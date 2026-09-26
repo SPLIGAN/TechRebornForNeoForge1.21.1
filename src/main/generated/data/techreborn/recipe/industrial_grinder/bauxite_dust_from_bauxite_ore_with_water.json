@@ -1,0 +1,22 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/bauxite"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 4,
+      "id": "techreborn:bauxite_dust"
+    },
+    {
+      "id": "techreborn:aluminum_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

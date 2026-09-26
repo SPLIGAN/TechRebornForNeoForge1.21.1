@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:raw_tungsten_storage_block"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:wolframium_cell"
+    }
+  ],
+  "power": 50,
+  "time": 1200
+}

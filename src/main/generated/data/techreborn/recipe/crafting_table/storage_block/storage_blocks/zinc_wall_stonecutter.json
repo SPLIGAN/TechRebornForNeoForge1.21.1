@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/zinc",
+  "result": {
+    "id": "techreborn:zinc_storage_block_wall"
+  }
+}

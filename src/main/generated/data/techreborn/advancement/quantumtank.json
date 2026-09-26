@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:industrialmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:quantum_tank_unit",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.quantumtank.desc"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "techreborn:quantum_tank_unit"
+    },
+    "title": {
+      "translate": "advancements.techreborn.quantumtank"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

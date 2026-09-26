@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:carbon_cell"
+    },
+    {
+      "ingredient": "techreborn:nitrogen_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:nitro_carbon_cell"
+    }
+  ],
+  "power": 30,
+  "time": 1000
+}

@@ -1,0 +1,33 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 20,
+      "ingredient": "techreborn:spessartine_dust"
+    },
+    {
+      "count": 9,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:aluminum_dust"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:manganese_dust"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:silicon_cell"
+    },
+    {
+      "count": 6,
+      "id": "techreborn:compressed_air_cell"
+    }
+  ],
+  "power": 50,
+  "time": 1800
+}

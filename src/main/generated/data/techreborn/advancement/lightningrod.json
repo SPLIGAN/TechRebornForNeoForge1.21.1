@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:advancedmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:lightning_rod",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.lightningrod.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:lightning_rod"
+    },
+    "title": {
+      "translate": "advancements.techreborn.lightningrod"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

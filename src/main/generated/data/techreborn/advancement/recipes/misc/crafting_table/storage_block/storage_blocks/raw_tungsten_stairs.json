@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_tag_c_storage_blocks_raw_tungsten": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:storage_blocks/raw_tungsten"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/storage_block/storage_blocks/raw_tungsten_stairs"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tag_c_storage_blocks_raw_tungsten"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/storage_block/storage_blocks/raw_tungsten_stairs"
+    ]
+  }
+}

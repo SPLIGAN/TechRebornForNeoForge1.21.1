@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:nitrogen_dioxide_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:cell"
+    }
+  ],
+  "power": 10,
+  "time": 150
+}

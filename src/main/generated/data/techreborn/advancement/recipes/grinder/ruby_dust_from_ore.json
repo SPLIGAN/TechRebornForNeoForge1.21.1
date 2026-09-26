@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ores_ruby": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ores/ruby"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/ruby_dust_from_ore"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ores_ruby",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/ruby_dust_from_ore"
+    ]
+  },
+  "sends_telemetry_event": true
+}

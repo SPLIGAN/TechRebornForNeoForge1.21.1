@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget",
+    "techreborn:refined_iron_nugget"
+  ],
+  "result": {
+    "id": "techreborn:refined_iron_ingot"
+  }
+}

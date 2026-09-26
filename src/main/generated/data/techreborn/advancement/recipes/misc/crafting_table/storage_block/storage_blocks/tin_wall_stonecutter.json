@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_tag_c_storage_blocks_tin": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:storage_blocks/tin"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/storage_block/storage_blocks/tin_wall_stonecutter"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tag_c_storage_blocks_tin"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/storage_block/storage_blocks/tin_wall_stonecutter"
+    ]
+  }
+}

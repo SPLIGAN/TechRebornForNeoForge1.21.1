@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_pink_tulip": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:pink_tulip"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/pink_dye_from_pink_tulip"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_pink_tulip",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/pink_dye_from_pink_tulip"
+    ]
+  },
+  "sends_telemetry_event": true
+}

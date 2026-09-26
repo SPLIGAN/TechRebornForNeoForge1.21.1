@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/iridium_reinforced_stone",
+  "result": {
+    "id": "techreborn:iridium_reinforced_stone_storage_block_wall"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/steel"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:steel_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

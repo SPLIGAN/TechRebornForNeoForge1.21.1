@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_sulfuric_acid_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:sulfuric_acid_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/cell_from_sulfuric_acid_cell"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_sulfuric_acid_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/cell_from_sulfuric_acid_cell"
+    ]
+  },
+  "sends_telemetry_event": true
+}

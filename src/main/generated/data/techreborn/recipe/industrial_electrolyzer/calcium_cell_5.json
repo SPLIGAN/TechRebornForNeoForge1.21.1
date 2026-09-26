@@ -1,0 +1,27 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 6,
+      "ingredient": "minecraft:bone_meal"
+    },
+    {
+      "count": 3,
+      "ingredient": "techreborn:sulfuric_acid_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:calcium_cell"
+    },
+    {
+      "id": "techreborn:fluorine_cell"
+    },
+    {
+      "id": "techreborn:phosphorous_dust"
+    }
+  ],
+  "power": 60,
+  "time": 1400
+}

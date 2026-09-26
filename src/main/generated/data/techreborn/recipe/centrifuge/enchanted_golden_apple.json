@@ -1,0 +1,24 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:enchanted_golden_apple"
+    },
+    {
+      "count": 2,
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 64,
+      "id": "minecraft:gold_ingot"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:methane_cell"
+    }
+  ],
+  "power": 5,
+  "time": 500
+}

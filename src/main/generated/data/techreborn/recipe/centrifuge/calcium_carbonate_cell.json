@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:calcium_carbonate_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:calcite_dust"
+    },
+    {
+      "id": "techreborn:cell"
+    }
+  ],
+  "power": 10,
+  "time": 4000
+}

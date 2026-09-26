@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_minecraft_signs": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#minecraft:signs"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/saw_small_dust_from_signs"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_minecraft_signs",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/saw_small_dust_from_signs"
+    ]
+  },
+  "sends_telemetry_event": true
+}

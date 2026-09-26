@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:advancedmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:industrial_machine_frame",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.industrialmachineblock.desc"
+    },
+    "icon": {
+      "id": "techreborn:industrial_machine_frame"
+    },
+    "title": {
+      "translate": "advancements.techreborn.industrialmachineblock"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

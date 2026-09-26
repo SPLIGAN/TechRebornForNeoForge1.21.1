@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:root",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:refined_iron_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.refinediron.desc"
+    },
+    "icon": {
+      "id": "techreborn:refined_iron_ingot"
+    },
+    "title": {
+      "translate": "advancements.techreborn.refinediron"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

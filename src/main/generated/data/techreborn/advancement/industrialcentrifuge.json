@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:advancedmachineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:industrial_centrifuge",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.industrialcentrifuge.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:industrial_centrifuge"
+    },
+    "title": {
+      "translate": "advancements.techreborn.industrialcentrifuge"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 8,
+      "ingredient": "minecraft:glistering_melon_slice"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 6,
+      "id": "minecraft:gold_nugget"
+    },
+    {
+      "id": "techreborn:methane_cell"
+    }
+  ],
+  "power": 5,
+  "time": 500
+}

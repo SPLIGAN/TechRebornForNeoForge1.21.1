@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_ruby_sword": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:ruby_sword"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/ruby_dust_from_sword_with_mercury"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_ruby_sword",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/ruby_dust_from_sword_with_mercury"
+    ]
+  },
+  "sends_telemetry_event": true
+}

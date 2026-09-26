@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "count": 8,
+      "ingredient": "minecraft:gold_block"
+    },
+    {
+      "ingredient": "minecraft:apple"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:enchanted_golden_apple"
+    }
+  ],
+  "power": 30,
+  "time": 400
+}

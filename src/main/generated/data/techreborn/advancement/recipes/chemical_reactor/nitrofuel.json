@@ -1,0 +1,43 @@
+{
+  "criteria": {
+    "has_nitrogen_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:nitrogen_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_oil_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:oil_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:chemical_reactor/nitrofuel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_oil_cell",
+      "has_nitrogen_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:chemical_reactor/nitrofuel"
+    ]
+  },
+  "sends_telemetry_event": true
+}

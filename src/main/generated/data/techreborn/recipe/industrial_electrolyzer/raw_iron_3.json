@@ -1,0 +1,20 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 3,
+      "ingredient": "techreborn:pyrite_dust"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:raw_iron"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:sulfur_dust"
+    }
+  ],
+  "power": 60,
+  "time": 1200
+}

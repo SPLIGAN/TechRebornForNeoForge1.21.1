@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_sawmill/warped_pressure_plate_from_slab"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_warped_slab": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:warped_slab"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_warped_slab",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_sawmill/warped_pressure_plate_from_slab"
+    ]
+  },
+  "sends_telemetry_event": true
+}

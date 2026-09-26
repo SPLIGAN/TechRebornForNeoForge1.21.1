@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:fusioncoil",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:fusion_control_computer",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.fusioncomputer.desc"
+    },
+    "frame": "challenge",
+    "icon": {
+      "id": "techreborn:fusion_control_computer"
+    },
+    "title": {
+      "translate": "advancements.techreborn.fusioncomputer"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

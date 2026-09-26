@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "minecraft:glowstone_dust"
+    },
+    {
+      "ingredient": "minecraft:warped_wart_block"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:shroomlight"
+    }
+  ],
+  "power": 30,
+  "time": 400
+}

@@ -1,0 +1,26 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/peridot"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:peridot_gem"
+    },
+    {
+      "count": 6,
+      "id": "techreborn:peridot_small_dust"
+    },
+    {
+      "count": 2,
+      "id": "techreborn:emerald_small_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

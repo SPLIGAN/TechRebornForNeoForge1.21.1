@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot",
+    "techreborn:nickel_ingot"
+  ],
+  "result": {
+    "id": "techreborn:nickel_storage_block"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:grinder",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:yellow_concrete"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:yellow_concrete_powder"
+    }
+  ],
+  "power": 4,
+  "time": 200
+}

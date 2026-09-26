@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:nitrogen_dioxide_cell"
+    },
+    {
+      "ingredient": "techreborn:water_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:nitric_acid_cell"
+    }
+  ],
+  "power": 40,
+  "time": 600
+}

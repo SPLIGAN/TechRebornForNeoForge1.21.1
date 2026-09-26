@@ -27,7 +27,8 @@ changelog.txt
 /classes/
 /src/main/resources/package-lock.json
 /src/main/resources/techreborn.accesswidener
-/src/main/generated
+# Datagen output is committed; only the HashCache is local.
+/src/main/generated/.cache/
 
 /RebornCore/.gradle
 /RebornCore/build

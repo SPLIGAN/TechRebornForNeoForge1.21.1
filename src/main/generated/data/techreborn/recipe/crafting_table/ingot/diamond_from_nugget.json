@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget",
+    "techreborn:diamond_nugget"
+  ],
+  "result": {
+    "id": "minecraft:diamond"
+  }
+}

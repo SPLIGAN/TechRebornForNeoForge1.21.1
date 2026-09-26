@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:olivine_small_dust",
+    "techreborn:olivine_small_dust",
+    "techreborn:olivine_small_dust",
+    "techreborn:olivine_small_dust"
+  ],
+  "result": {
+    "id": "techreborn:olivine_dust"
+  }
+}

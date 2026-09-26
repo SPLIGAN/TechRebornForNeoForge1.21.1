@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/cell_from_uranium_hexafluoride_cell"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_uranium_hexafluoride_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:uranium_hexafluoride_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_uranium_hexafluoride_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/cell_from_uranium_hexafluoride_cell"
+    ]
+  },
+  "sends_telemetry_event": true
+}

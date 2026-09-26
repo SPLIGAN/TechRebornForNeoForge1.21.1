@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:iron_ingot"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:iron_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

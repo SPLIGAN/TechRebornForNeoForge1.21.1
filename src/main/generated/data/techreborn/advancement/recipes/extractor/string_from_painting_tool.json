@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_painting_tool": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:painting_tool"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/string_from_painting_tool"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_painting_tool",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/string_from_painting_tool"
+    ]
+  },
+  "sends_telemetry_event": true
+}

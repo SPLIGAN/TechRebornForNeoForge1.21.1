@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:watermill",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:thermal_generator",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.thermalgenerator.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:thermal_generator"
+    },
+    "title": {
+      "translate": "advancements.techreborn.thermalgenerator"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

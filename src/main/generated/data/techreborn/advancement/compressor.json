@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:grinder",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:compressor",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.compressor.desc"
+    },
+    "icon": {
+      "id": "techreborn:compressor"
+    },
+    "title": {
+      "translate": "advancements.techreborn.compressor"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#c:ores/sphalerite"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 5,
+      "id": "techreborn:sphalerite_dust"
+    },
+    {
+      "id": "techreborn:zinc_dust"
+    },
+    {
+      "id": "techreborn:yellow_garnet_small_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

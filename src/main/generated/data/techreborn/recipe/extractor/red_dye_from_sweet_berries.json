@@ -1,0 +1,16 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "minecraft:sweet_berries"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:red_dye"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

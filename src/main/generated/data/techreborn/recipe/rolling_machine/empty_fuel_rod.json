@@ -1,0 +1,18 @@
+{
+  "type": "techreborn:rolling_machine",
+  "category": "misc",
+  "key": {
+    "B": "techreborn:magnalium_plate"
+  },
+  "pattern": [
+    " B ",
+    " B ",
+    " B "
+  ],
+  "power": 20,
+  "result": {
+    "count": 6,
+    "id": "techreborn:empty_fuel_rod"
+  },
+  "time": 400
+}

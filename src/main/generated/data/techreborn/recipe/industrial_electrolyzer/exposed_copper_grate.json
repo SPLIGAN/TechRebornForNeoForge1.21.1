@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:copper_grate"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:exposed_copper_grate"
+    }
+  ],
+  "power": 30,
+  "time": 200
+}

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/bronze",
+  "result": {
+    "id": "techreborn:bronze_storage_block_wall"
+  }
+}

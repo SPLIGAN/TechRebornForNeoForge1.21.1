@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:refinediron",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:basic_machine_frame"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.machineblock.desc"
+    },
+    "icon": {
+      "id": "techreborn:basic_machine_frame"
+    },
+    "title": {
+      "translate": "advancements.techreborn.machineblock"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

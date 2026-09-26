@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:clay_small_dust",
+    "techreborn:clay_small_dust",
+    "techreborn:clay_small_dust",
+    "techreborn:clay_small_dust"
+  ],
+  "result": {
+    "id": "techreborn:clay_dust"
+  }
+}

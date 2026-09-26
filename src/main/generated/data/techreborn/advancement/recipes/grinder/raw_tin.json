@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ores_tin": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ores/tin"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/raw_tin"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ores_tin",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/raw_tin"
+    ]
+  },
+  "sends_telemetry_event": true
+}

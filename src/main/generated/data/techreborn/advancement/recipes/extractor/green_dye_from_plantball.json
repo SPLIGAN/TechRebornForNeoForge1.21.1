@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_plantball": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:plantball"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/green_dye_from_plantball"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_plantball",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/green_dye_from_plantball"
+    ]
+  },
+  "sends_telemetry_event": true
+}

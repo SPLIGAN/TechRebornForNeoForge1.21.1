@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:ender_pearl_small_dust",
+    "techreborn:ender_pearl_small_dust",
+    "techreborn:ender_pearl_small_dust",
+    "techreborn:ender_pearl_small_dust"
+  ],
+  "result": {
+    "id": "techreborn:ender_pearl_dust"
+  }
+}

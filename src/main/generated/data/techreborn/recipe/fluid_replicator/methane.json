@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:fluid_replicator",
+  "fluid": {
+    "fluid": "techreborn:methane"
+  },
+  "ingredients": [
+    {
+      "count": 4,
+      "ingredient": "techreborn:uu_matter"
+    }
+  ],
+  "outputs": [],
+  "power": 40,
+  "time": 200
+}

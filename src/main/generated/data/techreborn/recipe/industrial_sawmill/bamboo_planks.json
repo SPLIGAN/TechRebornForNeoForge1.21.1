@@ -1,0 +1,25 @@
+{
+  "type": "techreborn:industrial_sawmill",
+  "fluid": {
+    "amount": {
+      "value": 40500
+    },
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#minecraft:bamboo_blocks"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "minecraft:bamboo_planks"
+    },
+    {
+      "id": "techreborn:saw_dust"
+    }
+  ],
+  "power": 40,
+  "time": 100
+}

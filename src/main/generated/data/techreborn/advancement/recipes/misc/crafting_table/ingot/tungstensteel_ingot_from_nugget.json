@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/ingot/tungstensteel_ingot_from_nugget"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_tungstensteel_nugget": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:tungstensteel_nugget"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tungstensteel_nugget"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/ingot/tungstensteel_ingot_from_nugget"
+    ]
+  }
+}

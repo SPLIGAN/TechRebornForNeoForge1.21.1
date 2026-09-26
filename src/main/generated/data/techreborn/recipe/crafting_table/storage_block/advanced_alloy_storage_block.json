@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot",
+    "techreborn:advanced_alloy_ingot"
+  ],
+  "result": {
+    "id": "techreborn:advanced_alloy_storage_block"
+  }
+}

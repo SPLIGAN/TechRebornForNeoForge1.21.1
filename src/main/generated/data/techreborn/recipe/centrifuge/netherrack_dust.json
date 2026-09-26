@@ -1,0 +1,28 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 16,
+      "ingredient": "techreborn:netherrack_dust"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:redstone"
+    },
+    {
+      "id": "techreborn:sulfur_cell"
+    },
+    {
+      "id": "techreborn:coal_dust"
+    },
+    {
+      "id": "minecraft:gold_nugget"
+    }
+  ],
+  "power": 5,
+  "time": 2400
+}

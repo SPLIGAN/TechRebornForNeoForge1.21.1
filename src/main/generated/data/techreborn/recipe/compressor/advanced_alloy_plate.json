@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/advanced_alloy"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:advanced_alloy_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:machineblock",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:basic_solar_panel",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.basicsolar.desc"
+    },
+    "icon": {
+      "id": "techreborn:basic_solar_panel"
+    },
+    "title": {
+      "translate": "advancements.techreborn.basicsolar"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

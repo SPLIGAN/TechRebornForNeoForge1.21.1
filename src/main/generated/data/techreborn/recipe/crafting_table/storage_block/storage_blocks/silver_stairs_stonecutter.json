@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/silver",
+  "result": {
+    "id": "techreborn:silver_storage_block_stairs"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:grinder",
+  "ingredients": [
+    {
+      "ingredient": "#minecraft:diamond_ores"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:diamond"
+    }
+  ],
+  "power": 4,
+  "time": 270
+}

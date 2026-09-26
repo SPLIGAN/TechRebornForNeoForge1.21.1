@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ores_silver": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ores/silver"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_grinder/raw_silver_from_silver_ore_with_water"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ores_silver",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_grinder/raw_silver_from_silver_ore_with_water"
+    ]
+  },
+  "sends_telemetry_event": true
+}

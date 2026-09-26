@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget",
+    "techreborn:brass_nugget"
+  ],
+  "result": {
+    "id": "techreborn:brass_ingot"
+  }
+}

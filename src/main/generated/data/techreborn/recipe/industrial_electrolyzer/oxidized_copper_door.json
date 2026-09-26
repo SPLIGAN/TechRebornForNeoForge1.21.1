@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:weathered_copper_door"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:oxidized_copper_door"
+    }
+  ],
+  "power": 30,
+  "time": 200
+}

@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "minecraft:end_stone"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:endstone_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

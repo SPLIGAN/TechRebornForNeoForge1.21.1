@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/paper_from_written_book"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_written_book": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:written_book"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_written_book",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/paper_from_written_book"
+    ]
+  },
+  "sends_telemetry_event": true
+}

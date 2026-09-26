@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/zinc"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:zinc_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

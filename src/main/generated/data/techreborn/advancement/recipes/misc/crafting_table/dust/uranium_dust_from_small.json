@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/dust/uranium_dust_from_small"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_uranium_small_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:uranium_small_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_uranium_small_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/dust/uranium_dust_from_small"
+    ]
+  }
+}

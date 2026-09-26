@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/tungstensteel",
+  "result": {
+    "id": "techreborn:tungstensteel_storage_block_stairs"
+  }
+}

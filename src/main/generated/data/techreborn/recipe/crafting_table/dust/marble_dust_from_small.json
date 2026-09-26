@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:marble_small_dust",
+    "techreborn:marble_small_dust",
+    "techreborn:marble_small_dust",
+    "techreborn:marble_small_dust"
+  ],
+  "result": {
+    "id": "techreborn:marble_dust"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/nickel"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:nickel_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

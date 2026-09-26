@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/advanced_alloy",
+  "result": {
+    "id": "techreborn:advanced_alloy_storage_block_stairs"
+  }
+}

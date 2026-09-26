@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:rubber",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:copper_cable"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.coppercable.desc"
+    },
+    "icon": {
+      "id": "techreborn:copper_cable"
+    },
+    "title": {
+      "translate": "advancements.techreborn.coppercable"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

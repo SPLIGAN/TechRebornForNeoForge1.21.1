@@ -1,0 +1,22 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "techreborn:mercury"
+  },
+  "ingredients": [
+    {
+      "ingredient": "minecraft:ender_chest"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 7,
+      "id": "techreborn:obsidian_dust"
+    },
+    {
+      "id": "techreborn:ender_eye_dust"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

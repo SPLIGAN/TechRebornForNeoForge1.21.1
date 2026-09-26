@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_gems_red_garnet": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:gems/red_garnet"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:grinder/red_garnet_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_gems_red_garnet",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:grinder/red_garnet_dust"
+    ]
+  },
+  "sends_telemetry_event": true
+}

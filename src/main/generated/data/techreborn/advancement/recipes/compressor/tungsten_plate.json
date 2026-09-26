@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ingots_tungsten": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/tungsten"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:compressor/tungsten_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ingots_tungsten",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:compressor/tungsten_plate"
+    ]
+  },
+  "sends_telemetry_event": true
+}

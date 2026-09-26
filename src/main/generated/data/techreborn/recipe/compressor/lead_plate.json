@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/lead"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:lead_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

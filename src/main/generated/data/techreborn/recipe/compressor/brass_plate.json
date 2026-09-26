@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "#c:ingots/brass"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:brass_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

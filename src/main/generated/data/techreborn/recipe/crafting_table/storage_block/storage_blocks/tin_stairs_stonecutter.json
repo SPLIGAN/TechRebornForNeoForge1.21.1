@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "#c:storage_blocks/tin",
+  "result": {
+    "id": "techreborn:tin_storage_block_stairs"
+  }
+}

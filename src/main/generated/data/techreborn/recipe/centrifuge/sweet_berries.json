@@ -1,0 +1,23 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 32,
+      "ingredient": "minecraft:sweet_berries"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:methane_cell"
+    },
+    {
+      "count": 5,
+      "id": "minecraft:red_dye"
+    }
+  ],
+  "power": 5,
+  "time": 500
+}

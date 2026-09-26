@@ -1,0 +1,31 @@
+{
+  "parent": "techreborn:coppercable",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:red_cell_battery"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.cellbattery.desc"
+    },
+    "icon": {
+      "id": "techreborn:red_cell_battery"
+    },
+    "title": {
+      "translate": "advancements.techreborn.cellbattery"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:compressor",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:recycler",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.recycler.desc"
+    },
+    "icon": {
+      "id": "techreborn:recycler"
+    },
+    "title": {
+      "translate": "advancements.techreborn.recycler"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

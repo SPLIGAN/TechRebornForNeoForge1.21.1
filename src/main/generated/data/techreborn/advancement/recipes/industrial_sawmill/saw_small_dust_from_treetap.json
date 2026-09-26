@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:industrial_sawmill/saw_small_dust_from_treetap"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    },
+    "has_treetap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:treetap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "requirements": [
+    [
+      "has_treetap",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:industrial_sawmill/saw_small_dust_from_treetap"
+    ]
+  },
+  "sends_telemetry_event": true
+}

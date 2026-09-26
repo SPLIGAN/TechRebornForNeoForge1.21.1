@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:redstone_block"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:redstone_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget",
+    "techreborn:platinum_nugget"
+  ],
+  "result": {
+    "id": "techreborn:platinum_ingot"
+  }
+}

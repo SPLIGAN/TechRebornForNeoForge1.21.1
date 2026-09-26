@@ -1,0 +1,11 @@
+{
+  "type": "techreborn:recycler",
+  "ingredients": [],
+  "outputs": [
+    {
+      "id": "techreborn:scrap"
+    }
+  ],
+  "power": 2,
+  "time": 25
+}

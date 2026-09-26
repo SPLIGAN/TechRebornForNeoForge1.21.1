@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:compressor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:gold_ingot"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:gold_plate"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

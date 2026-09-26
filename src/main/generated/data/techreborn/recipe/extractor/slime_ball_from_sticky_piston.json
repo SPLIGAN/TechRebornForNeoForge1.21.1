@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:extractor",
+  "ingredients": [
+    {
+      "ingredient": "minecraft:sticky_piston"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "minecraft:slime_ball"
+    }
+  ],
+  "power": 10,
+  "time": 300
+}

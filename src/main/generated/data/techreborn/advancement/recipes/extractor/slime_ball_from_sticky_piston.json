@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_sticky_piston": {
+      "conditions": {
+        "items": [
+          {
+            "items": "minecraft:sticky_piston"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/slime_ball_from_sticky_piston"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_sticky_piston",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/slime_ball_from_sticky_piston"
+    ]
+  },
+  "sends_telemetry_event": true
+}

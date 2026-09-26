@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:advancedsolar",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:industrial_solar_panel",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.industrialsolar.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:industrial_solar_panel"
+    },
+    "title": {
+      "translate": "advancements.techreborn.industrialsolar"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

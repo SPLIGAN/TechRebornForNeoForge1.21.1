@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_heliumplasma_cell": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:heliumplasma_cell"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:extractor/cell_from_heliumplasma_cell"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_heliumplasma_cell",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:extractor/cell_from_heliumplasma_cell"
+    ]
+  },
+  "sends_telemetry_event": true
+}

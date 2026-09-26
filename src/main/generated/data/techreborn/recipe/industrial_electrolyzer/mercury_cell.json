@@ -1,0 +1,22 @@
+{
+  "type": "techreborn:industrial_electrolyzer",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "techreborn:cinnabar_dust"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:mercury_cell"
+    },
+    {
+      "id": "techreborn:sulfur_dust"
+    }
+  ],
+  "power": 50,
+  "time": 1500
+}

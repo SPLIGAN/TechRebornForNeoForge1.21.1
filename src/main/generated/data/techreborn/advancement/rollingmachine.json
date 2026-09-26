@@ -1,0 +1,32 @@
+{
+  "parent": "techreborn:electricfurnace",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:rolling_machine",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.rollingmachine.desc"
+    },
+    "icon": {
+      "id": "techreborn:rolling_machine"
+    },
+    "title": {
+      "translate": "advancements.techreborn.rollingmachine"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

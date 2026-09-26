@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:centrifuge",
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "techreborn:ashes_dust"
+    },
+    {
+      "ingredient": "techreborn:cell"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:carbon_cell"
+    }
+  ],
+  "power": 10,
+  "time": 240
+}

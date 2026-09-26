@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_tag_c_dusts_brass": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:dusts/brass"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:smelting/brass_ingot_from_c_dusts/brass"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_tag_c_dusts_brass"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:smelting/brass_ingot_from_c_dusts/brass"
+    ]
+  }
+}

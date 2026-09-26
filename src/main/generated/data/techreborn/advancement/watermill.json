@@ -1,0 +1,33 @@
+{
+  "parent": "techreborn:windmill",
+  "criteria": {
+    "crit_0": {
+      "conditions": {
+        "location": [
+          {
+            "block": "techreborn:water_mill",
+            "condition": "minecraft:block_state_property"
+          }
+        ]
+      },
+      "trigger": "minecraft:placed_block"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.techreborn.watermill.desc"
+    },
+    "frame": "goal",
+    "icon": {
+      "id": "techreborn:water_mill"
+    },
+    "title": {
+      "translate": "advancements.techreborn.watermill"
+    }
+  },
+  "requirements": [
+    [
+      "crit_0"
+    ]
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_emerald_dust": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:emerald_dust"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/small_dust/emerald_small_dust_from_dust"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_emerald_dust"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/small_dust/emerald_small_dust_from_dust"
+    ]
+  }
+}

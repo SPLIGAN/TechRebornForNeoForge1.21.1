@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_sap": {
+      "conditions": {
+        "items": [
+          {
+            "items": "techreborn:sap"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:crafting_table/parts/resin_clump"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_sap"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:crafting_table/parts/resin_clump"
+    ]
+  }
+}

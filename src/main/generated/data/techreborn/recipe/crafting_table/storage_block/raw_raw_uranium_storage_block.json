@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium",
+    "techreborn:raw_uranium"
+  ],
+  "result": {
+    "id": "techreborn:raw_uranium_storage_block"
+  }
+}

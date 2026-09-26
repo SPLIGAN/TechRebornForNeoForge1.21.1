@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_tag_c_ingots_refined_iron": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#c:ingots/refined_iron"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "techreborn:compressor/refined_iron_plate"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_tag_c_ingots_refined_iron",
+      "has_the_recipe"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "techreborn:compressor/refined_iron_plate"
+    ]
+  },
+  "sends_telemetry_event": true
+}

@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:fluid_replicator",
+  "fluid": {
+    "fluid": "techreborn:carbon_fiber"
+  },
+  "ingredients": [
+    {
+      "count": 2,
+      "ingredient": "techreborn:uu_matter"
+    }
+  ],
+  "outputs": [],
+  "power": 40,
+  "time": 100
+}

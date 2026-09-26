@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:sulfur_cell"
+    },
+    {
+      "ingredient": "techreborn:sodium_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:sodium_sulfide_cell"
+    }
+  ],
+  "power": 30,
+  "time": 800
+}

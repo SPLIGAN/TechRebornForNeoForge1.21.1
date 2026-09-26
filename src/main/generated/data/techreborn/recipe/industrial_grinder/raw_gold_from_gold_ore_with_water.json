@@ -1,0 +1,26 @@
+{
+  "type": "techreborn:industrial_grinder",
+  "fluid": {
+    "fluid": "minecraft:water"
+  },
+  "ingredients": [
+    {
+      "ingredient": "#minecraft:gold_ores"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "minecraft:raw_gold"
+    },
+    {
+      "count": 3,
+      "id": "techreborn:copper_nugget"
+    },
+    {
+      "id": "techreborn:nickel_nugget"
+    }
+  ],
+  "power": 64,
+  "time": 100
+}

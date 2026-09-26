@@ -1,0 +1,15 @@
+{
+  "type": "techreborn:grinder",
+  "ingredients": [
+    {
+      "ingredient": "#minecraft:wooden_fences"
+    }
+  ],
+  "outputs": [
+    {
+      "id": "techreborn:saw_small_dust"
+    }
+  ],
+  "power": 3,
+  "time": 180
+}

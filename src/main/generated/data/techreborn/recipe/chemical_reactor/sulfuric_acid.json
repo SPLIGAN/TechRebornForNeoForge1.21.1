@@ -1,0 +1,19 @@
+{
+  "type": "techreborn:chemical_reactor",
+  "ingredients": [
+    {
+      "ingredient": "techreborn:sulfur_cell"
+    },
+    {
+      "ingredient": "techreborn:water_cell"
+    }
+  ],
+  "outputs": [
+    {
+      "count": 2,
+      "id": "techreborn:sulfuric_acid_cell"
+    }
+  ],
+  "power": 30,
+  "time": 1200
+}

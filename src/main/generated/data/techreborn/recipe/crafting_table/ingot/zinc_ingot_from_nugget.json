@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget",
+    "techreborn:zinc_nugget"
+  ],
+  "result": {
+    "id": "techreborn:zinc_ingot"
+  }
+}
