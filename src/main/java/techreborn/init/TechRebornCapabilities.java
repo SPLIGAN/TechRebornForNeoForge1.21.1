@@ -5,15 +5,21 @@
 package techreborn.init;
 
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
+import reborncore.common.energy.api.base.SimpleEnergyItem;
+import reborncore.common.energy.capability.EnergyStorageEnergyHandler;
+import reborncore.common.energy.capability.SimpleEnergyItemEnergyHandler;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.common.transfer.LegacyFluidHandlerResourceHandler;
 import reborncore.common.transfer.LegacyItemHandlerResourceHandler;
@@ -22,6 +28,7 @@ import reborncore.common.transfer.TankFluidHandler;
 import reborncore.common.util.Tank;
 import reborncore.common.energy.api.EnergyStorage;
 import reborncore.common.energy.capability.TeamRebornEnergyCapabilities;
+import techreborn.TechReborn;
 import techreborn.blockentity.cable.CableBlockEntity;
 import techreborn.blockentity.generator.nuclear.ReactorChamberBlockEntity;
 import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
@@ -42,14 +49,25 @@ public final class TechRebornCapabilities {
 			}
 			return null;
 		});
+
+		registerItemEnergy(event);
 	}
 
 	private static <T extends BlockEntity> void registerSidedEnergy(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
 		event.registerBlockEntity(TeamRebornEnergyCapabilities.BLOCK_SIDED, type, TechRebornCapabilities::sidedEnergyForBlockEntity);
+		event.registerBlockEntity(Capabilities.Energy.BLOCK, type, TechRebornCapabilities::forgeEnergyForBlockEntity);
 	}
 
 	private static <T extends BlockEntity> void registerFluidTank(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
 		event.registerBlockEntity(Capabilities.Fluid.BLOCK, type, TechRebornCapabilities::fluidHandlerForBlockEntity);
+	}
+
+	private static void registerItemEnergy(RegisterCapabilitiesEvent event) {
+		for (Item item : BuiltInRegistries.ITEM) {
+			if (item instanceof SimpleEnergyItem energyItem && TechReborn.MOD_ID.equals(BuiltInRegistries.ITEM.getKey(item).getNamespace())) {
+				event.registerItem(Capabilities.Energy.ITEM, (stack, access) -> new SimpleEnergyItemEnergyHandler(access, energyItem), item);
+			}
+		}
 	}
 
 	private static @Nullable EnergyStorage sidedEnergyForBlockEntity(BlockEntity be, @Nullable Direction face) {
@@ -63,6 +81,11 @@ public final class TechRebornCapabilities {
 			return cable.getSideEnergyStorage(face);
 		}
 		return null;
+	}
+
+	private static @Nullable EnergyHandler forgeEnergyForBlockEntity(BlockEntity be, @Nullable Direction face) {
+		EnergyStorage storage = sidedEnergyForBlockEntity(be, face);
+		return storage == null ? null : new EnergyStorageEnergyHandler(storage);
 	}
 
 	private static @Nullable ResourceHandler<FluidResource> fluidHandlerForBlockEntity(BlockEntity be, @SuppressWarnings("unused") @Nullable Direction face) {

@@ -30,7 +30,9 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.ItemCapability;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import org.jetbrains.annotations.Nullable;
 import reborncore.common.energy.api.EnergyStorage;
 
@@ -45,8 +47,19 @@ public final class TeamRebornEnergyCapabilities {
 		EnergyStorage.class
 	);
 
-	public static EnergyStorage findSided(Level level, BlockPos pos, @Nullable Direction face) {
-		return level.getCapability(BLOCK_SIDED, pos, face);
+	/**
+	 * Looks up {@link #BLOCK_SIDED}, falling back to NeoForge FE ({@link Capabilities.Energy#BLOCK}) for blocks from other mods.
+	 */
+	public static @Nullable EnergyStorage findSided(Level level, BlockPos pos, @Nullable Direction face) {
+		EnergyStorage storage = level.getCapability(BLOCK_SIDED, pos, face);
+		if (storage != null) {
+			return storage;
+		}
+		EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK, pos, face);
+		if (handler == null || handler instanceof EnergyStorageEnergyHandler) {
+			return null;
+		}
+		return new EnergyHandlerEnergyStorage(handler);
 	}
 
 	public static EnergyStorage findItem(ItemStack stack) {
