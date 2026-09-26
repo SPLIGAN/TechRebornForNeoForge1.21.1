@@ -22,9 +22,7 @@ import reborncore.common.energy.api.base.SimpleEnergyItem;
 import reborncore.common.energy.capability.EnergyStorageEnergyHandler;
 import reborncore.common.energy.capability.SimpleEnergyItemEnergyHandler;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
-import reborncore.common.transfer.LegacyFluidHandlerResourceHandler;
-import reborncore.common.transfer.TankFluidHandler;
-import reborncore.common.util.Tank;
+import reborncore.common.transfer.RcTankResourceHandler;
 import reborncore.common.energy.api.EnergyStorage;
 import reborncore.common.energy.capability.TeamRebornEnergyCapabilities;
 import techreborn.TechReborn;
@@ -107,11 +105,8 @@ public final class TechRebornCapabilities {
 	}
 
 	private static @Nullable ResourceHandler<FluidResource> fluidHandlerForBlockEntity(BlockEntity be, @SuppressWarnings("unused") @Nullable Direction face) {
-		if (be instanceof MachineBaseBlockEntity machine) {
-			Tank tank = machine.getTank();
-			if (tank != null) {
-				return new LegacyFluidHandlerResourceHandler(new TankFluidHandler(tank));
-			}
+		if (be instanceof MachineBaseBlockEntity machine && machine.getTank() != null) {
+			return new RcTankResourceHandler(machine::getTank);
 		}
 		return null;
 	}
