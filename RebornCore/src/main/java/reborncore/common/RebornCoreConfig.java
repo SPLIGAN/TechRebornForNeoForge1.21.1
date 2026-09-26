@@ -29,4 +29,7 @@ import reborncore.common.config.Config;
 public class RebornCoreConfig {
 	@Config(config = "misc", key = "Selected Energy system", comment = "Possible values are: E (was FE, EU)")
 	public static String selectedSystem = "E";
+
+	@Config(config = "misc", key = "allowOwnerlessMachineConfig", comment = "Allow any player to change slot/fluid/redstone configuration of machines placed before owners were recorded (otherwise only operators)")
+	public static boolean allowOwnerlessMachineConfig = false;
 }

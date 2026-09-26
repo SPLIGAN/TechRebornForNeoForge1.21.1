@@ -49,6 +49,7 @@ import static reborncore.RebornCore.LOGGER;
 import java.util.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -78,6 +79,8 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 
 	public RebornInventory<MachineBaseBlockEntity> upgradeInventory = new RebornInventory<>(getUpgradeSlotCount(), "upgrades", 1, this, (slotID, stack, face, direction, blockEntity) -> true);
 	private SlotConfiguration slotConfiguration;
+	@Nullable
+	private UUID owner;
 	public FluidConfiguration fluidConfiguration;
 	private RedstoneConfiguration redstoneConfiguration;
 	private final List<RedstoneConfiguration.Element> redstoneElements;
@@ -392,6 +395,7 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 		});
 		redstoneConfiguration = view.read("redstoneConfig", RedstoneConfiguration.CODEC.codec()).orElseGet(RedstoneConfiguration::new);
 		upgradeInventory.read(view, "Upgrades");
+		owner = view.read("owner", UUIDUtil.CODEC).orElse(null);
 	}
 
 	@Override
@@ -410,6 +414,9 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 			fluidConfiguration.write(view.child("fluidConfig"));
 		}
 		upgradeInventory.write(view, "Upgrades");
+		if (owner != null) {
+			view.store("owner", UUIDUtil.CODEC, owner);
+		}
 		view.store("redstoneConfig", RedstoneConfiguration.CODEC.codec(), redstoneConfiguration);
 	}
 
@@ -611,6 +618,16 @@ public class MachineBaseBlockEntity extends BlockEntity implements BlockEntityTi
 	 */
 	public boolean allowsAutomation() {
 		return true;
+	}
+
+	/** The player who placed this machine, or {@code null} for machines placed before owners were recorded. */
+	public @Nullable UUID getOwner() {
+		return owner;
+	}
+
+	public void setOwner(@Nullable UUID owner) {
+		this.owner = owner;
+		setChanged();
 	}
 
 	@Override

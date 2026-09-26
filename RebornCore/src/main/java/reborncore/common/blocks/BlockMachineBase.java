@@ -117,8 +117,11 @@ public abstract class BlockMachineBase extends BaseBlockEntityProvider implement
 		setFacing(placer.getDirection().getOpposite(), worldIn, pos);
 
 		BlockEntity blockEntity = worldIn.getBlockEntity(pos);
-		if (blockEntity instanceof MachineBaseBlockEntity) {
-			((MachineBaseBlockEntity) blockEntity).onPlace(worldIn, pos, state, placer, stack);
+		if (blockEntity instanceof MachineBaseBlockEntity machine) {
+			if (placer instanceof Player player) {
+				machine.setOwner(player.getUUID());
+			}
+			machine.onPlace(worldIn, pos, state, placer, stack);
 		}
 	}
 

@@ -27,6 +27,7 @@ package reborncore.common.network;
 import org.apache.commons.lang3.Validate;
 import reborncore.common.blockentity.FluidConfiguration;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
+import reborncore.common.blockentity.MachinePermissions;
 import reborncore.common.blockentity.SlotConfiguration;
 import reborncore.common.chunkloading.ChunkLoaderManager;
 import reborncore.common.network.clientbound.FluidConfigSyncPayload;
@@ -40,6 +41,7 @@ import reborncore.common.network.serverbound.SlotConfigSavePayload;
 import reborncore.common.network.serverbound.SlotSavePayload;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -49,6 +51,10 @@ public class ServerBoundPackets {
 	public static void register(PayloadRegistrar reg) {
 		reg.playToServer(FluidConfigSavePayload.ID, FluidConfigSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				resyncFluidConfig(context.player(), machine);
+				return;
+			}
 			machine.fluidConfiguration.updateFluidConfig(payload.fluidConfiguration());
 			machine.setChanged();
 
@@ -61,6 +67,10 @@ public class ServerBoundPackets {
 
 		reg.playToServer(SlotConfigSavePayload.ID, SlotConfigSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				resyncSlotConfig(context.player(), machine);
+				return;
+			}
 			for (SlotConfiguration.SlotConfigHolder slotDetail : payload.slotConfig().getSlotDetails()) {
 				machine.getSlotConfiguration().updateSlotDetails(slotDetail);
 			}
@@ -75,6 +85,10 @@ public class ServerBoundPackets {
 			if (config == null) {
 				return;
 			}
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				resyncFluidConfig(context.player(), machine);
+				return;
+			}
 			config.setInput(payload.input());
 			config.setOutput(payload.output());
 
@@ -84,6 +98,10 @@ public class ServerBoundPackets {
 		reg.playToServer(IoSavePayload.ID, IoSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
 			Validate.notNull(machine, "machine cannot be null");
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				resyncSlotConfig(context.player(), machine);
+				return;
+			}
 			SlotConfiguration.SlotConfigHolder holder = machine.getSlotConfiguration().getSlotDetails(payload.slotID());
 			if (holder == null) {
 				return;
@@ -99,6 +117,10 @@ public class ServerBoundPackets {
 
 		reg.playToServer(SlotSavePayload.ID, SlotSavePayload.PACKET_CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				resyncSlotConfig(context.player(), machine);
+				return;
+			}
 			machine.getSlotConfiguration().getSlotDetails(payload.slotConfig().getSlotID()).updateSlotConfig(payload.slotConfig());
 			machine.setChanged();
 
@@ -114,7 +136,22 @@ public class ServerBoundPackets {
 
 		reg.playToServer(SetRedstoneStatePayload.ID, SetRedstoneStatePayload.CODEC, (payload, context) -> {
 			var machine = payload.getBlockEntity(MachineBaseBlockEntity.class, context.player());
+			if (!MachinePermissions.canConfigure(context.player(), machine)) {
+				return;
+			}
 			machine.setRedstoneConfiguration(machine.getRedstoneConfiguration().withState(payload.element(), payload.state()));
 		});
+	}
+
+	private static void resyncSlotConfig(Player player, MachineBaseBlockEntity machine) {
+		if (player instanceof ServerPlayer serverPlayer) {
+			NetworkManager.sendToPlayer(new SlotSyncPayload(machine.getBlockPos(), machine.getSlotConfiguration()), serverPlayer);
+		}
+	}
+
+	private static void resyncFluidConfig(Player player, MachineBaseBlockEntity machine) {
+		if (player instanceof ServerPlayer serverPlayer && machine.fluidConfiguration != null) {
+			NetworkManager.sendToPlayer(new FluidConfigSyncPayload(machine.getBlockPos(), machine.fluidConfiguration), serverPlayer);
+		}
 	}
 }
