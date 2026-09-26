@@ -59,6 +59,13 @@ final class TRGameTestRegistration {
 		registerOne(event, environment, "iron_alloy_furnace_electrum", 2000) { helper ->
 			TRGameTest.run(helper) { ctx -> new IronAlloyFurnaceTest().testIronAlloyFurnaceElectrumAlloyIngot(ctx) }
 		}
+
+		registerOne(event, environment, "fe_block_insert_extract", 100) { helper -> InteropGameTests.feBlockInsertExtract(helper) }
+		registerOne(event, environment, "fe_fallback_transfer", 100) { helper -> InteropGameTests.feFallbackTransfer(helper) }
+		registerOne(event, environment, "fe_machine_pushes_to_neighbour", 100) { helper -> InteropGameTests.feMachinePushesToNeighbour(helper) }
+		registerOne(event, environment, "fe_item_capability", 100) { helper -> InteropGameTests.feItemCapability(helper) }
+		registerOne(event, environment, "hopper_inserts_into_machine", 200) { helper -> InteropGameTests.hopperInsertsIntoMachine(helper) }
+		registerOne(event, environment, "machine_item_extract", 100) { helper -> InteropGameTests.machineItemExtract(helper) }
 	}
 
 	private static void registerOne(
