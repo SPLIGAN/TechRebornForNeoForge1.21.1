@@ -29,6 +29,7 @@ import techreborn.TechReborn;
 import techreborn.blockentity.cable.CableBlockEntity;
 import techreborn.blockentity.generator.nuclear.ReactorChamberBlockEntity;
 import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
+import techreborn.items.CellFluidHandler;
 
 public final class TechRebornCapabilities {
 	private TechRebornCapabilities() {
@@ -51,6 +52,7 @@ public final class TechRebornCapabilities {
 		});
 
 		registerItemEnergy(event);
+		event.registerItem(Capabilities.Fluid.ITEM, (stack, access) -> new CellFluidHandler(access), TRContent.Cells.values());
 	}
 
 	private static <T extends BlockEntity> void registerSidedEnergy(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
