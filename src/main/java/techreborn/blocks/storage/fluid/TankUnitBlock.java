@@ -162,7 +162,7 @@ public class TankUnitBlock extends BlockMachineBase {
 					if (tankInstance.getFluidInstance().isEmpty()) {
 						tankInstance.setFluidInstance(new FluidInstance(fluid, fluidValue));
 					} else {
-						tankInstance.modifyFluid(fluidInstance -> fluidInstance.withAmount(fluidValue));
+						tankInstance.modifyFluid(fluidInstance -> fluidInstance.addAmount(fluidValue));
 					}
 
 					// Give players the empty stuff back
