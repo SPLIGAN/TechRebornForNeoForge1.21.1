@@ -9,6 +9,7 @@
 *.toml text eol=lf
 HEADER text eol=lf
 RebornCore/HEADER text eol=lf
+gradlew text eol=lf
 
 # Windows wrapper scripts
 *.bat text eol=crlf
