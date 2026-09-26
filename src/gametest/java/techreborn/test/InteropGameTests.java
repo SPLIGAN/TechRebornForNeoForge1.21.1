@@ -55,7 +55,10 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.minecraft.nbt.CompoundTag;
+import reborncore.common.RebornCoreConfig;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
+import reborncore.common.blockentity.MachinePermissions;
 import reborncore.common.blockentity.SlotConfiguration;
 import reborncore.common.energy.api.EnergyStorage;
 import reborncore.common.energy.api.EnergyStorageUtil;
@@ -519,6 +522,90 @@ public final class InteropGameTests {
 				check(helper, su.getStored() >= 100, "SU has not been charged yet: " + su.getStored());
 			});
 		});
+	}
+
+	/** Creative units expose no automation access (capabilities or vanilla worldly-container faces) unless configured. */
+	public static void creativeUnitsBlockAutomation(GameTestHelper helper) {
+		BlockPos tankPos = MACHINE.east();
+		helper.setBlock(MACHINE, TRContent.StorageUnit.CREATIVE.block);
+		helper.setBlock(tankPos, TRContent.TankUnit.CREATIVE.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			StorageUnitBaseBlockEntity unit = helper.getBlockEntity(MACHINE, StorageUnitBaseBlockEntity.class);
+			setSlotIo(unit, StorageUnitBaseBlockEntity.OUTPUT_SLOT, Direction.DOWN, SlotConfiguration.ExtractConfig.OUTPUT);
+			boolean previous = TechRebornConfig.creativeUnitsBlockAutomation;
+			try {
+				TechRebornConfig.creativeUnitsBlockAutomation = true;
+				check(helper, itemCap(helper, MACHINE, Direction.DOWN) == null, "Creative storage unit exposes an item capability");
+				check(helper, unit.getSlotsForFace(Direction.DOWN).length == 0, "Creative storage unit exposes hopper slots");
+				check(helper, fluidCap(helper, tankPos) == null, "Creative tank unit exposes a fluid capability");
+				TechRebornConfig.creativeUnitsBlockAutomation = false;
+				check(helper, itemCap(helper, MACHINE, Direction.DOWN) != null && unit.getSlotsForFace(Direction.DOWN).length > 0, "Automation still blocked with the option disabled");
+				check(helper, fluidCap(helper, tankPos) != null, "Tank automation still blocked with the option disabled");
+			} finally {
+				TechRebornConfig.creativeUnitsBlockAutomation = previous;
+			}
+			helper.succeed();
+		});
+	}
+
+	/** Machine configuration packets are limited to the owner (placer) or operators; ownerless machines are op-only by default. */
+	public static void machineConfigPermissions(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.Machine.ELECTRIC_FURNACE.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity machine = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			Player owner = helper.makeMockPlayer(GameType.SURVIVAL);
+			Player other = helper.makeMockPlayer(GameType.SURVIVAL);
+			check(helper, !owner.getUUID().equals(other.getUUID()), "Mock players share a UUID");
+
+			check(helper, machine.getOwner() == null && !MachinePermissions.canConfigure(owner, machine), "Ownerless machine configurable by a non-op");
+			boolean previous = RebornCoreConfig.allowOwnerlessMachineConfig;
+			try {
+				RebornCoreConfig.allowOwnerlessMachineConfig = true;
+				check(helper, MachinePermissions.canConfigure(other, machine), "allowOwnerlessMachineConfig not honoured");
+			} finally {
+				RebornCoreConfig.allowOwnerlessMachineConfig = previous;
+			}
+
+			BlockState state = helper.getBlockState(MACHINE);
+			state.getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(MACHINE), state, owner, new ItemStack(state.getBlock()));
+			check(helper, owner.getUUID().equals(machine.getOwner()), "Placer not recorded as owner");
+			check(helper, MachinePermissions.canConfigure(owner, machine), "Owner cannot configure their machine");
+			check(helper, !MachinePermissions.canConfigure(other, machine), "Another player can configure the machine");
+
+			CompoundTag saved = machine.saveWithoutMetadata(helper.getLevel().registryAccess());
+			check(helper, saved.contains("owner"), "Owner not saved");
+			helper.succeed();
+		});
+	}
+
+	/** With the bucket mixin, buckets can be emptied into and filled from a tank unit by hand. */
+	public static void tankUnitHandBucket(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.TankUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity unit = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			unit.getTank().setFluidInstance(new FluidInstance(Fluids.WATER, FluidValue.BUCKET.multiply(2)));
+			Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+			BlockPos abs = helper.absolutePos(MACHINE);
+			BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false);
+
+			player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Items.WATER_BUCKET));
+			helper.getBlockState(MACHINE).useWithoutItem(helper.getLevel(), player, hit);
+			check(helper, unit.getTank().getAmount() == FluidValue.BUCKET.multiply(3).getRawValue(), "Bucket not emptied into tank: " + unit.getTank().getAmount());
+			check(helper, player.getMainHandItem().is(Items.BUCKET), "Empty bucket not returned: " + player.getMainHandItem());
+
+			helper.getBlockState(MACHINE).useWithoutItem(helper.getLevel(), player, hit);
+			check(helper, unit.getTank().getAmount() == FluidValue.BUCKET.multiply(2).getRawValue(), "Bucket not filled from tank: " + unit.getTank().getAmount());
+			check(helper, player.getMainHandItem().is(Items.WATER_BUCKET), "Water bucket not returned: " + player.getMainHandItem());
+			helper.succeed();
+		});
+	}
+
+	private static ResourceHandler<ItemResource> itemCap(GameTestHelper helper, BlockPos pos, Direction side) {
+		return helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(pos), side);
+	}
+
+	private static ResourceHandler<FluidResource> fluidCap(GameTestHelper helper, BlockPos pos) {
+		return helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(pos), Direction.UP);
 	}
 
 	private static void setSlotIo(MachineBaseBlockEntity machine, int slot, Direction side, SlotConfiguration.ExtractConfig io) {

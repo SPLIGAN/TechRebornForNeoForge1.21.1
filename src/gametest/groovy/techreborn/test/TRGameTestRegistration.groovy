@@ -77,6 +77,9 @@ final class TRGameTestRegistration {
 		registerOne(event, environment, "tank_unit_drains_cells", 200) { helper -> InteropGameTests.tankUnitDrainsCells(helper) }
 		registerOne(event, environment, "tank_unit_hand_fill_adds", 100) { helper -> InteropGameTests.tankUnitHandFillAdds(helper) }
 		registerOne(event, environment, "battery_charge_conserves_energy", 200) { helper -> InteropGameTests.batteryChargeConservesEnergy(helper) }
+		registerOne(event, environment, "creative_units_block_automation", 100) { helper -> InteropGameTests.creativeUnitsBlockAutomation(helper) }
+		registerOne(event, environment, "machine_config_permissions", 100) { helper -> InteropGameTests.machineConfigPermissions(helper) }
+		registerOne(event, environment, "tank_unit_hand_bucket", 100) { helper -> InteropGameTests.tankUnitHandBucket(helper) }
 	}
 
 	private static void registerOne(
