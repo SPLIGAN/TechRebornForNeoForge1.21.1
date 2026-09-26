@@ -34,6 +34,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import org.jetbrains.annotations.Nullable;
+import techreborn.utils.CreativeUnitAccess;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -61,8 +65,31 @@ public class StorageUnitBlock extends BlockMachineBase {
 		return new StorageUnitBaseBlockEntity(pos, state, unitType);
 	}
 
+	private boolean isRestrictedFor(@Nullable Player player) {
+		return unitType == TRContent.StorageUnit.CREATIVE && !CreativeUnitAccess.mayUse(player);
+	}
+
+	@Override
+	public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+		if (isRestrictedFor(context.getPlayer())) {
+			return null;
+		}
+		return super.getStateForPlacement(context);
+	}
+
+	@Override
+	protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+		if (isRestrictedFor(player)) {
+			return 0;
+		}
+		return super.getDestroyProgress(state, player, level, pos);
+	}
+
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
+		if (isRestrictedFor(playerIn)) {
+			return InteractionResult.FAIL;
+		}
 		if (unitType == TRContent.StorageUnit.CREATIVE || worldIn.isClientSide()) {
 			return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 		}
@@ -110,7 +137,7 @@ public class StorageUnitBlock extends BlockMachineBase {
 	public void attack(BlockState state, Level world, BlockPos pos, Player player) {
 		super.attack(state, world, pos, player);
 
-		if (world.isClientSide()) return;
+		if (world.isClientSide() || isRestrictedFor(player)) return;
 
 		final StorageUnitBaseBlockEntity storageEntity = (StorageUnitBaseBlockEntity) world.getBlockEntity(pos);
 		if (storageEntity == null) {

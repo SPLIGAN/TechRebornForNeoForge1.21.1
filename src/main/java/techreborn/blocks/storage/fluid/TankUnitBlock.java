@@ -32,6 +32,10 @@ import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import org.jetbrains.annotations.Nullable;
+import techreborn.utils.CreativeUnitAccess;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
@@ -63,8 +67,31 @@ public class TankUnitBlock extends BlockMachineBase {
 		return new TankUnitBaseBlockEntity(pos, state, unitType);
 	}
 
+	private boolean isRestrictedFor(@Nullable Player player) {
+		return unitType == TRContent.TankUnit.CREATIVE && !CreativeUnitAccess.mayUse(player);
+	}
+
+	@Override
+	public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+		if (isRestrictedFor(context.getPlayer())) {
+			return null;
+		}
+		return super.getStateForPlacement(context);
+	}
+
+	@Override
+	protected float getDestroyProgress(BlockState state, Player player, BlockGetter level, BlockPos pos) {
+		if (isRestrictedFor(player)) {
+			return 0;
+		}
+		return super.getDestroyProgress(state, player, level, pos);
+	}
+
 	@Override
 	public InteractionResult useWithoutItem(BlockState state, Level worldIn, BlockPos pos, Player playerIn, BlockHitResult hitResult) {
+		if (isRestrictedFor(playerIn)) {
+			return InteractionResult.FAIL;
+		}
 		if (unitType == TRContent.TankUnit.CREATIVE || worldIn.isClientSide()) {
 			return super.useWithoutItem(state, worldIn, pos, playerIn, hitResult);
 		}
