@@ -31,11 +31,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 import reborncore.common.blockentity.MachineBaseBlockEntity;
@@ -47,6 +49,7 @@ import reborncore.common.energy.capability.EnergyHandlerEnergyStorage;
 import reborncore.common.powerSystem.PowerAcceptorBlockEntity;
 import reborncore.common.transfer.RcTransaction;
 import techreborn.blockentity.storage.energy.EnergyStorageBlockEntity;
+import techreborn.blockentity.storage.item.StorageUnitBaseBlockEntity;
 import techreborn.init.TRContent;
 
 /**
@@ -201,6 +204,134 @@ public final class InteropGameTests {
 				tx.commit();
 			}
 			check(helper, furnace.getItem(1).getCount() == 3, "Committed extract not applied: " + furnace.getItem(1));
+			helper.succeed();
+		});
+	}
+
+	/** Storage unit item capability: insert/extract with commit, root abort and nested abort never create or lose items. */
+	public static void storageUnitTransactions(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.StorageUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			StorageUnitBaseBlockEntity unit = helper.getBlockEntity(MACHINE, StorageUnitBaseBlockEntity.class);
+			BlockPos abs = helper.absolutePos(MACHINE);
+			ResourceHandler<ItemResource> top = helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, Direction.UP);
+			ResourceHandler<ItemResource> bottom = helper.getLevel().getCapability(Capabilities.Item.BLOCK, abs, Direction.DOWN);
+			check(helper, top != null && bottom != null, "Item capability missing on storage unit");
+			ItemResource cobble = ItemResource.of(Items.COBBLESTONE);
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, top.insert(cobble, 10, tx) == 0, "Unconfigured side accepted items");
+			}
+			setSlotIo(unit, StorageUnitBaseBlockEntity.INPUT_SLOT, Direction.UP, SlotConfiguration.ExtractConfig.INPUT);
+			setSlotIo(unit, StorageUnitBaseBlockEntity.OUTPUT_SLOT, Direction.DOWN, SlotConfiguration.ExtractConfig.OUTPUT);
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, top.insert(cobble, 100, tx) == 100, "Insert rejected");
+			}
+			check(helper, unit.getCurrentCapacity() == 0, "Aborted insert was not rolled back: " + unit.getCurrentCapacity());
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, top.insert(cobble, 100, tx) == 100, "Insert rejected");
+				try (Transaction nested = Transaction.open(tx)) {
+					check(helper, top.insert(cobble, 10, nested) == 10, "Nested insert rejected");
+				}
+				tx.commit();
+			}
+			check(helper, unit.getCurrentCapacity() == 100, "Committed insert with aborted nested insert: " + unit.getCurrentCapacity());
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, top.insert(ItemResource.of(Items.DIRT), 1, tx) == 0, "Different item accepted");
+				check(helper, top.extract(cobble, 1, tx) == 0, "Input-only side provided items");
+				check(helper, bottom.insert(cobble, 1, tx) == 0, "Output-only side accepted items");
+			}
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, bottom.extract(cobble, 60, tx) == 60, "Extract failed");
+			}
+			check(helper, unit.getCurrentCapacity() == 100, "Aborted extract was not rolled back: " + unit.getCurrentCapacity());
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, bottom.extract(cobble, 30, tx) == 30, "Extract failed");
+				try (Transaction nested = Transaction.open(tx)) {
+					bottom.extract(cobble, 50, nested);
+				}
+				tx.commit();
+			}
+			check(helper, unit.getCurrentCapacity() == 70, "Committed extract with aborted nested extract: " + unit.getCurrentCapacity());
+
+			// Let the unit tick (moving items between its internal stack and output slot), then re-check the total.
+			helper.runAfterDelay(5, () -> {
+				check(helper, unit.getCurrentCapacity() == 70, "Item count changed after ticking: " + unit.getCurrentCapacity());
+				try (Transaction tx = Transaction.openRoot()) {
+					check(helper, bottom.extract(cobble, 1000, tx) == 70, "Could not extract full contents");
+				}
+				check(helper, unit.getCurrentCapacity() == 70, "Aborted full extract was not rolled back");
+				helper.succeed();
+			});
+		});
+	}
+
+	/** A vanilla hopper draining a storage unit conserves the total item count. */
+	public static void storageUnitHopperConservation(GameTestHelper helper) {
+		BlockPos unitPos = MACHINE.above();
+		helper.setBlock(unitPos, TRContent.StorageUnit.BASIC.block);
+		helper.setBlock(MACHINE, Blocks.HOPPER);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			StorageUnitBaseBlockEntity unit = helper.getBlockEntity(unitPos, StorageUnitBaseBlockEntity.class);
+			setSlotIo(unit, StorageUnitBaseBlockEntity.OUTPUT_SLOT, Direction.DOWN, SlotConfiguration.ExtractConfig.OUTPUT);
+			setSlotIo(unit, StorageUnitBaseBlockEntity.INPUT_SLOT, Direction.UP, SlotConfiguration.ExtractConfig.INPUT);
+			ResourceHandler<ItemResource> top = helper.getLevel().getCapability(Capabilities.Item.BLOCK, helper.absolutePos(unitPos), Direction.UP);
+			try (Transaction tx = Transaction.openRoot()) {
+				top.insert(ItemResource.of(Items.COBBLESTONE), 80, tx);
+				tx.commit();
+			}
+			HopperBlockEntity hopper = helper.getBlockEntity(MACHINE, HopperBlockEntity.class);
+			helper.succeedWhen(() -> {
+				int inHopper = 0;
+				for (int i = 0; i < hopper.getContainerSize(); i++) {
+					inHopper += hopper.getItem(i).getCount();
+				}
+				check(helper, unit.getCurrentCapacity() + inHopper == 80, "Items not conserved: unit=" + unit.getCurrentCapacity() + " hopper=" + inHopper);
+				check(helper, inHopper >= 3, "Hopper has not pulled enough yet: " + inHopper);
+			});
+		});
+	}
+
+	/** Tank capability: whole-millibucket transfers, rollback on abort, fluid type enforced. */
+	public static void tankUnitFluidTransactions(GameTestHelper helper) {
+		helper.setBlock(MACHINE, TRContent.TankUnit.BASIC.block);
+		helper.runAfterDelay(SETUP_DELAY, () -> {
+			MachineBaseBlockEntity unit = helper.getBlockEntity(MACHINE, MachineBaseBlockEntity.class);
+			ResourceHandler<FluidResource> handler = helper.getLevel().getCapability(Capabilities.Fluid.BLOCK, helper.absolutePos(MACHINE), Direction.UP);
+			check(helper, handler != null && unit.getTank() != null, "Fluid capability missing on tank unit");
+			FluidResource water = FluidResource.of(Fluids.WATER);
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, handler.insert(water, 1000, tx) == 1000, "Fluid insert rejected");
+			}
+			check(helper, unit.getTank().getAmount() == 0, "Aborted fluid insert was not rolled back");
+
+			try (Transaction tx = Transaction.openRoot()) {
+				handler.insert(water, 1000, tx);
+				try (Transaction nested = Transaction.open(tx)) {
+					handler.insert(water, 500, nested);
+				}
+				tx.commit();
+			}
+			check(helper, handler.getAmountAsLong(0) == 1000, "Committed fluid insert: " + handler.getAmountAsLong(0));
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, handler.insert(FluidResource.of(Fluids.LAVA), 100, tx) == 0, "Different fluid accepted");
+				check(helper, handler.extract(FluidResource.of(Fluids.LAVA), 100, tx) == 0, "Different fluid extracted");
+				check(helper, handler.extract(water, 400, tx) == 400, "Fluid extract failed");
+			}
+			check(helper, handler.getAmountAsLong(0) == 1000, "Aborted fluid extract was not rolled back");
+
+			try (Transaction tx = Transaction.openRoot()) {
+				check(helper, handler.extract(water, 400, tx) == 400, "Fluid extract failed");
+				tx.commit();
+			}
+			check(helper, handler.getAmountAsLong(0) == 600 && unit.getTank().getAmount() == 600 * 81, "Committed fluid extract: " + unit.getTank().getAmount());
 			helper.succeed();
 		});
 	}

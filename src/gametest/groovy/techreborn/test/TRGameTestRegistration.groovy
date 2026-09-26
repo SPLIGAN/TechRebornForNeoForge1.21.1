@@ -66,6 +66,9 @@ final class TRGameTestRegistration {
 		registerOne(event, environment, "fe_item_capability", 100) { helper -> InteropGameTests.feItemCapability(helper) }
 		registerOne(event, environment, "hopper_inserts_into_machine", 200) { helper -> InteropGameTests.hopperInsertsIntoMachine(helper) }
 		registerOne(event, environment, "machine_item_extract", 100) { helper -> InteropGameTests.machineItemExtract(helper) }
+		registerOne(event, environment, "storage_unit_transactions", 100) { helper -> InteropGameTests.storageUnitTransactions(helper) }
+		registerOne(event, environment, "storage_unit_hopper_conservation", 300) { helper -> InteropGameTests.storageUnitHopperConservation(helper) }
+		registerOne(event, environment, "tank_unit_fluid_transactions", 100) { helper -> InteropGameTests.tankUnitFluidTransactions(helper) }
 	}
 
 	private static void registerOne(
