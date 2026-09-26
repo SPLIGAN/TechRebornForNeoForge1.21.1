@@ -24,17 +24,25 @@
 
 package reborncore.common.transfer;
 
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import com.google.common.primitives.Ints;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import org.jetbrains.annotations.Nullable;
 
-public record RcFluidHandlerBackedStorage(IFluidHandler handler) implements RcStorage<RcFluidVariant> {
+/**
+ * A NeoForge fluid {@link ResourceHandler} (millibuckets) as an {@link RcStorage} (droplets). Operations join the
+ * RebornCore transaction and only move whole millibuckets, so no fraction is moved without being reported.
+ */
+public record RcFluidHandlerBackedStorage(ResourceHandler<FluidResource> handler) implements RcStorage<RcFluidVariant> {
+	private static final long DROPLETS_PER_MB = RcTransferConstants.DROPLETS_PER_BUCKET / 1000;
 
 	@Override
 	public RcFluidVariant getResource() {
-		for (int i = 0; i < handler.getTanks(); i++) {
-			FluidStack fs = handler.getFluidInTank(i);
-			if (!fs.isEmpty()) {
-				return RcFluidVariant.of(fs.getFluid());
+		for (int i = 0; i < handler.size(); i++) {
+			FluidResource resource = handler.getResource(i);
+			if (!resource.isEmpty() && handler.getAmountAsLong(i) > 0) {
+				return RcFluidVariant.of(resource.getFluid());
 			}
 		}
 		return RcFluidVariant.blank();
@@ -43,8 +51,8 @@ public record RcFluidHandlerBackedStorage(IFluidHandler handler) implements RcSt
 	@Override
 	public long getAmount() {
 		long sum = 0;
-		for (int i = 0; i < handler.getTanks(); i++) {
-			sum += RcFluidAmounts.dropletsFromFluidStack(handler.getFluidInTank(i));
+		for (int i = 0; i < handler.size(); i++) {
+			sum += handler.getAmountAsLong(i) * DROPLETS_PER_MB;
 		}
 		return sum;
 	}
@@ -55,22 +63,36 @@ public record RcFluidHandlerBackedStorage(IFluidHandler handler) implements RcSt
 	}
 
 	@Override
-	public long insert(RcFluidVariant resource, long maxAmount, RcTransactionContext tx) {
-		if (resource.isBlank() || maxAmount <= 0) {
+	public long insert(RcFluidVariant resource, long maxAmount, @Nullable RcTransactionContext tx) {
+		if (resource.isBlank() || maxAmount < DROPLETS_PER_MB) {
 			return 0;
 		}
-		FluidStack stack = new FluidStack(resource.fluid(), RcFluidAmounts.toMilliBucketsClamped(maxAmount));
-		int filled = handler.fill(stack, IFluidHandler.FluidAction.EXECUTE);
-		return RcFluidAmounts.dropletsFromMilliBuckets(filled);
+		FluidResource fluid = FluidResource.of(resource.fluid());
+		int mb = Ints.saturatedCast(maxAmount / DROPLETS_PER_MB);
+		if (tx != null) {
+			return handler.insert(fluid, mb, RcNeoTransactionBridge.openNeoBoundTo(tx)) * DROPLETS_PER_MB;
+		}
+		try (Transaction transaction = RcNeoTransactionBridge.openNeoBoundTo(null)) {
+			int inserted = handler.insert(fluid, mb, transaction);
+			transaction.commit();
+			return inserted * DROPLETS_PER_MB;
+		}
 	}
 
 	@Override
-	public long extract(RcFluidVariant resource, long maxAmount, RcTransactionContext tx) {
-		if (resource.isBlank() || maxAmount <= 0) {
+	public long extract(RcFluidVariant resource, long maxAmount, @Nullable RcTransactionContext tx) {
+		if (resource.isBlank() || maxAmount < DROPLETS_PER_MB) {
 			return 0;
 		}
-		FluidStack stack = new FluidStack(resource.fluid(), RcFluidAmounts.toMilliBucketsClamped(maxAmount));
-		FluidStack drained = handler.drain(stack, IFluidHandler.FluidAction.EXECUTE);
-		return RcFluidAmounts.dropletsFromFluidStack(drained);
+		FluidResource fluid = FluidResource.of(resource.fluid());
+		int mb = Ints.saturatedCast(maxAmount / DROPLETS_PER_MB);
+		if (tx != null) {
+			return handler.extract(fluid, mb, RcNeoTransactionBridge.openNeoBoundTo(tx)) * DROPLETS_PER_MB;
+		}
+		try (Transaction transaction = RcNeoTransactionBridge.openNeoBoundTo(null)) {
+			int extracted = handler.extract(fluid, mb, transaction);
+			transaction.commit();
+			return extracted * DROPLETS_PER_MB;
+		}
 	}
 }

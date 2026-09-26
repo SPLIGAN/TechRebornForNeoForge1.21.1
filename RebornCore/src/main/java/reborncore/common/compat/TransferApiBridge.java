@@ -24,39 +24,43 @@
 
 package reborncore.common.compat;
 
+import com.google.common.primitives.Ints;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Container;
+import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import net.neoforged.neoforge.transfer.EmptyResourceHandler;
+import net.neoforged.neoforge.transfer.RangedResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandlerUtil;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.transfer.item.WorldlyContainerWrapper;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.Nullable;
-import reborncore.common.transfer.ConnectingInventoryFluidHandler;
+import reborncore.common.transfer.MachineSlotsItemAccess;
 import reborncore.common.transfer.RcCombinedItemStorage;
-import reborncore.common.transfer.RcFluidAmounts;
 import reborncore.common.transfer.RcFluidHandlerBackedStorage;
 import reborncore.common.transfer.RcFluidVariant;
 import reborncore.common.transfer.RcItemHandlerSlotStorage;
 import reborncore.common.transfer.RcItemVariant;
+import reborncore.common.transfer.RcNeoTransactionBridge;
 import reborncore.common.transfer.RcSingleStackItemStorage;
 import reborncore.common.transfer.RcStorage;
+import reborncore.common.transfer.RcStorageView;
+import reborncore.common.transfer.RcTankResourceHandler;
 import reborncore.common.transfer.RcTransaction;
 import reborncore.common.transfer.RcTransactionContext;
 import reborncore.common.transfer.RcTransferConstants;
-import reborncore.common.transfer.TankFluidHandler;
 import reborncore.common.util.Tank;
 import reborncore.common.energy.api.EnergyStorage;
 
@@ -64,48 +68,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 
 /**
- * NeoForge-native transfer helpers: {@link Capabilities.Item}, {@link Capabilities.Fluid}, legacy {@link IItemHandler} / {@link IFluidHandler} adapters.
- * {@link RcStorage} wrappers preserve Tech Reborn transaction semantics without Fabric Transfer API types or classpath dependency.
+ * NeoForge-native transfer helpers over {@link Capabilities.Item} / {@link Capabilities.Fluid} {@link ResourceHandler}s.
+ * {@link RcStorage} wrappers join RebornCore transactions, so simulated or aborted moves never change inventories.
  */
 public final class TransferApiBridge {
-	private static final RcFluidHandlerBackedStorage EMPTY_FLUID_STORAGE = new RcFluidHandlerBackedStorage(new IFluidHandler() {
-		@Override
-		public int getTanks() {
-			return 0;
-		}
-
-		@Override
-		public FluidStack getFluidInTank(int tank) {
-			return FluidStack.EMPTY;
-		}
-
-		@Override
-		public int getTankCapacity(int tank) {
-			return 0;
-		}
-
-		@Override
-		public boolean isFluidValid(int tank, FluidStack stack) {
-			return false;
-		}
-
-		@Override
-		public int fill(FluidStack resource, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction action) {
-			return 0;
-		}
-
-		@Override
-		public FluidStack drain(FluidStack resource, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction action) {
-			return FluidStack.EMPTY;
-		}
-
-		@Override
-		public FluidStack drain(int maxDrain, net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction action) {
-			return FluidStack.EMPTY;
-		}
-	});
+	private static final long DROPLETS_PER_MB = RcTransferConstants.DROPLETS_PER_BUCKET / 1000;
+	private static final RcFluidHandlerBackedStorage EMPTY_FLUID_STORAGE = new RcFluidHandlerBackedStorage(EmptyResourceHandler.instance());
 
 	private TransferApiBridge() {
 	}
@@ -123,127 +94,94 @@ public final class TransferApiBridge {
 
 	public static RcStorage<RcItemVariant> findItemStorage(Level world, BlockPos pos, Direction direction) {
 		ResourceHandler<ItemResource> handler = world.getCapability(Capabilities.Item.BLOCK, pos, direction);
-		if (handler == null) {
-			return emptyItemStorage();
-		}
-		return wrapItemHandler(IItemHandler.of(handler));
+		return wrapItemHandler(handler != null ? handler : EmptyResourceHandler.instance());
 	}
 
 	public static RcStorage<RcFluidVariant> findFluidStorage(Level world, BlockPos pos, Direction direction) {
 		ResourceHandler<FluidResource> handler = world.getCapability(Capabilities.Fluid.BLOCK, pos, direction);
-		if (handler == null) {
-			return EMPTY_FLUID_STORAGE;
-		}
-		return new RcFluidHandlerBackedStorage(IFluidHandler.of(handler));
+		return handler == null ? EMPTY_FLUID_STORAGE : new RcFluidHandlerBackedStorage(handler);
 	}
 
 	public static long fluidConstantsBucket() {
 		return RcTransferConstants.DROPLETS_PER_BUCKET;
 	}
 
+	/**
+	 * Runs {@code body} in a NeoForge transaction that joins {@code transaction} (or commits immediately if it is null).
+	 */
+	private static int inNeoTransaction(@Nullable RcTransactionContext transaction, ToIntFunction<Transaction> body) {
+		if (transaction != null) {
+			return body.applyAsInt(RcNeoTransactionBridge.openNeoBoundTo(transaction));
+		}
+		try (Transaction neoTransaction = RcNeoTransactionBridge.openNeoBoundTo(null)) {
+			int result = body.applyAsInt(neoTransaction);
+			neoTransaction.commit();
+			return result;
+		}
+	}
+
+	/** Amounts are in droplets; only whole millibuckets are moved. */
 	public static long moveFluids(@Nullable RcStorage<RcFluidVariant> from, @Nullable RcStorage<RcFluidVariant> to, Predicate<RcFluidVariant> filter, long maxAmount, @Nullable RcTransactionContext transaction) {
-		if (from == null || to == null || maxAmount == 0) {
+		if (from == null || to == null || maxAmount < DROPLETS_PER_MB) {
 			return 0;
 		}
-		if (transaction != null) {
-			throw new UnsupportedOperationException("Fluid transfers with an explicit transaction context are not supported");
-		}
-		IFluidHandler fromHandler = toFluidHandler(from);
-		IFluidHandler toHandler = toFluidHandler(to);
+		ResourceHandler<FluidResource> fromHandler = toFluidResourceHandler(from);
+		ResourceHandler<FluidResource> toHandler = toFluidResourceHandler(to);
 		if (fromHandler == null || toHandler == null) {
 			return 0;
 		}
-		FluidStack moved = net.neoforged.neoforge.fluids.FluidUtil.tryFluidTransfer(toHandler, fromHandler, RcFluidAmounts.toMilliBucketsClamped(maxAmount), true);
-		return RcFluidAmounts.dropletsFromFluidStack(moved);
+		int mb = Ints.saturatedCast(maxAmount / DROPLETS_PER_MB);
+		int moved = inNeoTransaction(transaction, tx -> ResourceHandlerUtil.move(fromHandler, toHandler, resource -> filter.test(RcFluidVariant.of(resource.getFluid())), mb, tx));
+		return moved * DROPLETS_PER_MB;
 	}
 
 	public static long moveItems(@Nullable RcStorage<RcItemVariant> from, @Nullable RcStorage<RcItemVariant> to, Predicate<RcItemVariant> filter, long maxAmount, @Nullable RcTransactionContext transaction) {
 		if (from == null || to == null || maxAmount == 0) {
 			return 0;
 		}
-		if (transaction != null) {
-			throw new UnsupportedOperationException("Item transfers with an explicit transaction context are not supported");
+		ResourceHandler<ItemResource> fromHandler = toItemResourceHandler(from);
+		ResourceHandler<ItemResource> toHandler = toItemResourceHandler(to);
+		if (fromHandler != null && toHandler != null) {
+			int amount = Ints.saturatedCast(maxAmount);
+			return inNeoTransaction(transaction, tx -> ResourceHandlerUtil.move(fromHandler, toHandler, resource -> filter.test(RcItemVariant.of(resource.toStack())), amount, tx));
 		}
-		IItemHandler fromHandler = toItemHandler(from);
-		IItemHandler toHandler = toItemHandler(to);
-		if (fromHandler == null || toHandler == null) {
-			return moveItemsViaStorageViews(from, to, filter, maxAmount);
-		}
-		return moveItemHandlers(fromHandler, toHandler, filter, maxAmount);
+		return moveItemsViaStorageViews(from, to, filter, maxAmount, transaction);
 	}
 
-	private static long moveItemsViaStorageViews(RcStorage<RcItemVariant> from, RcStorage<RcItemVariant> to, Predicate<RcItemVariant> filter, long maxAmount) {
+	private static long moveItemsViaStorageViews(RcStorage<RcItemVariant> from, RcStorage<RcItemVariant> to, Predicate<RcItemVariant> filter, long maxAmount, @Nullable RcTransactionContext transaction) {
 		long transferred = 0;
-		for (var view : from.views()) {
-			RcItemVariant resource = view.getResource();
-			if (view.isResourceBlank() || !filter.test(resource)) {
-				continue;
-			}
-			while (transferred < maxAmount) {
-				long remaining = maxAmount - transferred;
+		try (RcTransaction moveTx = RcTransaction.openNested(transaction)) {
+			for (var view : from.views()) {
+				RcItemVariant resource = view.getResource();
+				if (view.isResourceBlank() || !filter.test(resource)) {
+					continue;
+				}
 				long maxExtracted;
-				try (RcTransaction extractionTest = RcTransaction.openNested(null)) {
-					maxExtracted = view.extract(resource, remaining, extractionTest);
+				try (RcTransaction extractionTest = moveTx.openNested()) {
+					maxExtracted = view.extract(resource, maxAmount - transferred, extractionTest);
 				}
 				if (maxExtracted == 0) {
-					break;
+					continue;
 				}
-				try (RcTransaction moveTx = RcTransaction.openOuter()) {
-					long extracted = view.extract(resource, maxExtracted, moveTx);
-					if (extracted == 0) {
-						break;
-					}
-					long inserted = to.insert(resource, extracted, moveTx);
-					if (inserted == 0) {
-						break;
-					}
-					long leftover = extracted - inserted;
-					if (leftover > 0) {
-						((RcStorage<RcItemVariant>) view).insert(resource, leftover, moveTx);
-					}
-					if (inserted == extracted) {
-						moveTx.commit();
+				try (RcTransaction slotTx = moveTx.openNested()) {
+					long inserted = to.insert(resource, maxExtracted, slotTx);
+					if (inserted > 0 && view.extract(resource, inserted, slotTx) == inserted) {
+						slotTx.commit();
 						transferred += inserted;
 					}
 				}
+				if (transferred >= maxAmount) {
+					break;
+				}
 			}
+			moveTx.commit();
 		}
 		return transferred;
 	}
 
-	private static long moveItemHandlers(IItemHandler fromHandler, IItemHandler toHandler, Predicate<RcItemVariant> filter, long maxAmount) {
-		long moved = 0;
-		for (int i = 0; i < fromHandler.getSlots(); i++) {
-			ItemStack slotStack = fromHandler.getStackInSlot(i);
-			if (slotStack.isEmpty()) {
-				continue;
-			}
-			if (!filter.test(RcItemVariant.of(slotStack))) {
-				continue;
-			}
-			long remaining = maxAmount - moved;
-			if (remaining <= 0) {
-				break;
-			}
-			ItemStack simulated = fromHandler.extractItem(i, (int) Math.min(remaining, Integer.MAX_VALUE), true);
-			if (simulated.isEmpty()) {
-				continue;
-			}
-			ItemStack leftoverSim = ItemHandlerHelper.insertItemStacked(toHandler, simulated, true);
-			int insertable = simulated.getCount() - leftoverSim.getCount();
-			if (insertable <= 0) {
-				continue;
-			}
-			ItemStack extracted = fromHandler.extractItem(i, insertable, false);
-			ItemStack leftover = ItemHandlerHelper.insertItemStacked(toHandler, extracted, false);
-			moved += insertable - leftover.getCount();
-		}
-		return moved;
-	}
-
-	private static IFluidHandler toFluidHandler(RcStorage<RcFluidVariant> storage) {
+	private static @Nullable ResourceHandler<FluidResource> toFluidResourceHandler(RcStorage<RcFluidVariant> storage) {
 		if (storage instanceof Tank tank) {
-			return new TankFluidHandler(tank);
+			return new RcTankResourceHandler(() -> tank);
 		}
 		if (storage instanceof RcFluidHandlerBackedStorage wrapped) {
 			return wrapped.handler();
@@ -251,120 +189,123 @@ public final class TransferApiBridge {
 		return null;
 	}
 
-	private static IItemHandler toItemHandler(RcStorage<RcItemVariant> storage) {
+	private static @Nullable ResourceHandler<ItemResource> toItemResourceHandler(RcStorage<RcItemVariant> storage) {
 		if (storage instanceof RcItemHandlerWrapper wrapper) {
 			return wrapper.handler();
+		}
+		if (storage instanceof RcItemHandlerSlotStorage slot) {
+			return RangedResourceHandler.ofSingleIndex(slot.handler(), slot.slot());
 		}
 		return null;
 	}
 
-	private record RcItemHandlerWrapper(IItemHandler handler) implements RcStorage<RcItemVariant> {
+	/**
+	 * Direct (side-less) access for the owner's own logic uses {@link VanillaContainerWrapper}; sided access honours
+	 * {@link WorldlyContainer} face rules.
+	 */
+	private static ResourceHandler<ItemResource> containerHandler(Container inventory, @Nullable Direction direction) {
+		if (direction != null && inventory instanceof WorldlyContainer worldly) {
+			return new WorldlyContainerWrapper(worldly, direction);
+		}
+		return VanillaContainerWrapper.of(inventory);
+	}
+
+	private record RcItemHandlerWrapper(ResourceHandler<ItemResource> handler) implements RcStorage<RcItemVariant> {
 		@Override
 		public RcItemVariant getResource() {
+			for (int i = 0; i < handler.size(); i++) {
+				ItemResource resource = handler.getResource(i);
+				if (!resource.isEmpty()) {
+					return RcItemVariant.of(resource.toStack());
+				}
+			}
 			return RcItemVariant.of(ItemStack.EMPTY);
 		}
 
 		@Override
 		public long getAmount() {
-			return 0;
+			long sum = 0;
+			for (int i = 0; i < handler.size(); i++) {
+				sum += handler.getAmountAsLong(i);
+			}
+			return sum;
 		}
 
 		@Override
 		public boolean isResourceBlank() {
-			return true;
+			return getAmount() == 0;
 		}
 
 		@Override
-		public long insert(RcItemVariant resource, long maxAmount, RcTransactionContext tx) {
-			return 0;
+		public long insert(RcItemVariant resource, long maxAmount, @Nullable RcTransactionContext tx) {
+			if (resource.isBlank() || maxAmount <= 0) {
+				return 0;
+			}
+			ItemResource item = ItemResource.of(resource.toStack(1));
+			int amount = Ints.saturatedCast(maxAmount);
+			return inNeoTransaction(tx, neoTx -> ResourceHandlerUtil.insertStacking(handler, item, amount, neoTx));
 		}
 
 		@Override
-		public long extract(RcItemVariant resource, long maxAmount, RcTransactionContext tx) {
-			return 0;
+		public long extract(RcItemVariant resource, long maxAmount, @Nullable RcTransactionContext tx) {
+			if (resource.isBlank() || maxAmount <= 0) {
+				return 0;
+			}
+			ItemResource item = ItemResource.of(resource.toStack(1));
+			int amount = Ints.saturatedCast(maxAmount);
+			return inNeoTransaction(tx, neoTx -> handler.extract(item, amount, neoTx));
 		}
 
 		@Override
-		public Iterable<reborncore.common.transfer.RcStorageView<RcItemVariant>> views() {
-			List<reborncore.common.transfer.RcStorageView<RcItemVariant>> list = new ArrayList<>();
-			for (int s = 0; s < handler.getSlots(); s++) {
-				int slot = s;
+		public Iterable<RcStorageView<RcItemVariant>> views() {
+			List<RcStorageView<RcItemVariant>> list = new ArrayList<>();
+			for (int slot = 0; slot < handler.size(); slot++) {
 				list.add(new RcItemHandlerSlotStorage(handler, slot));
 			}
 			return list;
 		}
 	}
 
-	private static RcStorage<RcItemVariant> wrapItemHandler(IItemHandler handler) {
+	private static RcStorage<RcItemVariant> wrapItemHandler(ResourceHandler<ItemResource> handler) {
 		return new RcItemHandlerWrapper(handler);
 	}
 
-	private static RcStorage<RcItemVariant> emptyItemStorage() {
-		return new RcItemHandlerWrapper(new IItemHandler() {
-			@Override
-			public int getSlots() {
-				return 0;
-			}
-
-			@Override
-			public ItemStack getStackInSlot(int slot) {
-				return ItemStack.EMPTY;
-			}
-
-			@Override
-			public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
-				return stack;
-			}
-
-			@Override
-			public ItemStack extractItem(int slot, int amount, boolean simulate) {
-				return ItemStack.EMPTY;
-			}
-
-			@Override
-			public int getSlotLimit(int slot) {
-				return 0;
-			}
-
-			@Override
-			public boolean isItemValid(int slot, ItemStack stack) {
-				return false;
-			}
-		});
-	}
-
 	public static RcStorage<RcItemVariant> playerInventoryStorage(Player player) {
-		return wrapItemHandler(IItemHandler.of(PlayerInventoryWrapper.of(player)));
+		return wrapItemHandler(PlayerInventoryWrapper.of(player));
 	}
 
 	@Nullable
 	public static RcStorage<RcItemVariant> playerInventorySlotMatchingStack(Player player, ItemStack stack) {
-		RcStorage<RcItemVariant> playerInv = playerInventoryStorage(player);
-		IItemHandler handler = toItemHandler(playerInv);
-		if (handler == null) {
-			return null;
-		}
-		for (int i = 0; i < handler.getSlots(); i++) {
-			if (handler.getStackInSlot(i) == stack) {
-				return new RcItemHandlerSlotStorage(handler, i);
+		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+			if (player.getInventory().getItem(i) == stack) {
+				return new RcItemHandlerSlotStorage(PlayerInventoryWrapper.of(player), i);
 			}
 		}
 		return null;
 	}
 
+	/**
+	 * Fluid view of the container in {@code inputSlot}; filled/emptied containers are moved to {@code outputSlot}.
+	 */
 	public static RcStorage<RcFluidVariant> fluidStorageConnectingInventorySlots(Container inventory, int inputSlot, int outputSlot) {
-		return new RcFluidHandlerBackedStorage(new ConnectingInventoryFluidHandler(inventory, inputSlot, outputSlot));
+		if (inventory.getItem(inputSlot).isEmpty()) {
+			return EMPTY_FLUID_STORAGE;
+		}
+		ResourceHandler<FluidResource> handler = new MachineSlotsItemAccess(inventory, inputSlot, outputSlot)
+			.oneByOne()
+			.getCapability(Capabilities.Fluid.ITEM);
+		return handler == null ? EMPTY_FLUID_STORAGE : new RcFluidHandlerBackedStorage(handler);
 	}
 
 	@Nullable
 	public static RcStorage<RcFluidVariant> fluidItemStorageNullable(ItemStack stack) {
+		if (stack.isEmpty()) {
+			return null;
+		}
 		ResourceHandler<FluidResource> handler = ItemAccess.forStack(stack.copyWithCount(1))
 			.oneByOne()
 			.getCapability(Capabilities.Fluid.ITEM);
-		if (handler == null) {
-			return null;
-		}
-		return new RcFluidHandlerBackedStorage(IFluidHandler.of(handler));
+		return handler == null ? null : new RcFluidHandlerBackedStorage(handler);
 	}
 
 	public static RcStorage<RcFluidVariant> fluidItemStorageFromStack(ItemStack stack) {
@@ -378,58 +319,32 @@ public final class TransferApiBridge {
 
 	public static boolean fluidItemStorageEffectivelyEmpty(ItemStack stack) {
 		RcStorage<RcFluidVariant> fluidStorage = fluidItemStorageNullable(stack);
-		if (fluidStorage == null) {
-			return false;
-		}
-		try (RcTransaction tx = RcTransaction.openNested(null)) {
-			for (var view : fluidStorage.views()) {
-				if (!view.isResourceBlank() && view.getAmount() > 0) {
-					return false;
-				}
-			}
-		}
-		return true;
+		return fluidStorage != null && fluidStorage.isResourceBlank();
 	}
 
 	public static boolean fluidItemStorageMatchesFluid(ItemStack stack, Predicate<net.minecraft.world.level.material.Fluid> predicate) {
 		RcStorage<RcFluidVariant> fluidStorage = fluidItemStorageNullable(stack);
-		if (fluidStorage == null) {
+		if (fluidStorage == null || fluidStorage.isResourceBlank()) {
 			return false;
 		}
-		try (RcTransaction tx = RcTransaction.openNested(null)) {
-			for (var view : fluidStorage.views()) {
-				if (!view.isResourceBlank() && view.getAmount() > 0 && predicate.test(view.getResource().fluid())) {
-					return true;
-				}
-			}
-		}
-		return false;
+		return predicate.test(fluidStorage.getResource().fluid());
 	}
 
 	public static boolean drainFluidStorageCompletelyCommitted(RcStorage<RcFluidVariant> itemStorage) {
-		if (itemStorage instanceof RcFluidHandlerBackedStorage wrapped) {
-			boolean didSomething = false;
-			IFluidHandler handler = wrapped.handler();
-			for (int i = 0; i < handler.getTanks(); i++) {
-				FluidStack fs = handler.getFluidInTank(i);
-				if (!fs.isEmpty()) {
-					handler.drain(fs, IFluidHandler.FluidAction.EXECUTE);
-					didSomething = true;
+		if (!(itemStorage instanceof RcFluidHandlerBackedStorage wrapped)) {
+			return false;
+		}
+		ResourceHandler<FluidResource> handler = wrapped.handler();
+		return inNeoTransaction(null, tx -> {
+			int drained = 0;
+			for (int i = 0; i < handler.size(); i++) {
+				FluidResource resource = handler.getResource(i);
+				if (!resource.isEmpty()) {
+					drained += handler.extract(i, resource, Integer.MAX_VALUE, tx);
 				}
 			}
-			return didSomething;
-		}
-		try (RcTransaction tx = RcTransaction.openOuter()) {
-			boolean didSomething = false;
-			for (var view : itemStorage.views()) {
-				if (view.isResourceBlank()) {
-					continue;
-				}
-				didSomething |= view.extract(view.getResource(), Long.MAX_VALUE, tx) > 0;
-			}
-			tx.commit();
-			return didSomething;
-		}
+			return drained;
+		}) > 0;
 	}
 
 	public static RcItemVariant itemVariantOf(ItemStack stack) {
@@ -437,33 +352,11 @@ public final class TransferApiBridge {
 	}
 
 	public static RcStorage<RcItemVariant> inventorySlot(Container inventory, @Nullable Direction direction, int slotIndex) {
-		IItemHandler sided = IItemHandler.of(new WorldlyContainerWrapper((net.minecraft.world.WorldlyContainer) inventory, direction));
-		return new RcItemHandlerSlotStorage(sided, slotIndex);
+		return new RcItemHandlerSlotStorage(containerHandler(inventory, direction), slotIndex);
 	}
 
 	public static long insertItemStackedIntoInventory(RcStorage<RcItemVariant> inventory, RcItemVariant variant, long maxAmount) {
-		IItemHandler handler = toItemHandler(inventory);
-		if (handler != null) {
-			ItemStack toInsert = variant.toStack((int) Math.min(maxAmount, Integer.MAX_VALUE));
-			ItemStack remainder = ItemHandlerHelper.insertItemStacked(handler, toInsert, false);
-			return toInsert.getCount() - remainder.getCount();
-		}
-		long inserted = 0;
-		try (RcTransaction tx = RcTransaction.openOuter()) {
-			outer:
-			for (int loop = 0; loop < 2; ++loop) {
-				for (var view : inventory.views()) {
-					if (view.getResource().equals(variant) || loop == 1) {
-						inserted += ((RcStorage<RcItemVariant>) view).insert(variant, maxAmount - inserted, tx);
-						if (inserted >= maxAmount) {
-							break outer;
-						}
-					}
-				}
-			}
-			tx.commit();
-		}
-		return inserted;
+		return insertVariantCommitted(inventory, variant, maxAmount);
 	}
 
 	public static long insertVariantCommitted(RcStorage<RcItemVariant> storage, RcItemVariant variant, long maxAmount) {
@@ -534,8 +427,8 @@ public final class TransferApiBridge {
 		return new SingleStackStorageHandle(hooks) {};
 	}
 
-	public static RcStorage<RcItemVariant> inventoryStorageOf(Container inventory, Direction direction) {
-		return wrapItemHandler(IItemHandler.of(new WorldlyContainerWrapper((net.minecraft.world.WorldlyContainer) inventory, direction)));
+	public static RcStorage<RcItemVariant> inventoryStorageOf(Container inventory, @Nullable Direction direction) {
+		return wrapItemHandler(containerHandler(inventory, direction));
 	}
 
 	public static RcStorage<RcItemVariant> combineSlottedItemStorages(List<RcStorage<RcItemVariant>> storages) {
