@@ -117,6 +117,11 @@ public class TankUnitBlock extends BlockMachineBase {
 
 				// If tank has content, fill up user's inventory
 				if(amountInTank.equalOrMoreThan(FluidValue.BUCKET)){
+					// Refuse fluids this container type cannot hold (e.g. no cell/bucket exists) instead of voiding them.
+					ItemStack sample = itemFluid.getFull(tankInstance.getFluid());
+					if (sample.isEmpty() || !(sample.getItem() instanceof ItemFluidInfo sampleInfo) || sampleInfo.getFluid(sample) != tankInstance.getFluid()) {
+						return InteractionResult.FAIL;
+					}
 
 					// Amount to transfer is whatever is lower (stack count or tank level)
 					int amountTransferBuckets = (int) Math.min(amountInTank.getRawValue() / FluidValue.BUCKET.getRawValue(), stackInHand.getCount());
